@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#121212">
+    <title>LS Garage</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
+
+    <style>
+        :root {
+            --bg-color: #121212; --card-bg: #1e1e1e; --text-main: #e0e0e0; --text-dim: #a0a0a0;
+            --accent: #9b59b6; --accent-hover: #8e44ad;
+            --f1-color: #e67e22; --benny-color: #3498db; --plate-color: #f1c40f; 
+            --weapon-color: #e74c3c; --stock: #95a5a6;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color); color: var(--text-main);
+            margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh;
+            overscroll-behavior-y: none;
+        }
+
+        header {
+            background-color: #000; padding: 15px 20px;
+            border-bottom: 2px solid var(--accent);
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        h1 { margin: 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; }
+        .header-actions { display: flex; gap: 8px; align-items: center; }
+        
+        .controls {
+            padding: 10px; display: flex; flex-direction: column; gap: 10px;
+            background-color: #181818; border-bottom: 1px solid #333;
+        }
+        .search-row { display: flex; gap: 10px; width: 100%; }
+
+        input[type="text"] {
+            flex-grow: 1; padding: 12px; border-radius: 8px; border: 1px solid #333;
+            background: #252525; color: white; font-size: 16px;
+        }
+
+        button { border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
+        button.primary-btn { background-color: var(--accent); color: white; width: 100%; }
+        button.secondary-btn { background-color: #333; color: #ccc; border: 1px solid #444; padding: 8px 12px; font-size: 0.8rem; }
+        button.danger-btn { background-color: #3e1212; color: #e74c3c; border: 1px solid #e74c3c; padding: 8px 12px; font-size: 0.8rem; }
+
+        #vehicle-list {
+            flex-grow: 1; overflow-y: auto; padding: 10px;
+            display: grid; grid-template-columns: 1fr; gap: 10px;
+        }
+        @media (min-width: 600px) {
+            #vehicle-list { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+            .controls { flex-direction: row; align-items: center; }
+            button.primary-btn { width: auto; }
+        }
+
+        .vehicle-card {
+            background-color: var(--card-bg); border-radius: 8px; padding: 15px;
+            border-left: 5px solid var(--stock); box-shadow: 0 2px 4px rgba(0,0,0,0.3); position: relative;
+        }
+
+        .vehicle-card.has-weapon { border-left-color: var(--weapon-color); }
+        .vehicle-card:not(.has-weapon).has-f1 { border-left-color: var(--f1-color); }
+        .vehicle-card:not(.has-weapon):not(.has-f1).has-benny { border-left-color: var(--benny-color); }
+
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
+        .vehicle-name { font-size: 1.1rem; font-weight: bold; color: #fff; }
+        .vehicle-manuf { font-size: 0.8rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
+        .vehicle-loc { font-size: 0.9rem; color: var(--text-dim); margin-top: 8px; padding-top: 8px; border-top: 1px solid #333; }
+        
+        .badges-container { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
+        .badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+        
+        .badge.weapon { background: rgba(231, 76, 60, 0.2); color: var(--weapon-color); border: 1px solid var(--weapon-color); }
+        .badge.f1 { background: rgba(230, 126, 34, 0.2); color: var(--f1-color); border: 1px solid var(--f1-color); }
+        .badge.benny { background: rgba(52, 152, 219, 0.2); color: var(--benny-color); border: 1px solid var(--benny-color); }
+        .badge.plate { background: rgba(241, 196, 15, 0.2); color: var(--plate-color); border: 1px solid var(--plate-color); }
+        .badge.stock { background: rgba(149, 165, 166, 0.2); color: var(--stock); }
+
+        .vehicle-notes { background: #2a2a2a; padding: 8px; margin-top: 10px; font-size: 0.85rem; border-radius: 4px; color: #ccc; }
+        .card-actions { margin-top: 10px; display: flex; justify-content: flex-end; gap: 15px; }
+        .icon-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 1.4rem; padding: 5px; }
+
+        /* FOOTER */
+        footer {
+            background-color: #181818;
+            padding: 15px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            border-top: 1px solid #333;
+        }
+        footer a { color: var(--accent); text-decoration: none; margin-left: 10px; cursor: pointer; font-weight: bold; }
+        footer a:hover { text-decoration: underline; }
+
+        /* MODAL */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: flex-end;
+        }
+        @media(min-width: 600px) { .modal { align-items: center; } }
+
+        .modal-content {
+            background: #1e1e1e; width: 100%; max-height: 85vh; overflow-y: auto;
+            border-radius: 15px 15px 0 0; padding: 20px; animation: slideUp 0.3s ease-out;
+        }
+        @media(min-width: 600px) { .modal-content { width: 90%; max-width: 500px; border-radius: 10px; animation: fadeIn 0.2s; } }
+
+        /* Changelog Specifics */
+        .changelog-list { text-align: left; margin-bottom: 20px; }
+        .changelog-item { margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .changelog-ver { color: var(--accent); font-weight: bold; display: block; margin-bottom: 5px; }
+        .changelog-desc { color: #ccc; font-size: 0.9rem; line-height: 1.4; }
+
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: var(--text-dim); }
+        .form-group input, .form-group select {
+            width: 100%; box-sizing: border-box; padding: 12px;
+            background: #252525; border: 1px solid #333; color: white; border-radius: 8px; font-size: 16px;
+        }
+        
+        .row-group { display: flex; gap: 10px; }
+        .row-group > div { flex: 1; }
+        .checkbox-wrapper { display: flex; align-items: center; gap: 10px; background: #252525; padding: 12px; border-radius: 8px; border: 1px solid #333; }
+        .checkbox-wrapper input { width: auto; height: 20px; width: 20px; }
+
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-actions button { flex: 1; }
+        .empty-state { text-align: center; color: var(--text-dim); margin-top: 50px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>LS Garage</h1>
+    <div class="header-actions">
+        <button class="secondary-btn" onclick="downloadBackup()">💾</button>
+        <button class="secondary-btn" onclick="document.getElementById('restoreInput').click()">📂</button>
+        <input type="file" id="restoreInput" style="display:none" onchange="restoreBackup(this)">
+    </div>
+</header>
+
+<div class="controls">
+    <div class="search-row">
+        <input type="text" id="searchInput" placeholder="Search vehicles..." onkeyup="filterVehicles()">
+    </div>
+    <button class="primary-btn" type="button" onclick="openModal()">+ Add Vehicle</button>
+    <div style="font-size: 0.8rem; color: var(--text-dim); text-align: center;">
+        Total: <span id="count">0</span>
+    </div>
+</div>
+
+<div id="vehicle-list">
+    <div class="empty-state">Loading...</div>
+</div>
+
+<footer>
+    <span>v11.0</span>
+    <a onclick="openChangelog()">Changelog</a>
+</footer>
+
+<div id="vehicleModal" class="modal">
+    <div class="modal-content">
+        <h2 id="modalTitle" style="margin-top: 0; margin-bottom: 20px;">Add Vehicle</h2>
+        
+        <div class="row-group">
+            <div class="form-group">
+                <label>Make</label>
+                <select id="inputManuf" onchange="updateModelDropdown()">
+                    <option value="" disabled selected>Select...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Model</label>
+                <select id="inputModelDropdown" onchange="checkCustomModel()">
+                    <option value="" disabled selected>--</option>
+                </select>
+                <input type="text" id="inputModelCustom" placeholder="Custom Name" style="display:none; margin-top:5px;">
+            </div>
+        </div>
+
+        <div class="row-group">
+            <div class="form-group" style="flex: 2;">
+                <label>Garage</label>
+                <select id="inputLoc" onchange="checkCustomLoc()">
+                    <option value="" disabled selected>Select...</option>
+                    <optgroup label="Safehouse / Mansions">
+                        <option value="Richman Villa">Richman Villa</option>
+                        <option value="The Vinewood Residence">The Vinewood Residence</option>
+                        <option value="The Tongva Estate">The Tongva Estate</option>
+                    </optgroup>
+                    <optgroup label="Massive Garages">
+                        <option value="Vinewood Club Garage">Vinewood Club Garage (100)</option>
+                        <option value="Eclipse Blvd Garage">Eclipse Blvd Garage (50)</option>
+                        <option value="Office Garage 1">Office Garage 1</option>
+                        <option value="Office Garage 2">Office Garage 2</option>
+                        <option value="Office Garage 3">Office Garage 3</option>
+                    </optgroup>
+                    <optgroup label="Apartments">
+                        <option value="Eclipse Towers">Eclipse Towers</option>
+                        <option value="Tinsel Towers">Tinsel Towers</option>
+                        <option value="Richards Majestic">Richards Majestic</option>
+                        <option value="Alta St">Alta St</option>
+                        <option value="Del Perro Heights">Del Perro Heights</option>
+                        <option value="Weazel Plaza">Weazel Plaza</option>
+                        <option value="Stilt House">Stilt House</option>
+                        <option value="Penthouse Suite">Penthouse Suite</option>
+                    </optgroup>
+                    <optgroup label="Businesses">
+                        <option value="Agency Garage">Agency Garage</option>
+                        <option value="Nightclub">Nightclub</option>
+                        <option value="Arcade">Arcade</option>
+                        <option value="Auto Shop">Auto Shop</option>
+                        <option value="Salvage Yard">Salvage Yard</option>
+                        <option value="Bail Enforcement Office">Bail Enforcement</option>
+                        <option value="Clubhouse">MC Clubhouse</option>
+                        <option value="Darnell Bros Factory">Darnell Bros Factory</option>
+                    </optgroup>
+                    <optgroup label="Specialized">
+                        <option value="Arena Workshop">Arena Workshop</option>
+                        <option value="Casino Penthouse">Casino Penthouse</option>
+                        <option value="Facility">Facility</option>
+                        <option value="Bunker">Bunker</option>
+                        <option value="Hangar">Hangar</option>
+                        <option value="Kosatka">Kosatka</option>
+                        <option value="Terrorbyte">Terrorbyte</option>
+                        <option value="Acid Lab">Acid Lab</option>
+                        <option value="Avenger">Avenger</option>
+                        <option value="MOC">Mobile Ops Center</option>
+                    </optgroup>
+                    <option value="Custom">Other / Custom...</option>
+                </select>
+                <input type="text" id="inputLocCustom" placeholder="Type Custom Location" style="display:none; margin-top:5px;">
+            </div>
+
+            <div class="form-group" style="flex: 1;">
+                <label>Floor</label>
+                <input type="text" id="inputFloor" list="floorList" placeholder="Lvl">
+                <datalist id="floorList">
+                    <option value="Floor 1"></option>
+                    <option value="Floor 2"></option>
+                    <option value="Floor 3"></option>
+                    <option value="Floor 4"></option>
+                    <option value="Floor 5"></option>
+                    <option value="Basement 1"></option>
+                    <option value="Basement 2"></option>
+                    <option value="Basement 3"></option>
+                    <option value="Basement 4"></option>
+                </datalist>
+            </div>
+        </div>
+
+        <div style="border-top: 1px solid #333; padding-top: 15px; margin-bottom: 15px;">
+            <div class="form-group checkbox-wrapper">
+                <input type="checkbox" id="inputWeaponized">
+                <label for="inputWeaponized" style="margin:0; color: #e74c3c; font-weight:bold;">Weaponized?</label>
+            </div>
+
+            <div class="row-group">
+                <div class="form-group">
+                    <label>Wheels</label>
+                    <select id="inputWheels">
+                        <option value="Stock">Stock</option>
+                        <option value="F1">F1</option>
+                        <option value="Benny's Original">Benny's Orig</option>
+                        <option value="Benny's Bespoke">Benny's Besp</option>
+                        <option value="Street">Street</option>
+                        <option value="Track">Track</option>
+                        <option value="Offroad">Offroad</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Plate</label>
+                    <select id="inputPlate">
+                        <option value="Standard">Standard</option>
+                        <option value="Yankton">Yankton</option>
+                        <option value="Liberty City">Liberty City</option>
+                        <option value="Panic">Panic</option>
+                        <option value="Pounders">Pounders</option>
+                        <option value="Las Venturas">Las Venturas</option>
+                        <option value="E-Cola">E-Cola</option>
+                        <option value="Sprunk">Sprunk</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Notes</label>
+            <input type="text" id="inputNotes" placeholder="Paint, Livery...">
+        </div>
+
+        <div class="modal-actions">
+            <button class="secondary-btn" onclick="closeModal()">Cancel</button>
+            <button class="primary-btn" onclick="saveVehicle()">Save</button>
+        </div>
+        <div style="text-align:center; margin-top:15px;">
+            <button class="danger-btn" onclick="deleteVehicle(editingId)" id="btnDelete" style="display:none; width:100%;">Delete Vehicle</button>
+        </div>
+    </div>
+</div>
+
+<div id="changelogModal" class="modal">
+    <div class="modal-content">
+        <h2 style="margin-top:0;">Changelog</h2>
+        <div class="changelog-list">
+            <div class="changelog-item">
+                <span class="changelog-ver">v11.0</span>
+                <span class="changelog-desc">Added Footer with version number and Changelog viewer. Cleaned up header.</span>
+            </div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v10.0</span>
+                <span class="changelog-desc">Safehouse Update: Added official Mansion names (Vinewood Residence, Richman Villa, Tongva Estate). Added new vehicles (GT750, X-Treme, Luiva, etc).</span>
+            </div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v9.0</span>
+                <span class="changelog-desc">Added support for Custom Locations (Other...) and 3 distinct Mansion slots.</span>
+            </div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v8.0</span>
+                <span class="changelog-desc">Mobile App Optimization (Icon, Meta tags for Add to Homescreen).</span>
+            </div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v7.0</span>
+                <span class="changelog-desc">Military Expansion: Added Tanks (Rhino, Khanjali), RCV, AA Trailer, and Weaponized Tampa.</span>
+            </div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v6.0</span>
+                <span class="changelog-desc">Relational Database: Dropdowns now filter Models based on Manufacturer. Added "Weaponized" attribute.</span>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="secondary-btn" onclick="closeChangelog()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- DATABASE ---
+    const CAR_DB = {
+        "Albany": ["Alpha", "Brigham", "Buccaneer", "Cavalcade", "Cavalcade XL", "Emperor", "Franken Stange", "Hermes", "Lurcher", "Manana", "Primo", "Roosevelt", "V-STR", "Virgo", "Washington"],
+        "Annis": ["300R", "Elegy RH8", "Elegy Retro Custom", "Euros", "Euros X32", "Hellion", "Remus", "RE-7B", "S80RR", "Savestra", "ZR350", "ZR380"],
+        "Benefactor": ["Dubsta", "Dubsta 6x6", "Feltzer", "Krieger", "LM87", "Panto", "Schafter", "Schlagen GT", "SM722", "Stirling GT", "Terrorbyte", "Vorschlaghammer", "XLS"],
+        "BF": ["Bifta", "Club", "Dune FAV", "Injection", "Ramp Buggy", "Raptor", "Surfer", "Weevil", "Weevil Custom"],
+        "Bollokan": ["Envisage", "Prairie"],
+        "Bravado": ["Banshee", "Banshee 900R", "Banshee GTS", "Buffalo", "Buffalo EVX", "Buffalo STX", "Dorado", "Gauntlet", "Gauntlet Hellfire", "Gauntlet Interceptor", "Greenwood", "Half-track", "Hotring Hellfire", "Redwood Gauntlet", "Verlierer", "Youga"],
+        "Brute": ["Boxville", "Stockade", "Police Riot"],
+        "Buckingham": ["Akula", "Alpha-Z1", "Conada", "Luxor", "Luxor Deluxe", "Maverick", "Nimbus", "Pyro", "Swift", "Vestra", "Volatus"],
+        "Canis": ["Bodhi", "Castigator", "Crusader", "Freecrawler", "Kamacho", "Mesa", "Seminole", "Terminus"],
+        "Chariot": ["Romero Hearse"],
+        "Cheval": ["Fugitive", "Marshall", "Picador", "Surge", "Taipan"],
+        "Classique": ["Broadway"],
+        "Coil": ["Brawler", "Cyclone", "Cyclone II", "Raiden", "Rocket Voltic", "Tarantula", "TM-02 Khanjali", "Voltic"],
+        "Declasse": ["Draugur", "Drift Tampa", "Drift Yosemite", "Granger", "Granger 3600LX", "Hotring Sabre", "Impaler", "Impaler LX", "Impaler SZ", "Mamba", "Rhapsody", "Sabre Turbo", "Scramjet", "Stallion", "Tampa", "Tornado", "Tulip", "Vetir", "Vigero", "Vigero ZX", "Walton L35", "Weaponized Tampa", "Yosemite", "Yosemite 1500"],
+        "Dewbauchee": ["Champion", "Exemplar", "Massacro", "Rapid GT", "Seven-70", "Specter", "Vagner", "Viseris"],
+        "Dinka": ["Blista", "Blista Kanjo", "Double-T", "Enduro", "Jester", "Jester Classic", "Jester RR", "Kanjo SJ", "Postlude", "Sugoi", "Thrust", "Veto Classic", "Veto Modern"],
+        "Dundreary": ["Landstalker", "Landstalker XL", "Regina", "Virgo Classic"],
+        "Eberhan": ["Titan 250D"],
+        "Emperor": ["Etr1", "Habanero", "Sheava", "Vectre"],
+        "Enus": ["Cognoscenti", "Deity", "Diabolus", "Jubilee", "Paragon R", "Paragon S", "Stafford", "Super Diamond", "Windsor", "Windsor Drop"],
+        "Fathom": ["FR36"],
+        "Gallivanter": ["Baller", "Baller ST", "Baller ST-D"],
+        "Grotti": ["Bestia GTS", "Brioso 300", "Carbonizzare", "Cheetah", "Cheetah Classic", "Furia", "GT500", "GT750", "Itali GTO", "Itali GTO Stinger TT", "Itali RSX", "Stinger", "Stinger GT", "Turismo Classic", "Turismo Omaggio", "Turismo R", "Visione", "X80 Proto"],
+        "Hijak": ["Khamelion", "Ruston"],
+        "HVY": ["APC", "Barrage", "Chernobog", "Insurgent", "Insurgent Pick-Up", "Menacer", "Nightshark", "Rhino Tank", "Scarab"],
+        "Imponte": ["Arbiter GT", "Beater Dukes", "Deluxo", "Duke O'Death", "Dukes", "Nightshade", "Phoenix", "Ruiner", "Ruiner 2000", "Ruiner ZZ-8"],
+        "Invetero": ["Coquette", "Coquette BlackFin", "Coquette Classic", "Coquette D1", "Coquette D10"],
+        "JoBuilt": ["Hauler", "Phantom", "Phantom Wedge", "P-996 Lazer"],
+        "Karin": ["190z", "Asterope GZ", "Boor", "Calico GTF", "Dilettante", "Everon", "Futo", "Futo GTX", "Hotring Everon", "Intruder", "Kuruma", "Kuruma (Armored)", "Previon", "Rebel", "Sniper", "Sultan", "Sultan Classic", "Sultan RS", "Vivanite"],
+        "Lampadati": ["Casco", "Cinqueila", "Corsita", "Felon", "Furore GT", "Komoda", "Michelli GT", "Novak", "Pigalle", "Tigon", "Tropos Rallye", "Viseris"],
+        "Maibatsu": ["Frogger", "Manchez", "Manchez Scout", "MonstroCiti", "Mule", "Penumbra", "Penumbra FF", "Sanchez"],
+        "Mammoth": ["Avenger", "F-160 Raiju", "Hydra", "Patriot", "Patriot Mil-Spec", "RCV", "Squaddie", "Thruster", "Tula"],
+        "Maxwell": ["Asbo", "Vagrant"],
+        "MTL": ["Brickade", "Brickade 6x6", "Dune", "Pounder"],
+        "Nagasaki": ["BF400", "Blazer", "Buzzard", "Carbon RS", "Chimera", "Havok", "Hot Rod Blazer", "Outlaw", "Shinobi", "Shotaro", "Street Blazer", "Stryder"],
+        "Obey": ["10F", "10F Widebody", "8F Drafter", "9F", "Omnis", "Omnis e-GT", "Rocoto", "Tailgater", "Tailgater S"],
+        "Ocelot": ["Ardent", "F620", "Jackal", "Jugular", "Locust", "Lynx", "Pariah", "Penetrator", "R88", "Stromberg", "Swinger", "Virtue", "XA-21"],
+        "Overflod": ["Autarch", "Entity MT", "Entity XF", "Entity XXR", "Imorgon", "Pipistrello", "Tyrant", "Zeno"],
+        "Pegassi": ["Bati 801", "Infernus", "Infernus Classic", "Ignus", "Monroe", "Oppressor", "Oppressor Mk II", "Osiris", "Reaper", "Tempesta", "Tezeract", "Toreador", "Torero", "Torero XO", "Toros", "Vacca", "Zentorno", "Zorrusso"],
+        "Penaud": ["La Coureuse"],
+        "Pfister": ["811", "Astron", "Astron Custom", "Comet", "Comet Retro Custom", "Comet S2", "Comet S2 Cabrio", "Comet Safari", "Comet SR", "Growler", "Neon", "X-Treme"],
+        "Principe": ["Deveste Eight", "Lectro", "Nemesis"],
+        "Progen": ["Emerus", "GP1", "Itali GTB", "Luiva", "PR4", "T20", "Tyrus"],
+        "Rune": ["Cheburek", "Zhaba"],
+        "Schyster": ["Deviant", "Fusilade"],
+        "Shitzu": ["Defiler", "Hakuchou", "Hakuchou Drag", "PCJ 600", "Vader"],
+        "Toundra": ["Panthere"],
+        "Truffade": ["Adder", "Nero", "Thrax", "Z-Type"],
+        "Ubermacht": ["Cypher", "Niobe", "Oracle", "Rebla GTS", "Rhinehart", "SC1", "Sentinel", "Sentinel Classic", "Sentinel XS4", "Zion", "Zion Classic"],
+        "Vapid": ["Aleutian", "Benson", "Blade", "Caracara", "Caracara 4x4", "Chino", "Clique", "Contender", "Dominator", "Dominator ASP", "Dominator GTT", "Dominator GT", "Dominator FX", "Ellie", "Flash GT", "FMJ", "FMJ MK V", "GB200", "Guardian", "Hustler", "Imperator", "Minivan", "Peyote", "Peyote Gasser", "Retinue", "Retinue Mk II", "Riata", "Sandking", "Slamtruck", "Slamvan", "Speedo", "Stanier", "Torrence", "Trophy Truck", "Winky"],
+        "Vom Feuer": ["Anti-Aircraft Trailer"],
+        "Vulcar": ["Fagaloa", "Ingot", "Nebula Turbo", "Warrener", "Warrener HKR"],
+        "Weeny": ["Dynasty", "Issi", "Issi Classic", "Issi Rally", "Issi Sport"],
+        "Western": ["Bagger", "Cliffhanger", "Daemon", "Gargoyle", "Nightblade", "Powersurge", "Rat Bike", "Reever", "Sovereign", "Wolfsbane", "Zombie"],
+        "Willard": ["Eudora", "Faction"],
+        "Zirconium": ["Journey", "Journey II", "Stratum"]
+    };
+
+    const SORTED_MANUFS = Object.keys(CAR_DB).sort();
+    const STORAGE_KEY = 'gta_vehicles_v1';
+    let vehicles = [];
+    let editingId = null;
+
+    // --- DOM ---
+    const listEl = document.getElementById('vehicle-list');
+    const modal = document.getElementById('vehicleModal');
+    const clModal = document.getElementById('changelogModal');
+    const searchInput = document.getElementById('searchInput');
+    const countEl = document.getElementById('count');
+    const manufSelect = document.getElementById('inputManuf');
+    const modelSelect = document.getElementById('inputModelDropdown');
+    const modelCustom = document.getElementById('inputModelCustom');
+    const locSelect = document.getElementById('inputLoc');
+    const locCustom = document.getElementById('inputLocCustom');
+    const btnDelete = document.getElementById('btnDelete');
+
+    // --- INIT ---
+    initApp();
+
+    function initApp() {
+        populateManufDropdown();
+        try {
+            let saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) {
+                const legacy = localStorage.getItem('gta_vehicles');
+                if (legacy) { saved = legacy; localStorage.setItem(STORAGE_KEY, legacy); }
+            }
+            if (saved) {
+                vehicles = JSON.parse(saved);
+                if (!Array.isArray(vehicles)) vehicles = [];
+            }
+        } catch (e) { console.error(e); vehicles = []; }
+        renderVehicles(vehicles);
+    }
+
+    function populateManufDropdown() {
+        manufSelect.innerHTML = '<option value="" disabled selected>Select...</option>';
+        SORTED_MANUFS.forEach(brand => {
+            const opt = document.createElement('option');
+            opt.value = brand; opt.innerText = brand;
+            manufSelect.appendChild(opt);
+        });
+        const otherOpt = document.createElement('option');
+        otherOpt.value = "Other"; otherOpt.innerText = "Other / Unknown";
+        manufSelect.appendChild(otherOpt);
+    }
+
+    // --- UI HELPERS ---
+    window.updateModelDropdown = function(selectedModel = null) {
+        const brand = manufSelect.value;
+        modelSelect.innerHTML = '<option value="" disabled selected>Select...</option>';
+        modelCustom.style.display = 'none';
+
+        if (CAR_DB[brand]) {
+            CAR_DB[brand].sort().forEach(model => {
+                const opt = document.createElement('option');
+                opt.value = model; opt.innerText = model;
+                modelSelect.appendChild(opt);
+            });
+        }
+        
+        const customOpt = document.createElement('option');
+        customOpt.value = "Custom"; customOpt.innerText = "Custom / Other...";
+        modelSelect.appendChild(customOpt);
+
+        if (selectedModel) {
+            const exists = Array.from(modelSelect.options).some(o => o.value === selectedModel);
+            if (exists) {
+                modelSelect.value = selectedModel;
+            } else {
+                modelSelect.value = "Custom";
+                modelCustom.style.display = 'block';
+                modelCustom.value = selectedModel;
+            }
+        }
+    };
+
+    window.checkCustomModel = function() {
+        if (modelSelect.value === 'Custom') {
+            modelCustom.style.display = 'block'; modelCustom.focus();
+        } else {
+            modelCustom.style.display = 'none';
+        }
+    };
+
+    window.checkCustomLoc = function() {
+        if (locSelect.value === 'Custom') {
+            locCustom.style.display = 'block'; locCustom.focus();
+        } else {
+            locCustom.style.display = 'none';
+        }
+    };
+
+    // --- RENDER ---
+    function renderVehicles(data) {
+        listEl.innerHTML = '';
+        if(countEl) countEl.textContent = data.length;
+
+        if (data.length === 0) {
+            listEl.innerHTML = '<div class="empty-state">Garage Empty. Add a vehicle!</div>';
+            return;
+        }
+
+        data.forEach(v => {
+            const wheels = v.wheels || 'Stock';
+            const plate = v.plate || 'Standard';
+            const manuf = v.manuf || 'Unknown';
+            const model = v.model || 'Unnamed';
+            const loc = v.loc || 'Unknown';
+            const floor = v.floor ? ` • ${v.floor}` : '';
+            const isWeapon = v.isWeapon || false;
+
+            let cardClass = '';
+            if (isWeapon) cardClass = 'has-weapon';
+            else if (wheels === 'F1') cardClass = 'has-f1';
+            else if (wheels.includes('Benny')) cardClass = 'has-benny';
+            else if (plate !== 'Standard') cardClass = 'has-plate';
+
+            let badgesHtml = '';
+            if (isWeapon) badgesHtml += `<span class="badge weapon">WEAPONIZED</span>`;
+            if (wheels === 'F1') badgesHtml += `<span class="badge f1">F1</span>`;
+            else if (wheels.includes('Benny')) badgesHtml += `<span class="badge benny">BENNY'S</span>`;
+            if (plate !== 'Standard') badgesHtml += `<span class="badge plate">${plate}</span>`;
+            if (badgesHtml === '' && !isWeapon) badgesHtml = `<span class="badge stock">STOCK</span>`;
+
+            const card = document.createElement('div');
+            card.className = `vehicle-card ${cardClass}`;
+            card.innerHTML = `
+                <div class="card-header">
+                    <div>
+                        <div class="vehicle-manuf">${manuf}</div>
+                        <div class="vehicle-name">${model}</div>
+                    </div>
+                </div>
+                <div class="badges-container">${badgesHtml}</div>
+                <div class="vehicle-loc">📍 ${loc} <span style="color: var(--accent); font-weight:bold;">${floor}</span></div>
+                ${v.notes ? `<div class="vehicle-notes">📝 ${v.notes}</div>` : ''}
+                <div class="card-actions">
+                    <button class="icon-btn" onclick="editVehicle(${v.id})">✏️</button>
+                </div>
+            `;
+            listEl.appendChild(card);
+        });
+    }
+
+    function saveToStorage() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles)); } catch(e){}
+        renderVehicles(vehicles);
+        if(searchInput.value) filterVehicles();
+    }
+
+    window.filterVehicles = function() {
+        const term = searchInput.value.toLowerCase();
+        const filtered = vehicles.filter(v => 
+            (v.model && v.model.toLowerCase().includes(term)) || 
+            (v.manuf && v.manuf.toLowerCase().includes(term)) || 
+            (v.loc && v.loc.toLowerCase().includes(term)) ||
+            (v.floor && v.floor.toLowerCase().includes(term)) ||
+            (v.notes && v.notes.toLowerCase().includes(term))
+        );
+        renderVehicles(filtered);
+    }
+
+    // --- MODAL & ACTIONS ---
+    window.openModal = function(vehicle = null) {
+        modal.style.display = 'flex';
+        
+        if (vehicle) {
+            editingId = vehicle.id;
+            document.getElementById('modalTitle').innerText = 'Edit Vehicle';
+            btnDelete.style.display = 'block';
+            
+            manufSelect.value = vehicle.manuf || "";
+            updateModelDropdown(vehicle.model);
+
+            // Handle Custom Location Loading
+            const exists = Array.from(locSelect.options).some(o => o.value === vehicle.loc);
+            if (exists) {
+                locSelect.value = vehicle.loc;
+                locCustom.style.display = 'none';
+            } else {
+                locSelect.value = "Custom";
+                locCustom.style.display = 'block';
+                locCustom.value = vehicle.loc;
+            }
+
+            document.getElementById('inputFloor').value = vehicle.floor || "";
+            document.getElementById('inputWheels').value = vehicle.wheels || "Stock";
+            document.getElementById('inputPlate').value = vehicle.plate || "Standard";
+            document.getElementById('inputNotes').value = vehicle.notes || "";
+            document.getElementById('inputWeaponized').checked = vehicle.isWeapon || false;
+
+        } else {
+            editingId = null;
+            document.getElementById('modalTitle').innerText = 'Add Vehicle';
+            btnDelete.style.display = 'none';
+            clearForm();
+        }
+    };
+
+    window.closeModal = function() { modal.style.display = 'none'; clearForm(); };
+    window.openChangelog = function() { clModal.style.display = 'flex'; };
+    window.closeChangelog = function() { clModal.style.display = 'none'; };
+
+    function clearForm() {
+        manufSelect.value = "";
+        modelSelect.innerHTML = '<option value="" disabled selected>--</option>';
+        modelCustom.style.display = 'none'; modelCustom.value = "";
+        
+        locSelect.value = "";
+        locCustom.style.display = 'none'; locCustom.value = "";
+
+        document.getElementById('inputFloor').value = "";
+        document.getElementById('inputWheels').value = "Stock";
+        document.getElementById('inputPlate').value = "Standard";
+        document.getElementById('inputNotes').value = "";
+        document.getElementById('inputWeaponized').checked = false;
+    }
+
+    window.saveVehicle = function() {
+        const manuf = manufSelect.value;
+        let model = modelSelect.value;
+        if (model === "Custom") model = modelCustom.value; 
+        
+        let loc = locSelect.value;
+        if (loc === "Custom") loc = locCustom.value;
+
+        const floor = document.getElementById('inputFloor').value;
+        const wheels = document.getElementById('inputWheels').value;
+        const plate = document.getElementById('inputPlate').value;
+        const notes = document.getElementById('inputNotes').value;
+        const isWeapon = document.getElementById('inputWeaponized').checked;
+
+        if (!manuf || !model || !loc) {
+            alert('Please fill Make, Model & Garage.');
+            return;
+        }
+
+        if (editingId) {
+            const index = vehicles.findIndex(v => v.id === editingId);
+            if (index !== -1) {
+                vehicles[index] = { ...vehicles[index], manuf, model, loc, floor, wheels, plate, notes, isWeapon };
+            }
+        } else {
+            const newVehicle = {
+                id: Date.now(),
+                manuf, model, loc, floor, wheels, plate, notes, isWeapon
+            };
+            vehicles.push(newVehicle);
+        }
+
+        saveToStorage();
+        closeModal();
+    };
+
+    window.deleteVehicle = function(id) {
+        if(confirm('Delete this vehicle?')) {
+            vehicles = vehicles.filter(v => v.id !== id);
+            saveToStorage();
+            closeModal();
+        }
+    };
+
+    window.editVehicle = function(id) {
+        const v = vehicles.find(v => v.id === id);
+        if(v) openModal(v);
+    };
+
+    window.downloadBackup = function() {
+        if(vehicles.length === 0) return alert("Nothing to backup.");
+        const date = new Date().toISOString().slice(0, 10);
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(vehicles));
+        const anchor = document.createElement('a');
+        anchor.href = dataStr;
+        anchor.download = `gta_garage_${date}.json`;
+        anchor.click();
+    };
+
+    window.restoreBackup = function(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const imported = JSON.parse(e.target.result);
+                if (Array.isArray(imported)) {
+                    if(confirm(`Restore ${imported.length} vehicles?`)) {
+                        vehicles = imported;
+                        saveToStorage();
+                    }
+                } else alert("Invalid file.");
+            } catch (err) { alert("Error reading file."); }
+        };
+        reader.readAsText(file);
+        input.value = '';
+    };
+
+    window.onclick = function(e) { 
+        if(e.target == modal) closeModal(); 
+        if(e.target == clModal) closeChangelog();
+    }
+</script>
+
+</body>
+</html>
