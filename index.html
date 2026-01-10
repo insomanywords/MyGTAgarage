@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v14</title>
+    <title>My GTA Garage v14.1</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
@@ -206,7 +206,7 @@
 </div>
 
 <footer>
-    <span>v14.0</span>
+    <span>v14.1</span>
     <a onclick="openChangelog()">Changelog</a>
 </footer>
 
@@ -236,9 +236,9 @@
                 <select id="inputLoc" onchange="handleGarageChange()">
                     <option value="" disabled selected>Select...</option>
                     <optgroup label="Safehouse / Mansions">
-                        <option value="Richman Villa">Richman Villa (10)</option>
-                        <option value="The Vinewood Residence">The Vinewood Residence (10)</option>
-                        <option value="The Tongva Estate">The Tongva Estate (10)</option>
+                        <option value="Richman Villa">Richman Villa (20)</option>
+                        <option value="The Vinewood Residence">The Vinewood Residence (20)</option>
+                        <option value="The Tongva Estate">The Tongva Estate (20)</option>
                     </optgroup>
                     <optgroup label="Massive Garages">
                         <option value="Vinewood Club Garage">Vinewood Club Garage (100)</option>
@@ -433,6 +433,10 @@
         <h2 style="margin-top:0;">Changelog</h2>
         <div class="changelog-list">
             <div class="changelog-item">
+                <span class="changelog-ver">v14.1</span>
+                <span class="changelog-desc">Correction: Updated Vinewood Residence, Richman Villa, and Tongva Estate capacity to 20 vehicles.</span>
+            </div>
+            <div class="changelog-item">
                 <span class="changelog-ver">v14.0</span>
                 <span class="changelog-desc">Expanded Apartments: Added specific unit numbers for Eclipse Towers, Richards Majestic, Tinsel Towers, etc. to support owning multiple apartments in one building.</span>
             </div>
@@ -465,9 +469,10 @@
         "Clubhouse": { cap: 10, floors: false },
         "Facility": { cap: 7, floors: false },
         "Mansion (Vinewood)": { cap: 10, floors: false },
-        "The Vinewood Residence": { cap: 10, floors: false },
-        "Richman Villa": { cap: 10, floors: false },
-        "The Tongva Estate": { cap: 10, floors: false },
+        // Updated Capacities
+        "The Vinewood Residence": { cap: 20, floors: false },
+        "Richman Villa": { cap: 20, floors: false },
+        "The Tongva Estate": { cap: 20, floors: false },
         
         // Specific Apartments (All High-Ends are 10)
         "Eclipse Towers, Penthouse Suite 1": { cap: 10, floors: false },
