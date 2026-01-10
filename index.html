@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v16</title>
+    <title>My GTA Garage v17.5</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
@@ -18,6 +18,7 @@
             --accent: #9b59b6; --accent-hover: #8e44ad;
             --f1-color: #e67e22; --benny-color: #3498db; --plate-color: #f1c40f; 
             --weapon-color: #e74c3c; --stock: #95a5a6;
+            --sell-color: #2ecc71; --timer-color: #e67e22;
             --group-header-bg: #2c2c2c;
         }
 
@@ -54,6 +55,13 @@
         button.primary-btn { background-color: var(--accent); color: white; width: 100%; }
         button.secondary-btn { background-color: #333; color: #ccc; border: 1px solid #444; padding: 8px 12px; font-size: 0.8rem; }
         button.danger-btn { background-color: #3e1212; color: #e74c3c; border: 1px solid #e74c3c; padding: 8px 12px; font-size: 0.8rem; }
+        
+        /* New Buttons */
+        button.sell-btn { background-color: #145A32; color: #2ecc71; border: 1px solid #2ecc71; padding: 10px; width: 100%; margin-top: 10px; }
+        
+        /* Timer Button */
+        button.timer-btn { background-color: #333; color: var(--sell-color); border: 1px solid var(--sell-color); padding: 8px 10px; font-size: 0.8rem; min-width: 45px; }
+        button.timer-btn.active { color: var(--timer-color); border-color: var(--timer-color); }
 
         #vehicle-list {
             flex-grow: 1; overflow-y: auto; padding: 10px;
@@ -71,18 +79,14 @@
             transition: background 0.2s;
         }
         .group-header:hover { background-color: #383838; }
-        
-        .header-title-box { display: flex; align-items: center; gap: 10px; }
-        .arrow { display: inline-block; transition: transform 0.2s ease; font-size: 0.8rem; }
-        /* Default state is expanded arrow (down). If collapsed class added, rotate right. */
         .group-header.collapsed .arrow { transform: rotate(-90deg); }
+        .arrow { display: inline-block; transition: transform 0.2s ease; font-size: 0.8rem; }
         
         .group-meta { font-size: 0.8rem; color: var(--text-dim); background: #111; padding: 4px 8px; border-radius: 10px; }
         .group-meta.full { color: #e74c3c; border: 1px solid #e74c3c; }
 
         .vehicle-grid {
             display: grid; grid-template-columns: 1fr; gap: 10px;
-            /* Animation for smooth open/close could be tricky with auto-height, using simple display toggle for robustness */
         }
         .vehicle-grid.hidden { display: none; }
 
@@ -130,7 +134,7 @@
         }
         footer a { color: var(--accent); text-decoration: none; margin-left: 10px; cursor: pointer; font-weight: bold; }
 
-        /* MODAL */
+        /* MODAL - PRESERVED STABILITY */
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: flex-end;
@@ -138,7 +142,9 @@
         @media(min-width: 600px) { .modal { align-items: center; } }
 
         .modal-content {
-            background: #1e1e1e; width: 100%; max-height: 85vh; overflow-y: auto;
+            background: #1e1e1e; width: 100%; 
+            max-height: 85vh; /* Safety Cap */
+            overflow-y: auto; /* SAFETY SCROLL - This fixes cutoff buttons */
             border-radius: 15px 15px 0 0; padding: 20px; animation: slideUp 0.3s ease-out;
         }
         @media(min-width: 600px) { .modal-content { width: 90%; max-width: 500px; border-radius: 10px; animation: fadeIn 0.2s; } }
@@ -189,6 +195,8 @@
 <header>
     <h1>My GTA Garage</h1>
     <div class="header-actions">
+        <button id="timerBtn" class="timer-btn" onclick="checkTimer()">💲</button>
+        
         <button class="secondary-btn" onclick="openStats()">📊</button>
         <button class="secondary-btn" onclick="downloadBackup()">💾</button>
         <button class="secondary-btn" onclick="document.getElementById('restoreInput').click()">📂</button>
@@ -218,7 +226,7 @@
 </div>
 
 <footer>
-    <span>v16.0</span>
+    <span>v17.5 (Safe Sale)</span>
     <a onclick="openChangelog()">Changelog</a>
 </footer>
 
@@ -390,7 +398,9 @@
             <button class="secondary-btn" onclick="closeModal()">Cancel</button>
             <button class="primary-btn" onclick="saveVehicle()">Save</button>
         </div>
-        <div style="text-align:center; margin-top:15px;">
+        
+        <div style="text-align:center; margin-top:15px; display:flex; flex-direction:column; gap:10px;">
+            <button class="sell-btn" id="btnSell" onclick="sellVehicle(editingId)" style="display:none;">💲 Sell Vehicle (18h Timer)</button>
             <button class="danger-btn" onclick="deleteVehicle(editingId)" id="btnDelete" style="display:none; width:100%;">Delete Vehicle</button>
         </div>
     </div>
@@ -399,44 +409,24 @@
 <div id="statsModal" class="modal">
     <div class="modal-content">
         <h2 style="margin-top:0;">Garage Stats</h2>
-        
         <div class="stats-grid">
-            <div class="stat-card">
-                <span class="stat-num" id="statTotal">0</span>
-                <span class="stat-label">Vehicles</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-num" id="statWeapon" style="color: var(--weapon-color);">0</span>
-                <span class="stat-label">Weaponized</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-num" id="statF1" style="color: var(--f1-color);">0</span>
-                <span class="stat-label">F1 Wheels</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-num" id="statBenny" style="color: var(--benny-color);">0</span>
-                <span class="stat-label">Benny's</span>
-            </div>
+            <div class="stat-card"><span class="stat-num" id="statTotal">0</span><span class="stat-label">Vehicles</span></div>
+            <div class="stat-card"><span class="stat-num" id="statWeapon" style="color:var(--weapon-color)">0</span><span class="stat-label">Weaponized</span></div>
+            <div class="stat-card"><span class="stat-num" id="statF1" style="color:var(--f1-color)">0</span><span class="stat-label">F1 Wheels</span></div>
+            <div class="stat-card"><span class="stat-num" id="statBenny" style="color:var(--benny-color)">0</span><span class="stat-label">Benny's</span></div>
         </div>
-
         <div style="margin-bottom: 20px;">
             <span class="stat-label">Top Manufacturers</span>
             <ul class="top-list" id="topManufs"></ul>
         </div>
-
         <div>
             <div style="display:flex; justify-content:space-between;">
                 <span class="stat-label">Total Storage Usage</span>
                 <span class="stat-label" id="usageText">0 / 0</span>
             </div>
-            <div class="progress-container">
-                <div class="progress-bar" id="usageBar"></div>
-            </div>
+            <div class="progress-container"><div class="progress-bar" id="usageBar"></div></div>
         </div>
-
-        <div class="modal-actions">
-            <button class="secondary-btn" onclick="closeStats()">Close</button>
-        </div>
+        <div class="modal-actions"><button class="secondary-btn" onclick="closeStats()">Close</button></div>
     </div>
 </div>
 
@@ -444,31 +434,17 @@
     <div class="modal-content">
         <h2 style="margin-top:0;">Changelog</h2>
         <div class="changelog-list">
-            <div class="changelog-item">
-                <span class="changelog-ver">v16.0</span>
-                <span class="changelog-desc">Smart Folding: Grouped lists (Garage/Manufacturer) now start Collapsed. Search automatically expands groups with matches.</span>
-            </div>
-            <div class="changelog-item">
-                <span class="changelog-ver">v15.0</span>
-                <span class="changelog-desc">Collapsible Sections: Headers can be tapped to toggle view.</span>
-            </div>
-            <div class="changelog-item">
-                <span class="changelog-ver">v14.1</span>
-                <span class="changelog-desc">Correction: Updated Vinewood Residence, Richman Villa, and Tongva Estate capacity to 20 vehicles.</span>
-            </div>
-            <div class="changelog-item">
-                <span class="changelog-ver">v14.0</span>
-                <span class="changelog-desc">Expanded Apartments: Added specific unit numbers for Eclipse Towers, Richards Majestic, Tinsel Towers, etc.</span>
-            </div>
+            <div class="changelog-item"><span class="changelog-ver">v17.5</span><span class="changelog-desc">Added "Sell Vehicle" logic safely without changing the layout. Header timer button tracks 18h cooldown.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v16.0</span><span class="changelog-desc">Restored Stable Base. Smart Folding Lists.</span></div>
         </div>
-        <div class="modal-actions">
-            <button class="secondary-btn" onclick="closeChangelog()">Close</button>
-        </div>
+        <div class="modal-actions"><button class="secondary-btn" onclick="closeChangelog()">Close</button></div>
     </div>
 </div>
 
 <script>
     // --- CONFIG & DATA ---
+    const COOLDOWN_MS = 18 * 60 * 60 * 1000; // 18 Hours
+    
     const GARAGE_META = {
         "Vinewood Club Garage": { cap: 100, floors: true },
         "Eclipse Blvd Garage": { cap: 50, floors: true },
@@ -481,12 +457,9 @@
         "Clubhouse": { cap: 10, floors: false },
         "Facility": { cap: 7, floors: false },
         "Mansion (Vinewood)": { cap: 10, floors: false },
-        // Updated Capacities
         "The Vinewood Residence": { cap: 20, floors: false },
         "Richman Villa": { cap: 20, floors: false },
         "The Tongva Estate": { cap: 20, floors: false },
-        
-        // Specific Apartments (All High-Ends are 10)
         "Eclipse Towers, Penthouse Suite 1": { cap: 10, floors: false },
         "Eclipse Towers, Penthouse Suite 2": { cap: 10, floors: false },
         "Eclipse Towers, Penthouse Suite 3": { cap: 10, floors: false },
@@ -495,30 +468,23 @@
         "Eclipse Towers, Apt 9": { cap: 10, floors: false },
         "Eclipse Towers, Apt 31": { cap: 10, floors: false },
         "Eclipse Towers, Apt 40": { cap: 10, floors: false },
-        
         "Richards Majestic, Apt 2": { cap: 10, floors: false },
         "Richards Majestic, Apt 4": { cap: 10, floors: false },
         "Richards Majestic, Apt 51": { cap: 10, floors: false },
-        
         "Tinsel Towers, Apt 29": { cap: 10, floors: false },
         "Tinsel Towers, Apt 42": { cap: 10, floors: false },
         "Tinsel Towers, Apt 45": { cap: 10, floors: false },
-        
         "4 Integrity Way, Apt 28": { cap: 10, floors: false },
         "4 Integrity Way, Apt 30": { cap: 10, floors: false },
         "4 Integrity Way, Apt 35": { cap: 10, floors: false },
-        
         "Del Perro Heights, Apt 4": { cap: 10, floors: false },
         "Del Perro Heights, Apt 7": { cap: 10, floors: false },
         "Del Perro Heights, Apt 20": { cap: 10, floors: false },
-        
         "Weazel Plaza, Apt 26": { cap: 10, floors: false },
         "Weazel Plaza, Apt 70": { cap: 10, floors: false },
         "Weazel Plaza, Apt 101": { cap: 10, floors: false },
-        
         "3 Alta St, Apt 10": { cap: 10, floors: false },
         "3 Alta St, Apt 57": { cap: 10, floors: false },
-
         "DEFAULT_APT": { cap: 10, floors: false }
     };
 
@@ -584,6 +550,7 @@
     const SORTED_MANUFS = Object.keys(CAR_DB).sort();
     const STORAGE_KEY = 'gta_vehicles_v1';
     let vehicles = [];
+    let lastSellTime = 0;
     let editingId = null;
 
     // --- DOM ---
@@ -601,6 +568,8 @@
     const locCustom = document.getElementById('inputLocCustom');
     const floorGroup = document.getElementById('floorGroup');
     const btnDelete = document.getElementById('btnDelete');
+    const btnSell = document.getElementById('btnSell');
+    const timerBtn = document.getElementById('timerBtn');
 
     // --- MAIN LOGIC ---
 
@@ -665,7 +634,9 @@
     function handleGarageChange() {
         checkCustomLoc();
         const loc = locSelect.value;
-        const meta = GARAGE_META[loc];
+        // Strip capacity
+        const cleanLoc = loc.replace(/\s\(\d+\)$/, "");
+        const meta = GARAGE_META[cleanLoc];
         if (meta && meta.floors) {
             floorGroup.style.display = 'block';
         } else {
@@ -719,7 +690,8 @@
                 
                 let metaHtml = '';
                 if (mode === 'garage') {
-                    const meta = GARAGE_META[key] || GARAGE_META["DEFAULT_APT"];
+                    const cleanKey = key.replace(/\s\(\d+\)$/, "");
+                    const meta = GARAGE_META[cleanKey] || GARAGE_META["DEFAULT_APT"];
                     const cap = meta.cap || 10; 
                     const count = groups[key].length;
                     const isFull = count > cap;
@@ -800,14 +772,22 @@
     }
 
     function saveToStorage() {
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles)); } catch(e){}
+        try { 
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles));
+            localStorage.setItem('gta_last_sale', lastSellTime);
+        } catch(e){}
         renderVehicles(vehicles);
+        updateTimerDisplay();
     }
 
     // --- INIT CALL AT BOTTOM (SAFE) ---
     function initApp() {
         populateManufDropdown();
         try {
+            // Load Last Sale
+            const sale = localStorage.getItem('gta_last_sale');
+            if (sale) lastSellTime = parseInt(sale);
+
             let saved = localStorage.getItem(STORAGE_KEY);
             if (!saved) {
                 const legacy = localStorage.getItem('gta_vehicles');
@@ -819,8 +799,53 @@
             }
         } catch (e) { console.error(e); vehicles = []; }
         renderVehicles(vehicles);
+        updateTimerDisplay();
+        setInterval(updateTimerDisplay, 60000); // Update timer every minute
     }
     
+    // --- TIMER LOGIC ---
+    function updateTimerDisplay() {
+        const now = Date.now();
+        const diff = now - lastSellTime;
+        
+        if (diff < COOLDOWN_MS) {
+            // Cooldown Active
+            const remaining = COOLDOWN_MS - diff;
+            const hours = Math.floor(remaining / (1000 * 60 * 60));
+            const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+            timerBtn.innerHTML = `⏳ ${hours}h ${minutes}m`;
+            timerBtn.classList.add('active');
+        } else {
+            // Ready
+            timerBtn.innerHTML = `💲`;
+            timerBtn.classList.remove('active');
+        }
+    }
+
+    window.checkTimer = function(isClick) {
+        const now = Date.now();
+        const diff = now - lastSellTime;
+        if (diff < COOLDOWN_MS && isClick) {
+            const remaining = COOLDOWN_MS - diff;
+            const hours = Math.floor(remaining / (1000 * 60 * 60));
+            const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+            alert(`Cooldown Active: Wait ${hours}h ${minutes}m before selling for full price.`);
+        } else if (isClick) {
+            alert("No cooldown active. You can sell for full price.");
+        }
+    }
+
+    window.sellVehicle = function(id) {
+        if(confirm("Sell this vehicle? It will be removed from your garage and the 18h timer will start.")) {
+            // Remove vehicle
+            vehicles = vehicles.filter(v => v.id !== id);
+            // Set Timer
+            lastSellTime = Date.now();
+            saveToStorage();
+            closeModal();
+        }
+    }
+
     // START
     initApp();
 
@@ -832,6 +857,7 @@
             editingId = vehicle.id;
             document.getElementById('modalTitle').innerText = 'Edit Vehicle';
             btnDelete.style.display = 'block';
+            btnSell.style.display = 'block'; // Show Sell Button only on Edit
             
             manufSelect.value = vehicle.manuf || "";
             updateModelDropdown(vehicle.model);
@@ -858,6 +884,7 @@
             editingId = null;
             document.getElementById('modalTitle').innerText = 'Add Vehicle';
             btnDelete.style.display = 'none';
+            btnSell.style.display = 'none'; // Hide Sell Button on Add
             clearForm();
             handleGarageChange();
         }
@@ -906,7 +933,8 @@
         let totalCap = 0;
         const usedGarages = new Set(vehicles.map(v => v.loc));
         usedGarages.forEach(loc => {
-            const meta = GARAGE_META[loc] || GARAGE_META["DEFAULT_APT"];
+            const cleanLoc = loc ? loc.replace(/\s\(\d+\)$/, "") : "";
+            const meta = GARAGE_META[cleanLoc] || GARAGE_META["DEFAULT_APT"];
             totalCap += meta.cap || 10;
         });
         
