@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>LS Garage</title>
+    <title>My GTA Garage v12</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
@@ -18,6 +18,7 @@
             --accent: #9b59b6; --accent-hover: #8e44ad;
             --f1-color: #e67e22; --benny-color: #3498db; --plate-color: #f1c40f; 
             --weapon-color: #e74c3c; --stock: #95a5a6;
+            --group-header-bg: #2c2c2c;
         }
 
         body {
@@ -42,8 +43,9 @@
             background-color: #181818; border-bottom: 1px solid #333;
         }
         .search-row { display: flex; gap: 10px; width: 100%; }
+        .filter-row { display: flex; gap: 10px; width: 100%; overflow-x: auto; padding-bottom: 5px; }
 
-        input[type="text"] {
+        input[type="text"], select {
             flex-grow: 1; padding: 12px; border-radius: 8px; border: 1px solid #333;
             background: #252525; color: white; font-size: 16px;
         }
@@ -55,11 +57,26 @@
 
         #vehicle-list {
             flex-grow: 1; overflow-y: auto; padding: 10px;
+            display: flex; flex-direction: column; gap: 10px; padding-bottom: 80px;
+        }
+
+        /* Group Headers */
+        .group-header {
+            background-color: var(--group-header-bg);
+            padding: 10px 15px; border-radius: 8px; margin-top: 10px;
+            font-weight: bold; color: var(--accent);
+            display: flex; justify-content: space-between; align-items: center;
+            border-left: 5px solid var(--accent);
+        }
+        .group-meta { font-size: 0.8rem; color: var(--text-dim); background: #111; padding: 4px 8px; border-radius: 10px; }
+        .group-meta.full { color: #e74c3c; border: 1px solid #e74c3c; }
+
+        .vehicle-grid {
             display: grid; grid-template-columns: 1fr; gap: 10px;
         }
         @media (min-width: 600px) {
-            #vehicle-list { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-            .controls { flex-direction: row; align-items: center; }
+            .vehicle-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+            .controls { flex-direction: row; align-items: center; flex-wrap: wrap; }
             button.primary-btn { width: auto; }
         }
 
@@ -75,7 +92,11 @@
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
         .vehicle-name { font-size: 1.1rem; font-weight: bold; color: #fff; }
         .vehicle-manuf { font-size: 0.8rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
-        .vehicle-loc { font-size: 0.9rem; color: var(--text-dim); margin-top: 8px; padding-top: 8px; border-top: 1px solid #333; }
+        
+        .vehicle-loc { 
+            font-size: 0.9rem; color: var(--text-dim); margin-top: 8px; 
+            padding-top: 8px; border-top: 1px solid #333; display: flex; justify-content: space-between;
+        }
         
         .badges-container { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
         .badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
@@ -92,15 +113,10 @@
 
         /* FOOTER */
         footer {
-            background-color: #181818;
-            padding: 15px;
-            text-align: center;
-            font-size: 0.8rem;
-            color: var(--text-dim);
-            border-top: 1px solid #333;
+            background-color: #181818; padding: 15px; text-align: center;
+            font-size: 0.8rem; color: var(--text-dim); border-top: 1px solid #333;
         }
         footer a { color: var(--accent); text-decoration: none; margin-left: 10px; cursor: pointer; font-weight: bold; }
-        footer a:hover { text-decoration: underline; }
 
         /* MODAL */
         .modal {
@@ -139,12 +155,14 @@
         .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
         .modal-actions button { flex: 1; }
         .empty-state { text-align: center; color: var(--text-dim); margin-top: 50px; }
+        
+        .hidden-input { display: none; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>LS Garage</h1>
+    <h1>My GTA Garage</h1>
     <div class="header-actions">
         <button class="secondary-btn" onclick="downloadBackup()">💾</button>
         <button class="secondary-btn" onclick="document.getElementById('restoreInput').click()">📂</button>
@@ -154,9 +172,16 @@
 
 <div class="controls">
     <div class="search-row">
-        <input type="text" id="searchInput" placeholder="Search vehicles..." onkeyup="filterVehicles()">
+        <input type="text" id="searchInput" placeholder="Search..." onkeyup="renderVehicles(vehicles)">
     </div>
-    <button class="primary-btn" type="button" onclick="openModal()">+ Add Vehicle</button>
+    <div class="filter-row">
+        <select id="viewMode" onchange="renderVehicles(vehicles)">
+            <option value="all">View: All Vehicles</option>
+            <option value="garage">View: By Garage</option>
+            <option value="manuf">View: By Manufacturer</option>
+        </select>
+        <button class="primary-btn" type="button" onclick="openModal()">+ Add</button>
+    </div>
     <div style="font-size: 0.8rem; color: var(--text-dim); text-align: center;">
         Total: <span id="count">0</span>
     </div>
@@ -167,7 +192,7 @@
 </div>
 
 <footer>
-    <span>v11.0</span>
+    <span>v12.0</span>
     <a onclick="openChangelog()">Changelog</a>
 </footer>
 
@@ -194,21 +219,21 @@
         <div class="row-group">
             <div class="form-group" style="flex: 2;">
                 <label>Garage</label>
-                <select id="inputLoc" onchange="checkCustomLoc()">
+                <select id="inputLoc" onchange="handleGarageChange()">
                     <option value="" disabled selected>Select...</option>
                     <optgroup label="Safehouse / Mansions">
-                        <option value="Richman Villa">Richman Villa</option>
-                        <option value="The Vinewood Residence">The Vinewood Residence</option>
-                        <option value="The Tongva Estate">The Tongva Estate</option>
+                        <option value="Richman Villa">Richman Villa (10)</option>
+                        <option value="The Vinewood Residence">The Vinewood Residence (10)</option>
+                        <option value="The Tongva Estate">The Tongva Estate (10)</option>
                     </optgroup>
                     <optgroup label="Massive Garages">
                         <option value="Vinewood Club Garage">Vinewood Club Garage (100)</option>
                         <option value="Eclipse Blvd Garage">Eclipse Blvd Garage (50)</option>
-                        <option value="Office Garage 1">Office Garage 1</option>
-                        <option value="Office Garage 2">Office Garage 2</option>
-                        <option value="Office Garage 3">Office Garage 3</option>
+                        <option value="Office Garage 1">Office Garage 1 (20)</option>
+                        <option value="Office Garage 2">Office Garage 2 (20)</option>
+                        <option value="Office Garage 3">Office Garage 3 (20)</option>
                     </optgroup>
-                    <optgroup label="Apartments">
+                    <optgroup label="Apartments (10 Car)">
                         <option value="Eclipse Towers">Eclipse Towers</option>
                         <option value="Tinsel Towers">Tinsel Towers</option>
                         <option value="Richards Majestic">Richards Majestic</option>
@@ -219,19 +244,19 @@
                         <option value="Penthouse Suite">Penthouse Suite</option>
                     </optgroup>
                     <optgroup label="Businesses">
-                        <option value="Agency Garage">Agency Garage</option>
-                        <option value="Nightclub">Nightclub</option>
-                        <option value="Arcade">Arcade</option>
-                        <option value="Auto Shop">Auto Shop</option>
+                        <option value="Agency Garage">Agency Garage (20)</option>
+                        <option value="Nightclub">Nightclub (31)</option>
+                        <option value="Arcade">Arcade (10)</option>
+                        <option value="Auto Shop">Auto Shop (10)</option>
                         <option value="Salvage Yard">Salvage Yard</option>
                         <option value="Bail Enforcement Office">Bail Enforcement</option>
-                        <option value="Clubhouse">MC Clubhouse</option>
+                        <option value="Clubhouse">MC Clubhouse (10)</option>
                         <option value="Darnell Bros Factory">Darnell Bros Factory</option>
                     </optgroup>
                     <optgroup label="Specialized">
-                        <option value="Arena Workshop">Arena Workshop</option>
-                        <option value="Casino Penthouse">Casino Penthouse</option>
-                        <option value="Facility">Facility</option>
+                        <option value="Arena Workshop">Arena Workshop (27)</option>
+                        <option value="Casino Penthouse">Casino Penthouse (10)</option>
+                        <option value="Facility">Facility (7)</option>
                         <option value="Bunker">Bunker</option>
                         <option value="Hangar">Hangar</option>
                         <option value="Kosatka">Kosatka</option>
@@ -245,20 +270,20 @@
                 <input type="text" id="inputLocCustom" placeholder="Type Custom Location" style="display:none; margin-top:5px;">
             </div>
 
-            <div class="form-group" style="flex: 1;">
+            <div class="form-group" id="floorGroup" style="flex: 1; display:none;">
                 <label>Floor</label>
                 <input type="text" id="inputFloor" list="floorList" placeholder="Lvl">
                 <datalist id="floorList">
-                    <option value="Floor 1"></option>
-                    <option value="Floor 2"></option>
-                    <option value="Floor 3"></option>
-                    <option value="Floor 4"></option>
-                    <option value="Floor 5"></option>
-                    <option value="Basement 1"></option>
-                    <option value="Basement 2"></option>
-                    <option value="Basement 3"></option>
-                    <option value="Basement 4"></option>
+                    <option value="Floor 1"></option><option value="Floor 2"></option><option value="Floor 3"></option>
+                    <option value="Floor 4"></option><option value="Floor 5"></option>
+                    <option value="Basement 1"></option><option value="Basement 2"></option>
+                    <option value="Basement 3"></option><option value="Basement 4"></option>
                 </datalist>
+            </div>
+            
+             <div class="form-group" style="flex: 0.8;">
+                <label>Slot #</label>
+                <input type="number" id="inputSlot" placeholder="#">
             </div>
         </div>
 
@@ -318,28 +343,20 @@
         <h2 style="margin-top:0;">Changelog</h2>
         <div class="changelog-list">
             <div class="changelog-item">
+                <span class="changelog-ver">v12.0</span>
+                <span class="changelog-desc">Added "View Modes" (Group by Garage/Manufacturer). Added Garage Capacity tracking. Added Slot # field. Added smart Floor input (only shows for multi-level garages). Added Duplicate warning system. Rebranded to "My GTA Garage".</span>
+            </div>
+            <div class="changelog-item">
                 <span class="changelog-ver">v11.0</span>
                 <span class="changelog-desc">Added Footer with version number and Changelog viewer. Cleaned up header.</span>
             </div>
             <div class="changelog-item">
                 <span class="changelog-ver">v10.0</span>
-                <span class="changelog-desc">Safehouse Update: Added official Mansion names (Vinewood Residence, Richman Villa, Tongva Estate). Added new vehicles (GT750, X-Treme, Luiva, etc).</span>
+                <span class="changelog-desc">Safehouse Update: Added official Mansion names. Added new vehicles (GT750, X-Treme, Luiva, etc).</span>
             </div>
             <div class="changelog-item">
                 <span class="changelog-ver">v9.0</span>
                 <span class="changelog-desc">Added support for Custom Locations (Other...) and 3 distinct Mansion slots.</span>
-            </div>
-            <div class="changelog-item">
-                <span class="changelog-ver">v8.0</span>
-                <span class="changelog-desc">Mobile App Optimization (Icon, Meta tags for Add to Homescreen).</span>
-            </div>
-            <div class="changelog-item">
-                <span class="changelog-ver">v7.0</span>
-                <span class="changelog-desc">Military Expansion: Added Tanks (Rhino, Khanjali), RCV, AA Trailer, and Weaponized Tampa.</span>
-            </div>
-            <div class="changelog-item">
-                <span class="changelog-ver">v6.0</span>
-                <span class="changelog-desc">Relational Database: Dropdowns now filter Models based on Manufacturer. Added "Weaponized" attribute.</span>
             </div>
         </div>
         <div class="modal-actions">
@@ -349,7 +366,26 @@
 </div>
 
 <script>
-    // --- DATABASE ---
+    // --- CONFIG & DATA ---
+    const GARAGE_META = {
+        "Vinewood Club Garage": { cap: 100, floors: false },
+        "Eclipse Blvd Garage": { cap: 50, floors: true },
+        "Office Garage 1": { cap: 20, floors: true },
+        "Office Garage 2": { cap: 20, floors: true },
+        "Office Garage 3": { cap: 20, floors: true },
+        "Agency Garage": { cap: 20, floors: false },
+        "Nightclub": { cap: 31, floors: true },
+        "Arena Workshop": { cap: 27, floors: true },
+        "Clubhouse": { cap: 10, floors: false },
+        "Facility": { cap: 7, floors: false },
+        "Mansion (Vinewood)": { cap: 10, floors: false },
+        "The Vinewood Residence": { cap: 10, floors: false },
+        "Richman Villa": { cap: 10, floors: false },
+        "The Tongva Estate": { cap: 10, floors: false },
+        // Default fallback for apts
+        "DEFAULT_APT": { cap: 10, floors: false }
+    };
+
     const CAR_DB = {
         "Albany": ["Alpha", "Brigham", "Buccaneer", "Cavalcade", "Cavalcade XL", "Emperor", "Franken Stange", "Hermes", "Lurcher", "Manana", "Primo", "Roosevelt", "V-STR", "Virgo", "Washington"],
         "Annis": ["300R", "Elegy RH8", "Elegy Retro Custom", "Euros", "Euros X32", "Hellion", "Remus", "RE-7B", "S80RR", "Savestra", "ZR350", "ZR380"],
@@ -419,12 +455,14 @@
     const modal = document.getElementById('vehicleModal');
     const clModal = document.getElementById('changelogModal');
     const searchInput = document.getElementById('searchInput');
+    const viewModeEl = document.getElementById('viewMode');
     const countEl = document.getElementById('count');
     const manufSelect = document.getElementById('inputManuf');
     const modelSelect = document.getElementById('inputModelDropdown');
     const modelCustom = document.getElementById('inputModelCustom');
     const locSelect = document.getElementById('inputLoc');
     const locCustom = document.getElementById('inputLocCustom');
+    const floorGroup = document.getElementById('floorGroup');
     const btnDelete = document.getElementById('btnDelete');
 
     // --- INIT ---
@@ -499,79 +537,141 @@
     window.checkCustomLoc = function() {
         if (locSelect.value === 'Custom') {
             locCustom.style.display = 'block'; locCustom.focus();
+            floorGroup.style.display = 'none'; // Custom locations assume simple
         } else {
             locCustom.style.display = 'none';
         }
     };
 
-    // --- RENDER ---
-    function renderVehicles(data) {
-        listEl.innerHTML = '';
-        if(countEl) countEl.textContent = data.length;
-
-        if (data.length === 0) {
-            listEl.innerHTML = '<div class="empty-state">Garage Empty. Add a vehicle!</div>';
-            return;
+    window.handleGarageChange = function() {
+        checkCustomLoc();
+        // Smart Floor Logic
+        const loc = locSelect.value;
+        const meta = GARAGE_META[loc];
+        if (meta && meta.floors) {
+            floorGroup.style.display = 'block';
+        } else {
+            floorGroup.style.display = 'none';
+            document.getElementById('inputFloor').value = ""; // Clear floor if hidden
         }
-
-        data.forEach(v => {
-            const wheels = v.wheels || 'Stock';
-            const plate = v.plate || 'Standard';
-            const manuf = v.manuf || 'Unknown';
-            const model = v.model || 'Unnamed';
-            const loc = v.loc || 'Unknown';
-            const floor = v.floor ? ` • ${v.floor}` : '';
-            const isWeapon = v.isWeapon || false;
-
-            let cardClass = '';
-            if (isWeapon) cardClass = 'has-weapon';
-            else if (wheels === 'F1') cardClass = 'has-f1';
-            else if (wheels.includes('Benny')) cardClass = 'has-benny';
-            else if (plate !== 'Standard') cardClass = 'has-plate';
-
-            let badgesHtml = '';
-            if (isWeapon) badgesHtml += `<span class="badge weapon">WEAPONIZED</span>`;
-            if (wheels === 'F1') badgesHtml += `<span class="badge f1">F1</span>`;
-            else if (wheels.includes('Benny')) badgesHtml += `<span class="badge benny">BENNY'S</span>`;
-            if (plate !== 'Standard') badgesHtml += `<span class="badge plate">${plate}</span>`;
-            if (badgesHtml === '' && !isWeapon) badgesHtml = `<span class="badge stock">STOCK</span>`;
-
-            const card = document.createElement('div');
-            card.className = `vehicle-card ${cardClass}`;
-            card.innerHTML = `
-                <div class="card-header">
-                    <div>
-                        <div class="vehicle-manuf">${manuf}</div>
-                        <div class="vehicle-name">${model}</div>
-                    </div>
-                </div>
-                <div class="badges-container">${badgesHtml}</div>
-                <div class="vehicle-loc">📍 ${loc} <span style="color: var(--accent); font-weight:bold;">${floor}</span></div>
-                ${v.notes ? `<div class="vehicle-notes">📝 ${v.notes}</div>` : ''}
-                <div class="card-actions">
-                    <button class="icon-btn" onclick="editVehicle(${v.id})">✏️</button>
-                </div>
-            `;
-            listEl.appendChild(card);
-        });
     }
 
-    function saveToStorage() {
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles)); } catch(e){}
-        renderVehicles(vehicles);
-        if(searchInput.value) filterVehicles();
-    }
-
-    window.filterVehicles = function() {
+    // --- RENDER ---
+    window.renderVehicles = function(data) {
+        // Filter first
         const term = searchInput.value.toLowerCase();
-        const filtered = vehicles.filter(v => 
+        let filtered = data.filter(v => 
             (v.model && v.model.toLowerCase().includes(term)) || 
             (v.manuf && v.manuf.toLowerCase().includes(term)) || 
             (v.loc && v.loc.toLowerCase().includes(term)) ||
             (v.floor && v.floor.toLowerCase().includes(term)) ||
             (v.notes && v.notes.toLowerCase().includes(term))
         );
-        renderVehicles(filtered);
+
+        listEl.innerHTML = '';
+        if(countEl) countEl.textContent = data.length;
+
+        if (filtered.length === 0) {
+            listEl.innerHTML = '<div class="empty-state">No vehicles found.</div>';
+            return;
+        }
+
+        const mode = viewModeEl.value;
+
+        if (mode === 'all') {
+            // Standard Grid
+            const grid = document.createElement('div');
+            grid.className = 'vehicle-grid';
+            filtered.forEach(v => grid.appendChild(createCard(v)));
+            listEl.appendChild(grid);
+        } else {
+            // Grouped View
+            const groups = {};
+            filtered.forEach(v => {
+                let key = (mode === 'garage') ? v.loc : v.manuf;
+                if (!key) key = "Unknown";
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(v);
+            });
+
+            const sortedKeys = Object.keys(groups).sort();
+            sortedKeys.forEach(key => {
+                // Header Logic
+                const header = document.createElement('div');
+                header.className = 'group-header';
+                
+                let metaHtml = '';
+                if (mode === 'garage') {
+                    // Calculate Capacity
+                    const meta = GARAGE_META[key] || GARAGE_META["DEFAULT_APT"];
+                    const cap = meta.cap || 10; // Default to 10 if unknown custom
+                    const count = groups[key].length;
+                    const isFull = count > cap;
+                    metaHtml = `<span class="group-meta ${isFull ? 'full' : ''}">${count} / ${cap}</span>`;
+                } else {
+                    metaHtml = `<span class="group-meta">${groups[key].length}</span>`;
+                }
+
+                header.innerHTML = `<span>${key}</span> ${metaHtml}`;
+                listEl.appendChild(header);
+
+                // Grid for this group
+                const grid = document.createElement('div');
+                grid.className = 'vehicle-grid';
+                groups[key].forEach(v => grid.appendChild(createCard(v)));
+                listEl.appendChild(grid);
+            });
+        }
+    }
+
+    function createCard(v) {
+        const wheels = v.wheels || 'Stock';
+        const plate = v.plate || 'Standard';
+        const manuf = v.manuf || 'Unknown';
+        const model = v.model || 'Unnamed';
+        const loc = v.loc || 'Unknown';
+        const floor = v.floor ? ` • ${v.floor}` : '';
+        const slot = v.slot ? `<span style="font-size:0.8rem; color:var(--text-dim);">[Slot ${v.slot}]</span>` : '';
+        const isWeapon = v.isWeapon || false;
+
+        let cardClass = '';
+        if (isWeapon) cardClass = 'has-weapon';
+        else if (wheels === 'F1') cardClass = 'has-f1';
+        else if (wheels.includes('Benny')) cardClass = 'has-benny';
+        else if (plate !== 'Standard') cardClass = 'has-plate';
+
+        let badgesHtml = '';
+        if (isWeapon) badgesHtml += `<span class="badge weapon">WEAPONIZED</span>`;
+        if (wheels === 'F1') badgesHtml += `<span class="badge f1">F1</span>`;
+        else if (wheels.includes('Benny')) badgesHtml += `<span class="badge benny">BENNY'S</span>`;
+        if (plate !== 'Standard') badgesHtml += `<span class="badge plate">${plate}</span>`;
+        if (badgesHtml === '' && !isWeapon) badgesHtml = `<span class="badge stock">STOCK</span>`;
+
+        const card = document.createElement('div');
+        card.className = `vehicle-card ${cardClass}`;
+        card.innerHTML = `
+            <div class="card-header">
+                <div>
+                    <div class="vehicle-manuf">${manuf}</div>
+                    <div class="vehicle-name">${model}</div>
+                </div>
+                ${slot}
+            </div>
+            <div class="badges-container">${badgesHtml}</div>
+            <div class="vehicle-loc">
+                <span>📍 ${loc} <span style="color: var(--accent); font-weight:bold;">${floor}</span></span>
+            </div>
+            ${v.notes ? `<div class="vehicle-notes">📝 ${v.notes}</div>` : ''}
+            <div class="card-actions">
+                <button class="icon-btn" onclick="editVehicle(${v.id})">✏️</button>
+            </div>
+        `;
+        return card;
+    }
+
+    function saveToStorage() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles)); } catch(e){}
+        renderVehicles(vehicles);
     }
 
     // --- MODAL & ACTIONS ---
@@ -596,8 +696,10 @@
                 locCustom.style.display = 'block';
                 locCustom.value = vehicle.loc;
             }
+            handleGarageChange(); // Trigger floor visibility logic
 
             document.getElementById('inputFloor').value = vehicle.floor || "";
+            document.getElementById('inputSlot').value = vehicle.slot || "";
             document.getElementById('inputWheels').value = vehicle.wheels || "Stock";
             document.getElementById('inputPlate').value = vehicle.plate || "Standard";
             document.getElementById('inputNotes').value = vehicle.notes || "";
@@ -608,6 +710,7 @@
             document.getElementById('modalTitle').innerText = 'Add Vehicle';
             btnDelete.style.display = 'none';
             clearForm();
+            handleGarageChange();
         }
     };
 
@@ -624,10 +727,12 @@
         locCustom.style.display = 'none'; locCustom.value = "";
 
         document.getElementById('inputFloor').value = "";
+        document.getElementById('inputSlot').value = "";
         document.getElementById('inputWheels').value = "Stock";
         document.getElementById('inputPlate').value = "Standard";
         document.getElementById('inputNotes').value = "";
         document.getElementById('inputWeaponized').checked = false;
+        floorGroup.style.display = 'none';
     }
 
     window.saveVehicle = function() {
@@ -639,6 +744,7 @@
         if (loc === "Custom") loc = locCustom.value;
 
         const floor = document.getElementById('inputFloor').value;
+        const slot = document.getElementById('inputSlot').value;
         const wheels = document.getElementById('inputWheels').value;
         const plate = document.getElementById('inputPlate').value;
         const notes = document.getElementById('inputNotes').value;
@@ -649,15 +755,29 @@
             return;
         }
 
+        // DUPLICATE CHECK
+        // Check if we already have this model in this location
+        const isDuplicate = vehicles.some(v => 
+            v.model === model && 
+            v.loc === loc && 
+            v.id !== editingId // Ignore self if editing
+        );
+
+        if (isDuplicate) {
+            if(!confirm(`⚠️ You already have a ${model} in ${loc}. Add anyway?`)) {
+                return; // Cancel save
+            }
+        }
+
         if (editingId) {
             const index = vehicles.findIndex(v => v.id === editingId);
             if (index !== -1) {
-                vehicles[index] = { ...vehicles[index], manuf, model, loc, floor, wheels, plate, notes, isWeapon };
+                vehicles[index] = { ...vehicles[index], manuf, model, loc, floor, slot, wheels, plate, notes, isWeapon };
             }
         } else {
             const newVehicle = {
                 id: Date.now(),
-                manuf, model, loc, floor, wheels, plate, notes, isWeapon
+                manuf, model, loc, floor, slot, wheels, plate, notes, isWeapon
             };
             vehicles.push(newVehicle);
         }
