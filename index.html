@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v12</title>
+    <title>My GTA Garage v12.1</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
@@ -45,7 +45,7 @@
         .search-row { display: flex; gap: 10px; width: 100%; }
         .filter-row { display: flex; gap: 10px; width: 100%; overflow-x: auto; padding-bottom: 5px; }
 
-        input[type="text"], select {
+        input[type="text"], select, input[type="number"] {
             flex-grow: 1; padding: 12px; border-radius: 8px; border: 1px solid #333;
             background: #252525; color: white; font-size: 16px;
         }
@@ -155,8 +155,6 @@
         .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
         .modal-actions button { flex: 1; }
         .empty-state { text-align: center; color: var(--text-dim); margin-top: 50px; }
-        
-        .hidden-input { display: none; }
     </style>
 </head>
 <body>
@@ -192,7 +190,7 @@
 </div>
 
 <footer>
-    <span>v12.0</span>
+    <span>v12.1</span>
     <a onclick="openChangelog()">Changelog</a>
 </footer>
 
@@ -342,6 +340,10 @@
     <div class="modal-content">
         <h2 style="margin-top:0;">Changelog</h2>
         <div class="changelog-list">
+             <div class="changelog-item">
+                <span class="changelog-ver">v12.1 (Hotfix)</span>
+                <span class="changelog-desc">Fixed critical bug where app would get stuck on "Loading..." due to script execution order.</span>
+            </div>
             <div class="changelog-item">
                 <span class="changelog-ver">v12.0</span>
                 <span class="changelog-desc">Added "View Modes" (Group by Garage/Manufacturer). Added Garage Capacity tracking. Added Slot # field. Added smart Floor input (only shows for multi-level garages). Added Duplicate warning system. Rebranded to "My GTA Garage".</span>
@@ -353,10 +355,6 @@
             <div class="changelog-item">
                 <span class="changelog-ver">v10.0</span>
                 <span class="changelog-desc">Safehouse Update: Added official Mansion names. Added new vehicles (GT750, X-Treme, Luiva, etc).</span>
-            </div>
-            <div class="changelog-item">
-                <span class="changelog-ver">v9.0</span>
-                <span class="changelog-desc">Added support for Custom Locations (Other...) and 3 distinct Mansion slots.</span>
             </div>
         </div>
         <div class="modal-actions">
@@ -382,7 +380,6 @@
         "The Vinewood Residence": { cap: 10, floors: false },
         "Richman Villa": { cap: 10, floors: false },
         "The Tongva Estate": { cap: 10, floors: false },
-        // Default fallback for apts
         "DEFAULT_APT": { cap: 10, floors: false }
     };
 
@@ -465,24 +462,7 @@
     const floorGroup = document.getElementById('floorGroup');
     const btnDelete = document.getElementById('btnDelete');
 
-    // --- INIT ---
-    initApp();
-
-    function initApp() {
-        populateManufDropdown();
-        try {
-            let saved = localStorage.getItem(STORAGE_KEY);
-            if (!saved) {
-                const legacy = localStorage.getItem('gta_vehicles');
-                if (legacy) { saved = legacy; localStorage.setItem(STORAGE_KEY, legacy); }
-            }
-            if (saved) {
-                vehicles = JSON.parse(saved);
-                if (!Array.isArray(vehicles)) vehicles = [];
-            }
-        } catch (e) { console.error(e); vehicles = []; }
-        renderVehicles(vehicles);
-    }
+    // --- MAIN LOGIC ---
 
     function populateManufDropdown() {
         manufSelect.innerHTML = '<option value="" disabled selected>Select...</option>';
@@ -496,8 +476,7 @@
         manufSelect.appendChild(otherOpt);
     }
 
-    // --- UI HELPERS ---
-    window.updateModelDropdown = function(selectedModel = null) {
+    function updateModelDropdown(selectedModel = null) {
         const brand = manufSelect.value;
         modelSelect.innerHTML = '<option value="" disabled selected>Select...</option>';
         modelCustom.style.display = 'none';
@@ -524,41 +503,38 @@
                 modelCustom.value = selectedModel;
             }
         }
-    };
+    }
 
-    window.checkCustomModel = function() {
+    function checkCustomModel() {
         if (modelSelect.value === 'Custom') {
             modelCustom.style.display = 'block'; modelCustom.focus();
         } else {
             modelCustom.style.display = 'none';
         }
-    };
+    }
 
-    window.checkCustomLoc = function() {
+    function checkCustomLoc() {
         if (locSelect.value === 'Custom') {
             locCustom.style.display = 'block'; locCustom.focus();
-            floorGroup.style.display = 'none'; // Custom locations assume simple
+            floorGroup.style.display = 'none'; 
         } else {
             locCustom.style.display = 'none';
         }
-    };
+    }
 
-    window.handleGarageChange = function() {
+    function handleGarageChange() {
         checkCustomLoc();
-        // Smart Floor Logic
         const loc = locSelect.value;
         const meta = GARAGE_META[loc];
         if (meta && meta.floors) {
             floorGroup.style.display = 'block';
         } else {
             floorGroup.style.display = 'none';
-            document.getElementById('inputFloor').value = ""; // Clear floor if hidden
+            document.getElementById('inputFloor').value = ""; 
         }
     }
 
-    // --- RENDER ---
-    window.renderVehicles = function(data) {
-        // Filter first
+    function renderVehicles(data) {
         const term = searchInput.value.toLowerCase();
         let filtered = data.filter(v => 
             (v.model && v.model.toLowerCase().includes(term)) || 
@@ -579,13 +555,11 @@
         const mode = viewModeEl.value;
 
         if (mode === 'all') {
-            // Standard Grid
             const grid = document.createElement('div');
             grid.className = 'vehicle-grid';
             filtered.forEach(v => grid.appendChild(createCard(v)));
             listEl.appendChild(grid);
         } else {
-            // Grouped View
             const groups = {};
             filtered.forEach(v => {
                 let key = (mode === 'garage') ? v.loc : v.manuf;
@@ -596,15 +570,13 @@
 
             const sortedKeys = Object.keys(groups).sort();
             sortedKeys.forEach(key => {
-                // Header Logic
                 const header = document.createElement('div');
                 header.className = 'group-header';
                 
                 let metaHtml = '';
                 if (mode === 'garage') {
-                    // Calculate Capacity
                     const meta = GARAGE_META[key] || GARAGE_META["DEFAULT_APT"];
-                    const cap = meta.cap || 10; // Default to 10 if unknown custom
+                    const cap = meta.cap || 10; 
                     const count = groups[key].length;
                     const isFull = count > cap;
                     metaHtml = `<span class="group-meta ${isFull ? 'full' : ''}">${count} / ${cap}</span>`;
@@ -615,7 +587,6 @@
                 header.innerHTML = `<span>${key}</span> ${metaHtml}`;
                 listEl.appendChild(header);
 
-                // Grid for this group
                 const grid = document.createElement('div');
                 grid.className = 'vehicle-grid';
                 groups[key].forEach(v => grid.appendChild(createCard(v)));
@@ -631,7 +602,7 @@
         const model = v.model || 'Unnamed';
         const loc = v.loc || 'Unknown';
         const floor = v.floor ? ` • ${v.floor}` : '';
-        const slot = v.slot ? `<span style="font-size:0.8rem; color:var(--text-dim);">[Slot ${v.slot}]</span>` : '';
+        const slot = v.slot ? `<span style="font-size:0.8rem; color:var(--text-dim); margin-left:5px;">[Slot ${v.slot}]</span>` : '';
         const isWeapon = v.isWeapon || false;
 
         let cardClass = '';
@@ -674,7 +645,27 @@
         renderVehicles(vehicles);
     }
 
-    // --- MODAL & ACTIONS ---
+    // --- INIT CALL AT BOTTOM (SAFE) ---
+    function initApp() {
+        populateManufDropdown();
+        try {
+            let saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) {
+                const legacy = localStorage.getItem('gta_vehicles');
+                if (legacy) { saved = legacy; localStorage.setItem(STORAGE_KEY, legacy); }
+            }
+            if (saved) {
+                vehicles = JSON.parse(saved);
+                if (!Array.isArray(vehicles)) vehicles = [];
+            }
+        } catch (e) { console.error(e); vehicles = []; }
+        renderVehicles(vehicles);
+    }
+    
+    // START
+    initApp();
+
+    // --- ACTIONS ---
     window.openModal = function(vehicle = null) {
         modal.style.display = 'flex';
         
@@ -686,7 +677,6 @@
             manufSelect.value = vehicle.manuf || "";
             updateModelDropdown(vehicle.model);
 
-            // Handle Custom Location Loading
             const exists = Array.from(locSelect.options).some(o => o.value === vehicle.loc);
             if (exists) {
                 locSelect.value = vehicle.loc;
@@ -696,7 +686,7 @@
                 locCustom.style.display = 'block';
                 locCustom.value = vehicle.loc;
             }
-            handleGarageChange(); // Trigger floor visibility logic
+            handleGarageChange(); 
 
             document.getElementById('inputFloor').value = vehicle.floor || "";
             document.getElementById('inputSlot').value = vehicle.slot || "";
@@ -755,17 +745,15 @@
             return;
         }
 
-        // DUPLICATE CHECK
-        // Check if we already have this model in this location
         const isDuplicate = vehicles.some(v => 
             v.model === model && 
             v.loc === loc && 
-            v.id !== editingId // Ignore self if editing
+            v.id !== editingId 
         );
 
         if (isDuplicate) {
             if(!confirm(`⚠️ You already have a ${model} in ${loc}. Add anyway?`)) {
-                return; // Cancel save
+                return; 
             }
         }
 
