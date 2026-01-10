@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v15</title>
+    <title>My GTA Garage v16</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
@@ -74,6 +74,7 @@
         
         .header-title-box { display: flex; align-items: center; gap: 10px; }
         .arrow { display: inline-block; transition: transform 0.2s ease; font-size: 0.8rem; }
+        /* Default state is expanded arrow (down). If collapsed class added, rotate right. */
         .group-header.collapsed .arrow { transform: rotate(-90deg); }
         
         .group-meta { font-size: 0.8rem; color: var(--text-dim); background: #111; padding: 4px 8px; border-radius: 10px; }
@@ -81,7 +82,7 @@
 
         .vehicle-grid {
             display: grid; grid-template-columns: 1fr; gap: 10px;
-            transition: max-height 0.3s ease-out;
+            /* Animation for smooth open/close could be tricky with auto-height, using simple display toggle for robustness */
         }
         .vehicle-grid.hidden { display: none; }
 
@@ -217,7 +218,7 @@
 </div>
 
 <footer>
-    <span>v15.0</span>
+    <span>v16.0</span>
     <a onclick="openChangelog()">Changelog</a>
 </footer>
 
@@ -444,8 +445,12 @@
         <h2 style="margin-top:0;">Changelog</h2>
         <div class="changelog-list">
             <div class="changelog-item">
+                <span class="changelog-ver">v16.0</span>
+                <span class="changelog-desc">Smart Folding: Grouped lists (Garage/Manufacturer) now start Collapsed. Search automatically expands groups with matches.</span>
+            </div>
+            <div class="changelog-item">
                 <span class="changelog-ver">v15.0</span>
-                <span class="changelog-desc">Collapsible Sections: Garage and Manufacturer lists can now be collapsed by tapping the header.</span>
+                <span class="changelog-desc">Collapsible Sections: Headers can be tapped to toggle view.</span>
             </div>
             <div class="changelog-item">
                 <span class="changelog-ver">v14.1</span>
@@ -453,11 +458,7 @@
             </div>
             <div class="changelog-item">
                 <span class="changelog-ver">v14.0</span>
-                <span class="changelog-desc">Expanded Apartments: Added specific unit numbers for Eclipse Towers, Richards Majestic, Tinsel Towers, etc. to support owning multiple apartments in one building.</span>
-            </div>
-            <div class="changelog-item">
-                <span class="changelog-ver">v13.0</span>
-                <span class="changelog-desc">Added Stats Dashboard (Click the chart icon). See total counts, mod breakdown, and top brands.</span>
+                <span class="changelog-desc">Expanded Apartments: Added specific unit numbers for Eclipse Towers, Richards Majestic, Tinsel Towers, etc.</span>
             </div>
         </div>
         <div class="modal-actions">
@@ -708,9 +709,13 @@
             });
 
             const sortedKeys = Object.keys(groups).sort();
+            
+            // Check if searching to auto-expand
+            const isSearching = term.length > 0;
+
             sortedKeys.forEach(key => {
                 const header = document.createElement('div');
-                header.className = 'group-header';
+                header.className = 'group-header' + (isSearching ? '' : ' collapsed');
                 
                 let metaHtml = '';
                 if (mode === 'garage') {
@@ -732,7 +737,7 @@
                 `;
                 
                 const grid = document.createElement('div');
-                grid.className = 'vehicle-grid';
+                grid.className = 'vehicle-grid' + (isSearching ? '' : ' hidden');
                 groups[key].forEach(v => grid.appendChild(createCard(v)));
                 
                 // Add click handler
