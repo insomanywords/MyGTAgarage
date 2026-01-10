@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v12.1</title>
+    <title>My GTA Garage v12.2</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
@@ -155,6 +155,8 @@
         .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
         .modal-actions button { flex: 1; }
         .empty-state { text-align: center; color: var(--text-dim); margin-top: 50px; }
+        
+        .hidden-input { display: none; }
     </style>
 </head>
 <body>
@@ -190,7 +192,7 @@
 </div>
 
 <footer>
-    <span>v12.1</span>
+    <span>v12.2</span>
     <a onclick="openChangelog()">Changelog</a>
 </footer>
 
@@ -340,8 +342,12 @@
     <div class="modal-content">
         <h2 style="margin-top:0;">Changelog</h2>
         <div class="changelog-list">
+            <div class="changelog-item">
+                <span class="changelog-ver">v12.2</span>
+                <span class="changelog-desc">Fixed: Enabled Floor selection for Vinewood Club Garage.</span>
+            </div>
              <div class="changelog-item">
-                <span class="changelog-ver">v12.1 (Hotfix)</span>
+                <span class="changelog-ver">v12.1</span>
                 <span class="changelog-desc">Fixed critical bug where app would get stuck on "Loading..." due to script execution order.</span>
             </div>
             <div class="changelog-item">
@@ -366,7 +372,7 @@
 <script>
     // --- CONFIG & DATA ---
     const GARAGE_META = {
-        "Vinewood Club Garage": { cap: 100, floors: false },
+        "Vinewood Club Garage": { cap: 100, floors: true },
         "Eclipse Blvd Garage": { cap: 50, floors: true },
         "Office Garage 1": { cap: 20, floors: true },
         "Office Garage 2": { cap: 20, floors: true },
