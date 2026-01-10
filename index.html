@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v13</title>
+    <title>My GTA Garage v14</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
@@ -206,7 +206,7 @@
 </div>
 
 <footer>
-    <span>v13.0</span>
+    <span>v14.0</span>
     <a onclick="openChangelog()">Changelog</a>
 </footer>
 
@@ -247,15 +247,47 @@
                         <option value="Office Garage 2">Office Garage 2 (20)</option>
                         <option value="Office Garage 3">Office Garage 3 (20)</option>
                     </optgroup>
-                    <optgroup label="Apartments (10 Car)">
-                        <option value="Eclipse Towers">Eclipse Towers</option>
-                        <option value="Tinsel Towers">Tinsel Towers</option>
-                        <option value="Richards Majestic">Richards Majestic</option>
-                        <option value="Alta St">Alta St</option>
-                        <option value="Del Perro Heights">Del Perro Heights</option>
-                        <option value="Weazel Plaza">Weazel Plaza</option>
-                        <option value="Stilt House">Stilt House</option>
-                        <option value="Penthouse Suite">Penthouse Suite</option>
+                    <optgroup label="Eclipse Towers">
+                        <option value="Eclipse Towers (Generic)">Eclipse Towers (Generic)</option>
+                        <option value="Eclipse Towers, Penthouse Suite 1">Penthouse Suite 1</option>
+                        <option value="Eclipse Towers, Penthouse Suite 2">Penthouse Suite 2</option>
+                        <option value="Eclipse Towers, Penthouse Suite 3">Penthouse Suite 3</option>
+                        <option value="Eclipse Towers, Apt 3">Apt 3</option>
+                        <option value="Eclipse Towers, Apt 5">Apt 5</option>
+                        <option value="Eclipse Towers, Apt 9">Apt 9</option>
+                        <option value="Eclipse Towers, Apt 31">Apt 31</option>
+                        <option value="Eclipse Towers, Apt 40">Apt 40</option>
+                    </optgroup>
+                    <optgroup label="Richards Majestic">
+                        <option value="Richards Majestic (Generic)">Richards Majestic (Generic)</option>
+                        <option value="Richards Majestic, Apt 2">Apt 2</option>
+                        <option value="Richards Majestic, Apt 4">Apt 4</option>
+                        <option value="Richards Majestic, Apt 51">Apt 51</option>
+                    </optgroup>
+                    <optgroup label="Tinsel Towers">
+                        <option value="Tinsel Towers (Generic)">Tinsel Towers (Generic)</option>
+                        <option value="Tinsel Towers, Apt 29">Apt 29</option>
+                        <option value="Tinsel Towers, Apt 42">Apt 42</option>
+                        <option value="Tinsel Towers, Apt 45">Apt 45</option>
+                    </optgroup>
+                    <optgroup label="Integrity Way">
+                        <option value="4 Integrity Way, Apt 28">4 Integrity Way, Apt 28</option>
+                        <option value="4 Integrity Way, Apt 30">4 Integrity Way, Apt 30</option>
+                        <option value="4 Integrity Way, Apt 35">4 Integrity Way, Apt 35</option>
+                    </optgroup>
+                    <optgroup label="Del Perro Heights">
+                        <option value="Del Perro Heights, Apt 4">Apt 4</option>
+                        <option value="Del Perro Heights, Apt 7">Apt 7</option>
+                        <option value="Del Perro Heights, Apt 20">Apt 20</option>
+                    </optgroup>
+                    <optgroup label="Weazel Plaza">
+                        <option value="Weazel Plaza, Apt 26">Apt 26</option>
+                        <option value="Weazel Plaza, Apt 70">Apt 70</option>
+                        <option value="Weazel Plaza, Apt 101">Apt 101</option>
+                    </optgroup>
+                    <optgroup label="3 Alta St">
+                        <option value="3 Alta St, Apt 10">Apt 10</option>
+                        <option value="3 Alta St, Apt 57">Apt 57</option>
                     </optgroup>
                     <optgroup label="Businesses">
                         <option value="Agency Garage">Agency Garage (20)</option>
@@ -401,20 +433,16 @@
         <h2 style="margin-top:0;">Changelog</h2>
         <div class="changelog-list">
             <div class="changelog-item">
+                <span class="changelog-ver">v14.0</span>
+                <span class="changelog-desc">Expanded Apartments: Added specific unit numbers for Eclipse Towers, Richards Majestic, Tinsel Towers, etc. to support owning multiple apartments in one building.</span>
+            </div>
+            <div class="changelog-item">
                 <span class="changelog-ver">v13.0</span>
                 <span class="changelog-desc">Added Stats Dashboard (Click the chart icon). See total counts, mod breakdown, and top brands.</span>
             </div>
             <div class="changelog-item">
-                <span class="changelog-ver">v12.2</span>
-                <span class="changelog-desc">Fixed: Enabled Floor selection for Vinewood Club Garage.</span>
-            </div>
-             <div class="changelog-item">
-                <span class="changelog-ver">v12.1</span>
-                <span class="changelog-desc">Fixed critical bug where app would get stuck on "Loading..." due to script execution order.</span>
-            </div>
-            <div class="changelog-item">
                 <span class="changelog-ver">v12.0</span>
-                <span class="changelog-desc">Added "View Modes" (Group by Garage/Manufacturer). Added Garage Capacity tracking. Added Slot # field. Added smart Floor input (only shows for multi-level garages). Added Duplicate warning system. Rebranded to "My GTA Garage".</span>
+                <span class="changelog-desc">Added "View Modes" (Group by Garage/Manufacturer). Added Garage Capacity tracking. Added Slot # field.</span>
             </div>
         </div>
         <div class="modal-actions">
@@ -440,6 +468,40 @@
         "The Vinewood Residence": { cap: 10, floors: false },
         "Richman Villa": { cap: 10, floors: false },
         "The Tongva Estate": { cap: 10, floors: false },
+        
+        // Specific Apartments (All High-Ends are 10)
+        "Eclipse Towers, Penthouse Suite 1": { cap: 10, floors: false },
+        "Eclipse Towers, Penthouse Suite 2": { cap: 10, floors: false },
+        "Eclipse Towers, Penthouse Suite 3": { cap: 10, floors: false },
+        "Eclipse Towers, Apt 3": { cap: 10, floors: false },
+        "Eclipse Towers, Apt 5": { cap: 10, floors: false },
+        "Eclipse Towers, Apt 9": { cap: 10, floors: false },
+        "Eclipse Towers, Apt 31": { cap: 10, floors: false },
+        "Eclipse Towers, Apt 40": { cap: 10, floors: false },
+        
+        "Richards Majestic, Apt 2": { cap: 10, floors: false },
+        "Richards Majestic, Apt 4": { cap: 10, floors: false },
+        "Richards Majestic, Apt 51": { cap: 10, floors: false },
+        
+        "Tinsel Towers, Apt 29": { cap: 10, floors: false },
+        "Tinsel Towers, Apt 42": { cap: 10, floors: false },
+        "Tinsel Towers, Apt 45": { cap: 10, floors: false },
+        
+        "4 Integrity Way, Apt 28": { cap: 10, floors: false },
+        "4 Integrity Way, Apt 30": { cap: 10, floors: false },
+        "4 Integrity Way, Apt 35": { cap: 10, floors: false },
+        
+        "Del Perro Heights, Apt 4": { cap: 10, floors: false },
+        "Del Perro Heights, Apt 7": { cap: 10, floors: false },
+        "Del Perro Heights, Apt 20": { cap: 10, floors: false },
+        
+        "Weazel Plaza, Apt 26": { cap: 10, floors: false },
+        "Weazel Plaza, Apt 70": { cap: 10, floors: false },
+        "Weazel Plaza, Apt 101": { cap: 10, floors: false },
+        
+        "3 Alta St, Apt 10": { cap: 10, floors: false },
+        "3 Alta St, Apt 57": { cap: 10, floors: false },
+
         "DEFAULT_APT": { cap: 10, floors: false }
     };
 
