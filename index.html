@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v12.2</title>
+    <title>My GTA Garage v13</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
@@ -131,6 +131,19 @@
         }
         @media(min-width: 600px) { .modal-content { width: 90%; max-width: 500px; border-radius: 10px; animation: fadeIn 0.2s; } }
 
+        /* STATS STYLES */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .stat-card { background: #2c2c2c; padding: 15px; border-radius: 8px; text-align: center; }
+        .stat-num { font-size: 1.5rem; font-weight: bold; color: white; display: block; }
+        .stat-label { font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; }
+        
+        .progress-container { background: #333; height: 10px; border-radius: 5px; margin-top: 5px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s; }
+        
+        .top-list { list-style: none; padding: 0; margin: 0; }
+        .top-list li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; }
+        .top-list li:last-child { border: none; }
+
         /* Changelog Specifics */
         .changelog-list { text-align: left; margin-bottom: 20px; }
         .changelog-item { margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
@@ -164,6 +177,7 @@
 <header>
     <h1>My GTA Garage</h1>
     <div class="header-actions">
+        <button class="secondary-btn" onclick="openStats()">📊</button>
         <button class="secondary-btn" onclick="downloadBackup()">💾</button>
         <button class="secondary-btn" onclick="document.getElementById('restoreInput').click()">📂</button>
         <input type="file" id="restoreInput" style="display:none" onchange="restoreBackup(this)">
@@ -192,7 +206,7 @@
 </div>
 
 <footer>
-    <span>v12.2</span>
+    <span>v13.0</span>
     <a onclick="openChangelog()">Changelog</a>
 </footer>
 
@@ -338,10 +352,58 @@
     </div>
 </div>
 
+<div id="statsModal" class="modal">
+    <div class="modal-content">
+        <h2 style="margin-top:0;">Garage Stats</h2>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-num" id="statTotal">0</span>
+                <span class="stat-label">Vehicles</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-num" id="statWeapon" style="color: var(--weapon-color);">0</span>
+                <span class="stat-label">Weaponized</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-num" id="statF1" style="color: var(--f1-color);">0</span>
+                <span class="stat-label">F1 Wheels</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-num" id="statBenny" style="color: var(--benny-color);">0</span>
+                <span class="stat-label">Benny's</span>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <span class="stat-label">Top Manufacturers</span>
+            <ul class="top-list" id="topManufs"></ul>
+        </div>
+
+        <div>
+            <div style="display:flex; justify-content:space-between;">
+                <span class="stat-label">Total Storage Usage</span>
+                <span class="stat-label" id="usageText">0 / 0</span>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="usageBar"></div>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="secondary-btn" onclick="closeStats()">Close</button>
+        </div>
+    </div>
+</div>
+
 <div id="changelogModal" class="modal">
     <div class="modal-content">
         <h2 style="margin-top:0;">Changelog</h2>
         <div class="changelog-list">
+            <div class="changelog-item">
+                <span class="changelog-ver">v13.0</span>
+                <span class="changelog-desc">Added Stats Dashboard (Click the chart icon). See total counts, mod breakdown, and top brands.</span>
+            </div>
             <div class="changelog-item">
                 <span class="changelog-ver">v12.2</span>
                 <span class="changelog-desc">Fixed: Enabled Floor selection for Vinewood Club Garage.</span>
@@ -353,14 +415,6 @@
             <div class="changelog-item">
                 <span class="changelog-ver">v12.0</span>
                 <span class="changelog-desc">Added "View Modes" (Group by Garage/Manufacturer). Added Garage Capacity tracking. Added Slot # field. Added smart Floor input (only shows for multi-level garages). Added Duplicate warning system. Rebranded to "My GTA Garage".</span>
-            </div>
-            <div class="changelog-item">
-                <span class="changelog-ver">v11.0</span>
-                <span class="changelog-desc">Added Footer with version number and Changelog viewer. Cleaned up header.</span>
-            </div>
-            <div class="changelog-item">
-                <span class="changelog-ver">v10.0</span>
-                <span class="changelog-desc">Safehouse Update: Added official Mansion names. Added new vehicles (GT750, X-Treme, Luiva, etc).</span>
             </div>
         </div>
         <div class="modal-actions">
@@ -457,6 +511,7 @@
     const listEl = document.getElementById('vehicle-list');
     const modal = document.getElementById('vehicleModal');
     const clModal = document.getElementById('changelogModal');
+    const statModal = document.getElementById('statsModal');
     const searchInput = document.getElementById('searchInput');
     const viewModeEl = document.getElementById('viewMode');
     const countEl = document.getElementById('count');
@@ -713,6 +768,56 @@
     window.closeModal = function() { modal.style.display = 'none'; clearForm(); };
     window.openChangelog = function() { clModal.style.display = 'flex'; };
     window.closeChangelog = function() { clModal.style.display = 'none'; };
+    
+    window.openStats = function() {
+        statModal.style.display = 'flex';
+        // Calculate Stats
+        document.getElementById('statTotal').innerText = vehicles.length;
+        
+        let wCount = 0, f1Count = 0, bennyCount = 0;
+        const brandCounts = {};
+        let totalSlotsUsed = 0;
+        
+        // Loop vehicles
+        vehicles.forEach(v => {
+            if(v.isWeapon) wCount++;
+            if(v.wheels === 'F1') f1Count++;
+            if(v.wheels.includes('Benny')) bennyCount++;
+            
+            const brand = v.manuf || "Unknown";
+            brandCounts[brand] = (brandCounts[brand] || 0) + 1;
+        });
+
+        // Top Brands
+        const topBrands = Object.entries(brandCounts)
+            .sort((a,b) => b[1] - a[1])
+            .slice(0, 5);
+        
+        const topListEl = document.getElementById('topManufs');
+        topListEl.innerHTML = '';
+        topBrands.forEach(([brand, count]) => {
+            topListEl.innerHTML += `<li><span>${brand}</span><span>${count}</span></li>`;
+        });
+
+        // Update counts
+        document.getElementById('statWeapon').innerText = wCount;
+        document.getElementById('statF1').innerText = f1Count;
+        document.getElementById('statBenny').innerText = bennyCount;
+
+        // Capacity Bar (Rough Estimate based on used garages)
+        let totalCap = 0;
+        const usedGarages = new Set(vehicles.map(v => v.loc));
+        usedGarages.forEach(loc => {
+            const meta = GARAGE_META[loc] || GARAGE_META["DEFAULT_APT"];
+            totalCap += meta.cap || 10;
+        });
+        
+        const usagePct = totalCap > 0 ? Math.round((vehicles.length / totalCap) * 100) : 0;
+        document.getElementById('usageText').innerText = `${vehicles.length} / ${totalCap} (Approx)`;
+        document.getElementById('usageBar').style.width = `${Math.min(usagePct, 100)}%`;
+    };
+    
+    window.closeStats = function() { statModal.style.display = 'none'; };
 
     function clearForm() {
         manufSelect.value = "";
@@ -825,6 +930,7 @@
     window.onclick = function(e) { 
         if(e.target == modal) closeModal(); 
         if(e.target == clModal) closeChangelog();
+        if(e.target == statModal) closeStats();
     }
 </script>
 
