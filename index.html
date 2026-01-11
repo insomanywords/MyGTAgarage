@@ -7,10 +7,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v20.0</title>
+    <title>My GTA Garage v21.2</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
 
     <style>
         :root {
@@ -18,7 +17,7 @@
             --accent: #9b59b6; --accent-hover: #8e44ad;
             --f1-color: #e67e22; --benny-color: #3498db; --plate-color: #f1c40f; 
             --weapon-color: #e74c3c; --stock: #95a5a6;
-            --sell-color: #2ecc71; --timer-color: #e67e22;
+            --sell-color: #2ecc71; --timer-color: #e67e22; --move-color: #3498db;
             --group-header-bg: #2c2c2c;
         }
 
@@ -48,7 +47,7 @@
 
         input[type="text"], select, input[type="number"] {
             flex-grow: 1; padding: 12px; border-radius: 8px; border: 1px solid #333;
-            background: #252525; color: white; font-size: 16px;
+            background: #252525; color: white; font-size: 16px; width: 100%; box-sizing: border-box;
         }
 
         button { border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
@@ -57,6 +56,7 @@
         button.danger-btn { background-color: #3e1212; color: #e74c3c; border: 1px solid #e74c3c; padding: 8px 12px; font-size: 0.8rem; }
         
         button.sell-btn { background-color: #145A32; color: #2ecc71; border: 1px solid #2ecc71; padding: 10px; width: 100%; margin-top: 10px; }
+        button.move-btn { background-color: #1A3E5C; color: #3498db; border: 1px solid #3498db; padding: 10px; width: 100%; margin-top: 10px; }
         
         button.timer-btn { background-color: #333; color: var(--sell-color); border: 1px solid var(--sell-color); padding: 8px 10px; font-size: 0.8rem; min-width: 45px; }
         button.timer-btn.active { color: var(--timer-color); border-color: var(--timer-color); }
@@ -85,9 +85,7 @@
         
         .garage-nickname { color: #ccc; font-weight: normal; margin-left: 8px; font-style: italic; font-size: 0.9rem; }
 
-        .vehicle-grid {
-            display: grid; grid-template-columns: 1fr; gap: 10px;
-        }
+        .vehicle-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
         .vehicle-grid.hidden { display: none; }
 
         @media (min-width: 600px) {
@@ -100,7 +98,6 @@
             background-color: var(--card-bg); border-radius: 8px; padding: 15px;
             border-left: 5px solid var(--stock); box-shadow: 0 2px 4px rgba(0,0,0,0.3); position: relative;
         }
-
         .vehicle-card.has-weapon { border-left-color: var(--weapon-color); }
         .vehicle-card:not(.has-weapon).has-f1 { border-left-color: var(--f1-color); }
         .vehicle-card:not(.has-weapon):not(.has-f1).has-benny { border-left-color: var(--benny-color); }
@@ -108,15 +105,10 @@
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
         .vehicle-name { font-size: 1.1rem; font-weight: bold; color: #fff; }
         .vehicle-manuf { font-size: 0.8rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
-        
-        .vehicle-loc { 
-            font-size: 0.9rem; color: var(--text-dim); margin-top: 8px; 
-            padding-top: 8px; border-top: 1px solid #333; display: flex; justify-content: space-between;
-        }
+        .vehicle-loc { font-size: 0.9rem; color: var(--text-dim); margin-top: 8px; padding-top: 8px; border-top: 1px solid #333; display: flex; justify-content: space-between; }
         
         .badges-container { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
         .badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
-        
         .badge.weapon { background: rgba(231, 76, 60, 0.2); color: var(--weapon-color); border: 1px solid var(--weapon-color); }
         .badge.f1 { background: rgba(230, 126, 34, 0.2); color: var(--f1-color); border: 1px solid var(--f1-color); }
         .badge.benny { background: rgba(52, 152, 219, 0.2); color: var(--benny-color); border: 1px solid var(--benny-color); }
@@ -127,11 +119,7 @@
         .card-actions { margin-top: 10px; display: flex; justify-content: flex-end; gap: 15px; }
         .icon-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 1.4rem; padding: 5px; }
 
-        /* FOOTER */
-        footer {
-            background-color: #181818; padding: 15px; text-align: center;
-            font-size: 0.8rem; color: var(--text-dim); border-top: 1px solid #333;
-        }
+        footer { background-color: #181818; padding: 15px; text-align: center; font-size: 0.8rem; color: var(--text-dim); border-top: 1px solid #333; }
         footer a { color: var(--accent); text-decoration: none; margin-left: 10px; cursor: pointer; font-weight: bold; }
 
         /* MODAL */
@@ -144,21 +132,9 @@
         .modal-content {
             background: #1e1e1e; width: 100%; max-height: 85vh; overflow-y: auto;
             border-radius: 15px 15px 0 0; padding: 20px; animation: slideUp 0.3s ease-out;
+            padding-bottom: 50px;
         }
         @media(min-width: 600px) { .modal-content { width: 90%; max-width: 500px; border-radius: 10px; animation: fadeIn 0.2s; } }
-
-        /* STATS STYLES */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .stat-card { background: #2c2c2c; padding: 15px; border-radius: 8px; text-align: center; }
-        .stat-num { font-size: 1.5rem; font-weight: bold; color: white; display: block; }
-        .stat-label { font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; }
-        
-        .progress-container { background: #333; height: 10px; border-radius: 5px; margin-top: 5px; overflow: hidden; }
-        .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s; }
-        
-        .top-list { list-style: none; padding: 0; margin: 0; }
-        .top-list li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; }
-        .top-list li:last-child { border: none; }
 
         /* Timer Modal Specifics */
         .timer-info-row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 10px; }
@@ -167,22 +143,8 @@
         .timer-big { font-size: 2rem; text-align: center; color: var(--timer-color); font-weight: bold; margin: 20px 0; }
         .timer-big.ready { color: var(--sell-color); }
 
-        /* Changelog Specifics */
-        .changelog-list { text-align: left; margin-bottom: 20px; }
-        .changelog-item { margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .changelog-ver { color: var(--accent); font-weight: bold; display: block; margin-bottom: 5px; }
-        .changelog-desc { color: #ccc; font-size: 0.9rem; line-height: 1.4; }
-
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: var(--text-dim); }
-        .form-group input, .form-group select {
-            width: 100%; box-sizing: border-box; padding: 12px;
-            background: #252525; border: 1px solid #333; color: white; border-radius: 8px; font-size: 16px;
-        }
-        
         .row-group { display: flex; gap: 10px; }
         .row-group > div { flex: 1; }
         .checkbox-wrapper { display: flex; align-items: center; gap: 10px; background: #252525; padding: 12px; border-radius: 8px; border: 1px solid #333; }
@@ -191,8 +153,29 @@
         .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
         .modal-actions button { flex: 1; }
         .empty-state { text-align: center; color: var(--text-dim); margin-top: 50px; }
-        
         .hidden-input { display: none; }
+        
+        .warning-text { color: #e74c3c; font-size: 0.9rem; margin-bottom: 10px; font-weight: bold; }
+        .delete-section { margin-top: 20px; border-top: 1px solid #333; padding-top: 15px; display: flex; flex-direction: column; gap: 8px; }
+        
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .stat-card { background: #2c2c2c; padding: 15px; border-radius: 8px; text-align: center; }
+        .stat-num { font-size: 1.5rem; font-weight: bold; color: white; display: block; }
+        .stat-label { font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; }
+        .progress-container { background: #333; height: 10px; border-radius: 5px; margin-top: 5px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s; }
+        .top-list { list-style: none; padding: 0; margin: 0; }
+        .top-list li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; }
+
+        /* Changelog */
+        .changelog-list { text-align: left; margin-bottom: 20px; }
+        .changelog-item { margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .changelog-ver { color: var(--accent); font-weight: bold; display: block; margin-bottom: 5px; }
+        .changelog-desc { color: #ccc; font-size: 0.9rem; line-height: 1.4; }
+
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -205,6 +188,7 @@
         <button class="secondary-btn" onclick="openStats()">📊</button>
         <button class="secondary-btn" onclick="downloadBackup()">💾</button>
         <button class="secondary-btn" onclick="document.getElementById('restoreInput').click()">📂</button>
+        <button class="danger-btn" style="padding: 8px 12px; margin:0;" onclick="factoryReset()">⚠️</button>
         <input type="file" id="restoreInput" style="display:none" onchange="restoreBackup(this)">
     </div>
 </header>
@@ -231,7 +215,7 @@
 </div>
 
 <footer>
-    <span>v20.0</span>
+    <span>v21.2</span>
     <a onclick="openChangelog()">Changelog</a>
 </footer>
 
@@ -260,84 +244,7 @@
                 <label>Garage</label>
                 <select id="inputLoc" onchange="handleGarageChange()">
                     <option value="" disabled selected>Select...</option>
-                    <optgroup label="Safehouse / Mansions">
-                        <option value="Richman Villa">Richman Villa (20)</option>
-                        <option value="The Vinewood Residence">The Vinewood Residence (20)</option>
-                        <option value="The Tongva Estate">The Tongva Estate (20)</option>
-                    </optgroup>
-                    <optgroup label="Massive Garages">
-                        <option value="Vinewood Club Garage">Vinewood Club Garage (100)</option>
-                        <option value="Eclipse Blvd Garage">Eclipse Blvd Garage (50)</option>
-                        <option value="Office Garage 1">Office Garage 1 (20)</option>
-                        <option value="Office Garage 2">Office Garage 2 (20)</option>
-                        <option value="Office Garage 3">Office Garage 3 (20)</option>
-                    </optgroup>
-                    <optgroup label="Eclipse Towers">
-                        <option value="Eclipse Towers (Generic)">Eclipse Towers (Generic)</option>
-                        <option value="Eclipse Towers, Penthouse Suite 1">Penthouse Suite 1</option>
-                        <option value="Eclipse Towers, Penthouse Suite 2">Penthouse Suite 2</option>
-                        <option value="Eclipse Towers, Penthouse Suite 3">Penthouse Suite 3</option>
-                        <option value="Eclipse Towers, Apt 3">Apt 3</option>
-                        <option value="Eclipse Towers, Apt 5">Apt 5</option>
-                        <option value="Eclipse Towers, Apt 9">Apt 9</option>
-                        <option value="Eclipse Towers, Apt 31">Apt 31</option>
-                        <option value="Eclipse Towers, Apt 40">Apt 40</option>
-                    </optgroup>
-                    <optgroup label="Richards Majestic">
-                        <option value="Richards Majestic (Generic)">Richards Majestic (Generic)</option>
-                        <option value="Richards Majestic, Apt 2">Apt 2</option>
-                        <option value="Richards Majestic, Apt 4">Apt 4</option>
-                        <option value="Richards Majestic, Apt 51">Apt 51</option>
-                    </optgroup>
-                    <optgroup label="Tinsel Towers">
-                        <option value="Tinsel Towers (Generic)">Tinsel Towers (Generic)</option>
-                        <option value="Tinsel Towers, Apt 29">Apt 29</option>
-                        <option value="Tinsel Towers, Apt 42">Apt 42</option>
-                        <option value="Tinsel Towers, Apt 45">Apt 45</option>
-                    </optgroup>
-                    <optgroup label="Integrity Way">
-                        <option value="4 Integrity Way, Apt 28">4 Integrity Way, Apt 28</option>
-                        <option value="4 Integrity Way, Apt 30">4 Integrity Way, Apt 30</option>
-                        <option value="4 Integrity Way, Apt 35">4 Integrity Way, Apt 35</option>
-                    </optgroup>
-                    <optgroup label="Del Perro Heights">
-                        <option value="Del Perro Heights, Apt 4">Apt 4</option>
-                        <option value="Del Perro Heights, Apt 7">Apt 7</option>
-                        <option value="Del Perro Heights, Apt 20">Apt 20</option>
-                    </optgroup>
-                    <optgroup label="Weazel Plaza">
-                        <option value="Weazel Plaza, Apt 26">Apt 26</option>
-                        <option value="Weazel Plaza, Apt 70">Apt 70</option>
-                        <option value="Weazel Plaza, Apt 101">Apt 101</option>
-                    </optgroup>
-                    <optgroup label="3 Alta St">
-                        <option value="3 Alta St, Apt 10">Apt 10</option>
-                        <option value="3 Alta St, Apt 57">Apt 57</option>
-                    </optgroup>
-                    <optgroup label="Businesses">
-                        <option value="Agency Garage">Agency Garage (20)</option>
-                        <option value="Nightclub">Nightclub (31)</option>
-                        <option value="Arcade">Arcade (10)</option>
-                        <option value="Auto Shop">Auto Shop (10)</option>
-                        <option value="Salvage Yard">Salvage Yard</option>
-                        <option value="Bail Enforcement Office">Bail Enforcement</option>
-                        <option value="Clubhouse">MC Clubhouse (10)</option>
-                        <option value="Darnell Bros Factory">Darnell Bros Factory</option>
-                    </optgroup>
-                    <optgroup label="Specialized">
-                        <option value="Arena Workshop">Arena Workshop (27)</option>
-                        <option value="Casino Penthouse">Casino Penthouse (10)</option>
-                        <option value="Facility">Facility (7)</option>
-                        <option value="Bunker">Bunker</option>
-                        <option value="Hangar">Hangar</option>
-                        <option value="Kosatka">Kosatka</option>
-                        <option value="Terrorbyte">Terrorbyte</option>
-                        <option value="Acid Lab">Acid Lab</option>
-                        <option value="Avenger">Avenger</option>
-                        <option value="MOC">Mobile Ops Center</option>
-                    </optgroup>
-                    <option value="Custom">Other / Custom...</option>
-                </select>
+                    </select>
                 <input type="text" id="inputLocCustom" placeholder="Type Custom Location" style="display:none; margin-top:5px;">
             </div>
 
@@ -411,6 +318,7 @@
         
         <div id="editActions" style="display:none;">
             <div class="delete-section">
+                <button class="move-btn" onclick="startMove(editingId)">🚚 Move to Another Garage</button>
                 <button class="sell-btn" onclick="sellVehicle(editingId)">💲 Sell Vehicle (18h Timer)</button>
                 <button class="danger-btn" onclick="deleteVehicle(editingId)">Delete</button>
             </div>
@@ -418,17 +326,40 @@
     </div>
 </div>
 
+<div id="moveModal" class="modal">
+    <div class="modal-content">
+        <h2 style="margin-top:0;">Move Vehicle</h2>
+        <p id="moveCarName" style="color:var(--accent); font-weight:bold; margin-bottom:20px;"></p>
+        
+        <div class="form-group">
+            <label>Select Destination Garage</label>
+            <select id="moveTargetGarage" onchange="checkMoveCapacity()">
+                <option value="" disabled selected>Select...</option>
+                </select>
+        </div>
+
+        <div id="swapSection" style="display:none; background:#3e1212; padding:15px; border-radius:8px; border:1px solid #e74c3c; margin-bottom:15px;">
+            <p class="warning-text">⚠️ This garage is FULL.</p>
+            <label style="display:block; margin-bottom:5px; color:#ccc;">Select a vehicle to swap locations with:</label>
+            <select id="swapTargetVehicle">
+                </select>
+        </div>
+
+        <div class="modal-actions">
+            <button class="secondary-btn" onclick="closeMoveModal()">Cancel</button>
+            <button class="primary-btn" onclick="performMove()">Confirm Move</button>
+        </div>
+    </div>
+</div>
+
 <div id="timerModal" class="modal">
     <div class="modal-content">
         <h2 style="margin-top:0;">Sale Dashboard</h2>
-        
         <div class="timer-info-row">
             <span class="timer-info-label">Last Sold Vehicle:</span>
             <span class="timer-info-val" id="lastSoldName">--</span>
         </div>
-        
         <div class="timer-big" id="timerBigDisplay">--:--</div>
-        
         <div class="form-group">
             <label>Full Price Sale Available At:</label>
             <div style="display:flex; gap:10px;">
@@ -437,16 +368,12 @@
                     <option value="Local">Local</option>
                     <option value="America/New_York">EST</option>
                     <option value="America/Chicago">CST</option>
-                    <option value="America/Denver">MST</option>
                     <option value="America/Los_Angeles">PST</option>
                     <option value="UTC">UTC</option>
                 </select>
             </div>
         </div>
-
-        <div class="modal-actions">
-            <button class="secondary-btn" onclick="closeTimerModal()">Close</button>
-        </div>
+        <div class="modal-actions"><button class="secondary-btn" onclick="closeTimerModal()">Close</button></div>
     </div>
 </div>
 
@@ -478,31 +405,34 @@
     <div class="modal-content">
         <h2 style="margin-top:0;">Changelog</h2>
         <div class="changelog-list">
-            <div class="changelog-item"><span class="changelog-ver">v20.0</span><span class="changelog-desc">Massive Database Update: Added 750+ vehicles including Arena War, Imani Tech, Police/Bounty, and Warstock. Added 'Auto-Migration' to fix old 'Custom' cars automatically.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v18.1</span><span class="changelog-desc">Full History Update: Restored complete changelog from v1.0 to present (excluding unstable versions).</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v18.0</span><span class="changelog-desc">Sale Dashboard: Added detailed dashboard showing last sold car, countdown timer, and timezone converter.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v17.7</span><span class="changelog-desc">Added Garage Nicknames & Auto-fill.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v17.6</span><span class="changelog-desc">Default View: App now defaults to 'Group by Garage'.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v17.5</span><span class="changelog-desc">Safe Sale: Added 'Sell Vehicle' button and 18h cooldown timer with safe UI implementation.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v16.0</span><span class="changelog-desc">Smart Folding Lists & Search Expansion.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v15.0</span><span class="changelog-desc">Collapsible Garage Headers.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v14.1</span><span class="changelog-desc">Fixed Mansion Capacities (20 slots).</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v14.0</span><span class="changelog-desc">Added Specific Apartment Unit Numbers.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v13.0</span><span class="changelog-desc">Statistics Dashboard.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v12.0</span><span class="changelog-desc">View Modes (Garage/Manufacturer), Capacity Counts, Slot # field.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v11.0</span><span class="changelog-desc">Footer & Changelog UI.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v10.0</span><span class="changelog-desc">Added Safehouses & Mansions.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v9.0</span><span class="changelog-desc">Added support for Custom Locations.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v1.0 - v8.0</span><span class="changelog-desc">Core Features: Local Storage, Backup/Restore, Search, Vehicle Database.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v21.2</span><span class="changelog-desc">Fix: Removed safety wrappers that prevented dropdowns from loading. Restored global scope access.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v21.0</span><span class="changelog-desc">Added "Move Vehicle" feature. Includes smart capacity check and Swap functionality.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v20.0</span><span class="changelog-desc">Massive Database Update: Added 750+ vehicles including Arena War, Imani Tech, Police/Bounty, and Warstock.</span></div>
         </div>
         <div class="modal-actions"><button class="secondary-btn" onclick="closeChangelog()">Close</button></div>
     </div>
 </div>
 
 <script>
-    // --- CONFIG & DATA ---
+    // --- GLOBAL DATA ---
     const COOLDOWN_MS = 18 * 60 * 60 * 1000; // 18 Hours
     
+    // Explicit list for dropdowns
+    const GARAGE_OPTIONS = [
+        { grp: "Safehouse / Mansions", items: ["Richman Villa (20)", "The Vinewood Residence (20)", "The Tongva Estate (20)"] },
+        { grp: "Massive Garages", items: ["Vinewood Club Garage (100)", "Eclipse Blvd Garage (50)", "Office Garage 1 (20)", "Office Garage 2 (20)", "Office Garage 3 (20)"] },
+        { grp: "Eclipse Towers", items: ["Eclipse Towers (Generic)", "Eclipse Towers, Penthouse Suite 1", "Eclipse Towers, Penthouse Suite 2", "Eclipse Towers, Penthouse Suite 3", "Eclipse Towers, Apt 3", "Eclipse Towers, Apt 5", "Eclipse Towers, Apt 9", "Eclipse Towers, Apt 31", "Eclipse Towers, Apt 40"] },
+        { grp: "Apartments", items: ["Richards Majestic (Generic)", "Tinsel Towers (Generic)", "4 Integrity Way (Generic)", "Del Perro Heights (Generic)", "Weazel Plaza (Generic)", "3 Alta St (Generic)"] },
+        { grp: "Richards Majestic", items: ["Richards Majestic, Apt 2", "Richards Majestic, Apt 4", "Richards Majestic, Apt 51"] },
+        { grp: "Tinsel Towers", items: ["Tinsel Towers, Apt 29", "Tinsel Towers, Apt 42", "Tinsel Towers, Apt 45"] },
+        { grp: "4 Integrity Way", items: ["4 Integrity Way, Apt 28", "4 Integrity Way, Apt 30", "4 Integrity Way, Apt 35"] },
+        { grp: "Del Perro Heights", items: ["Del Perro Heights, Apt 4", "Del Perro Heights, Apt 7", "Del Perro Heights, Apt 20"] },
+        { grp: "Weazel Plaza", items: ["Weazel Plaza, Apt 26", "Weazel Plaza, Apt 70", "Weazel Plaza, Apt 101"] },
+        { grp: "3 Alta St", items: ["3 Alta St, Apt 10", "3 Alta St, Apt 57"] },
+        { grp: "Businesses", items: ["Agency Garage (20)", "Nightclub (31)", "Arcade (10)", "Auto Shop (10)", "Salvage Yard", "Bail Enforcement Office", "Clubhouse (10)", "Darnell Bros Factory"] },
+        { grp: "Specialized", items: ["Arena Workshop (27)", "Casino Penthouse (10)", "Facility (7)", "Bunker", "Hangar", "Kosatka", "Terrorbyte", "Acid Lab", "Avenger", "MOC"] }
+    ];
+
     const GARAGE_META = {
         "Vinewood Club Garage": { cap: 100, floors: true },
         "Eclipse Blvd Garage": { cap: 50, floors: true },
@@ -612,6 +542,7 @@
     let lastSoldName = "Unknown";
     let editingId = null;
     let timerInterval = null;
+    let movingVehicleId = null;
 
     // --- DOM ---
     const listEl = document.getElementById('vehicle-list');
@@ -619,6 +550,7 @@
     const clModal = document.getElementById('changelogModal');
     const statModal = document.getElementById('statsModal');
     const timerModal = document.getElementById('timerModal');
+    const moveModal = document.getElementById('moveModal');
     const searchInput = document.getElementById('searchInput');
     const viewModeEl = document.getElementById('viewMode');
     const countEl = document.getElementById('count');
@@ -631,16 +563,21 @@
     const floorGroup = document.getElementById('floorGroup');
     const editActions = document.getElementById('editActions');
     const timerBtn = document.getElementById('timerBtn');
+    
+    const moveTargetGarage = document.getElementById('moveTargetGarage');
+    const swapSection = document.getElementById('swapSection');
+    const swapTargetVehicle = document.getElementById('swapTargetVehicle');
+    const moveCarName = document.getElementById('moveCarName');
 
-    // --- MIGRATION LOGIC (NEW) ---
+    // --- MIGRATION LOGIC ---
     function migrateLegacyVehicles() {
         let changed = false;
         vehicles.forEach(v => {
+            if (!v) return; // SKIP IF NULL
             if (v.manuf === "Custom" || v.manuf === "Other") {
-                // Try to find the model in the official DB
                 for (const [manuf, models] of Object.entries(CAR_DB)) {
                     if (models.includes(v.model)) {
-                        v.manuf = manuf; // Auto-Fix
+                        v.manuf = manuf; 
                         changed = true;
                         break;
                     }
@@ -655,16 +592,42 @@
 
     // --- MAIN LOGIC ---
 
-    function populateManufDropdown() {
+    function populateDropdowns() {
+        // Manuf
         manufSelect.innerHTML = '<option value="" disabled selected>Select...</option>';
         SORTED_MANUFS.forEach(brand => {
             const opt = document.createElement('option');
             opt.value = brand; opt.innerText = brand;
             manufSelect.appendChild(opt);
         });
-        const otherOpt = document.createElement('option');
-        otherOpt.value = "Other"; otherOpt.innerText = "Other / Unknown";
-        manufSelect.appendChild(otherOpt);
+        manufSelect.innerHTML += '<option value="Other">Other / Unknown</option>';
+
+        // Garages (Main Input)
+        const frag = document.createDocumentFragment();
+        GARAGE_OPTIONS.forEach(g => {
+            const group = document.createElement('optgroup');
+            group.label = g.grp;
+            g.items.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item;
+                opt.innerText = item;
+                group.appendChild(opt);
+            });
+            frag.appendChild(group);
+        });
+        
+        // Clone for Move Dropdown
+        const moveFrag = frag.cloneNode(true);
+        moveTargetGarage.innerHTML = '<option value="" disabled selected>Select...</option>';
+        moveTargetGarage.appendChild(moveFrag);
+
+        // Add Custom to Main Input
+        const customOpt = document.createElement('option');
+        customOpt.value = "Custom"; customOpt.innerText = "Other / Custom...";
+        frag.appendChild(customOpt);
+        
+        locSelect.innerHTML = '<option value="" disabled selected>Select...</option>';
+        locSelect.appendChild(frag);
     }
 
     function updateModelDropdown(selectedModel = null) {
@@ -714,23 +677,29 @@
     }
 
     function handleGarageChange() {
-        checkCustomLoc();
         const loc = locSelect.value;
-        const cleanLoc = loc.replace(/\s\(\d+\)$/, "");
-        const meta = GARAGE_META[cleanLoc];
-        
-        if (meta && meta.floors) {
-            floorGroup.style.display = 'block';
-        } else {
+        if (loc === 'Custom') {
+            locCustom.style.display = 'block';
             floorGroup.style.display = 'none';
-            document.getElementById('inputFloor').value = ""; 
-        }
-
-        const existingCar = vehicles.find(v => v.loc === loc && v.locNickname);
-        if (existingCar) {
-            locNickname.value = existingCar.locNickname;
         } else {
-            locNickname.value = ""; 
+            locCustom.style.display = 'none';
+            // Strip capacity
+            const cleanLoc = loc.replace(/\s\(\d+\)$/, "");
+            const meta = GARAGE_META[cleanLoc];
+            
+            if (meta && meta.floors) {
+                floorGroup.style.display = 'block';
+            } else {
+                floorGroup.style.display = 'none';
+                document.getElementById('inputFloor').value = ""; 
+            }
+
+            const existingCar = vehicles.find(v => v.loc === loc && v.locNickname);
+            if (existingCar) {
+                locNickname.value = existingCar.locNickname;
+            } else {
+                locNickname.value = ""; 
+            }
         }
     }
 
@@ -876,7 +845,7 @@
     }
 
     function initApp() {
-        populateManufDropdown();
+        populateDropdowns();
         try {
             const sale = localStorage.getItem('gta_last_sale');
             if (sale) lastSellTime = parseInt(sale);
@@ -895,7 +864,7 @@
             }
         } catch (e) { console.error(e); vehicles = []; }
         
-        migrateLegacyVehicles(); // AUTO FIX OLD DATA
+        migrateLegacyVehicles(); 
         renderVehicles(vehicles);
         updateTimerHeader();
         setInterval(updateTimerHeader, 60000); 
@@ -941,6 +910,7 @@
         soldNameDisplay.innerText = lastSoldName || "Unknown/Legacy";
 
         if (diff < COOLDOWN_MS) {
+            // Active Cooldown
             const remaining = COOLDOWN_MS - diff;
             const hours = Math.floor(remaining / (1000 * 60 * 60));
             const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
@@ -961,6 +931,7 @@
             targetDisplay.value = timeString;
 
         } else {
+            // Ready
             bigDisplay.innerText = "READY TO SELL";
             bigDisplay.classList.add('ready');
             targetDisplay.value = "Now";
@@ -982,8 +953,96 @@
         if(isClick) openTimerModal();
     }
 
-    initApp();
+    // --- MOVE LOGIC ---
+    window.startMove = function(id) {
+        movingVehicleId = id;
+        const car = vehicles.find(v => v.id === id);
+        if(!car) return;
+        
+        document.getElementById('moveCarName').innerText = `Moving: ${car.model}`;
+        moveTargetGarage.value = "";
+        swapSection.style.display = 'none';
+        
+        moveModal.style.display = 'flex';
+    };
 
+    window.checkMoveCapacity = function() {
+        const target = moveTargetGarage.value;
+        if (!target) return;
+        
+        // Count existing cars
+        const count = vehicles.filter(v => v.loc === target).length;
+        const cleanLoc = target.replace(/\s\(\d+\)$/, "");
+        const meta = GARAGE_META[cleanLoc] || GARAGE_META["DEFAULT_APT"];
+        const cap = meta.cap || 10;
+
+        if (count >= cap) {
+            swapSection.style.display = 'block';
+            // Populate Swap Dropdown
+            const swapSelect = document.getElementById('swapTargetVehicle');
+            swapSelect.innerHTML = '<option value="" disabled selected>Select Car...</option>';
+            const carsInTarget = vehicles.filter(v => v.loc === target);
+            carsInTarget.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.innerText = `${c.manuf} ${c.model} ${c.slot ? '(Slot '+c.slot+')' : ''}`;
+                swapSelect.appendChild(opt);
+            });
+        } else {
+            swapSection.style.display = 'none';
+        }
+    };
+
+    window.performMove = function() {
+        const target = moveTargetGarage.value;
+        if (!target) return alert("Select a garage.");
+        
+        const carA_idx = vehicles.findIndex(v => v.id === movingVehicleId);
+        if (carA_idx === -1) return;
+        const carA = vehicles[carA_idx];
+        const oldLoc = carA.loc;
+
+        const isFull = swapSection.style.display === 'block';
+        
+        if (isFull) {
+            // SWAP LOGIC
+            const swapId = parseInt(document.getElementById('swapTargetVehicle').value);
+            if (!swapId) return alert("Garage is full. You must select a car to swap.");
+            
+            const carB_idx = vehicles.findIndex(v => v.id === swapId);
+            const carB = vehicles[carB_idx];
+            
+            // Swap Locations
+            vehicles[carA_idx].loc = target;
+            vehicles[carB_idx].loc = oldLoc;
+            
+            // Swap Floor/Slots (Best guess: they trade physical spots)
+            const tempFloor = carA.floor;
+            const tempSlot = carA.slot;
+            vehicles[carA_idx].floor = carB.floor;
+            vehicles[carA_idx].slot = carB.slot;
+            
+            vehicles[carB_idx].floor = tempFloor;
+            vehicles[carB_idx].slot = tempSlot;
+            
+            alert(`Swapped ${carA.model} with ${carB.model}!`);
+        } else {
+            // SIMPLE MOVE
+            vehicles[carA_idx].loc = target;
+            // Clear slot data because we don't know where it landed
+            vehicles[carA_idx].floor = "";
+            vehicles[carA_idx].slot = "";
+            alert(`Moved ${carA.model} to ${target}.`);
+        }
+        
+        saveToStorage();
+        closeMoveModal();
+        closeModal();
+    };
+
+    window.closeMoveModal = function() { moveModal.style.display = 'none'; };
+
+    // --- ACTIONS ---
     window.openModal = function(vehicle = null) {
         modal.style.display = 'flex';
         
@@ -1177,12 +1236,25 @@
         input.value = '';
     };
 
+    window.factoryReset = function() {
+        if(confirm("⚠️ This will WIPE ALL DATA. Are you sure?")) {
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem('gta_last_sale');
+            localStorage.removeItem('gta_last_sold_name');
+            location.reload();
+        }
+    };
+
     window.onclick = function(e) { 
         if(e.target == modal) closeModal(); 
         if(e.target == clModal) closeChangelog();
         if(e.target == statModal) closeStats();
         if(e.target == timerModal) closeTimerModal();
+        if(e.target == moveModal) closeMoveModal();
     }
+    
+    // Ensure app starts after DOM load
+    document.addEventListener('DOMContentLoaded', initApp);
 </script>
 
 </body>
