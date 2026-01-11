@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v21.2</title>
+    <title>My GTA Garage v22.1</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
 
@@ -188,7 +188,6 @@
         <button class="secondary-btn" onclick="openStats()">📊</button>
         <button class="secondary-btn" onclick="downloadBackup()">💾</button>
         <button class="secondary-btn" onclick="document.getElementById('restoreInput').click()">📂</button>
-        <button class="danger-btn" style="padding: 8px 12px; margin:0;" onclick="factoryReset()">⚠️</button>
         <input type="file" id="restoreInput" style="display:none" onchange="restoreBackup(this)">
     </div>
 </header>
@@ -215,8 +214,10 @@
 </div>
 
 <footer>
-    <span>v21.2</span>
+    <span>v22.1</span>
     <a onclick="openChangelog()">Changelog</a>
+    <span style="margin: 0 5px; color: #333;">|</span>
+    <a onclick="factoryReset()" style="color: #e74c3c; cursor:pointer;">Reset Data</a>
 </footer>
 
 <div id="vehicleModal" class="modal">
@@ -368,6 +369,7 @@
                     <option value="Local">Local</option>
                     <option value="America/New_York">EST</option>
                     <option value="America/Chicago">CST</option>
+                    <option value="America/Denver">MST</option>
                     <option value="America/Los_Angeles">PST</option>
                     <option value="UTC">UTC</option>
                 </select>
@@ -405,9 +407,25 @@
     <div class="modal-content">
         <h2 style="margin-top:0;">Changelog</h2>
         <div class="changelog-list">
+            <div class="changelog-item"><span class="changelog-ver">v22.1</span><span class="changelog-desc">Full History Update: Restored complete changelog from v1.0 to present (excluding unstable versions).</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v22.0</span><span class="changelog-desc">UI Update: Moved Reset/Wipe button to footer for safety.</span></div>
             <div class="changelog-item"><span class="changelog-ver">v21.2</span><span class="changelog-desc">Fix: Removed safety wrappers that prevented dropdowns from loading. Restored global scope access.</span></div>
             <div class="changelog-item"><span class="changelog-ver">v21.0</span><span class="changelog-desc">Added "Move Vehicle" feature. Includes smart capacity check and Swap functionality.</span></div>
             <div class="changelog-item"><span class="changelog-ver">v20.0</span><span class="changelog-desc">Massive Database Update: Added 750+ vehicles including Arena War, Imani Tech, Police/Bounty, and Warstock.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v18.0</span><span class="changelog-desc">Sale Dashboard: Added detailed dashboard showing last sold car, countdown timer, and timezone converter.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v17.7</span><span class="changelog-desc">Added Garage Nicknames & Auto-fill.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v17.6</span><span class="changelog-desc">Default View: App now defaults to 'Group by Garage'.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v17.5</span><span class="changelog-desc">Safe Sale: Added 'Sell Vehicle' button and 18h cooldown timer with safe UI implementation.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v16.0</span><span class="changelog-desc">Smart Folding Lists & Search Expansion.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v15.0</span><span class="changelog-desc">Collapsible Garage Headers.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v14.1</span><span class="changelog-desc">Fixed Mansion Capacities (20 slots).</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v14.0</span><span class="changelog-desc">Added Specific Apartment Unit Numbers.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v13.0</span><span class="changelog-desc">Statistics Dashboard.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v12.0</span><span class="changelog-desc">View Modes (Garage/Manufacturer), Capacity Counts, Slot # field.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v11.0</span><span class="changelog-desc">Footer & Changelog UI.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v10.0</span><span class="changelog-desc">Added Safehouses & Mansions.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v9.0</span><span class="changelog-desc">Added support for Custom Locations.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v1.0 - v8.0</span><span class="changelog-desc">Core Features: Local Storage, Backup/Restore, Search, Vehicle Database.</span></div>
         </div>
         <div class="modal-actions"><button class="secondary-btn" onclick="closeChangelog()">Close</button></div>
     </div>
@@ -845,8 +863,8 @@
     }
 
     function initApp() {
-        populateDropdowns();
         try {
+            populateDropdowns();
             const sale = localStorage.getItem('gta_last_sale');
             if (sale) lastSellTime = parseInt(sale);
             
@@ -859,10 +877,18 @@
                 if (legacy) { saved = legacy; localStorage.setItem(STORAGE_KEY, legacy); }
             }
             if (saved) {
-                vehicles = JSON.parse(saved);
-                if (!Array.isArray(vehicles)) vehicles = [];
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed)) {
+                    vehicles = parsed.filter(v => v !== null); // CLEAN NULLS
+                } else {
+                    vehicles = [];
+                }
             }
-        } catch (e) { console.error(e); vehicles = []; }
+        } catch (e) { 
+            console.error(e); 
+            alert("Error loading data. Please click the Reset (⚠️) button if the app is stuck."); 
+            vehicles = []; 
+        }
         
         migrateLegacyVehicles(); 
         renderVehicles(vehicles);
