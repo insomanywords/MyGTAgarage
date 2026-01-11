@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v23.0</title>
+    <title>My GTA Garage v24.1</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
 
@@ -109,6 +109,11 @@
         .vehicle-manuf { font-size: 0.8rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
         .vehicle-loc { font-size: 0.9rem; color: var(--text-dim); margin-top: 8px; padding-top: 8px; border-top: 1px solid #333; display: flex; justify-content: space-between; }
         
+        /* New Info Section */
+        .vehicle-info-row { display: flex; gap: 10px; margin-top: 10px; font-size: 0.8rem; color: #ccc; border-bottom: 1px solid #333; padding-bottom: 5px; flex-wrap: wrap; }
+        .info-pill { background: #333; padding: 2px 6px; border-radius: 4px; }
+        .wiki-link { color: var(--accent); text-decoration: none; font-weight: bold; font-size: 0.8rem; display: inline-block; margin-left: auto; }
+
         .badges-container { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
         .badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
         .badge.weapon { background: rgba(231, 76, 60, 0.2); color: var(--weapon-color); border: 1px solid var(--weapon-color); }
@@ -217,7 +222,7 @@
 </div>
 
 <footer>
-    <span>v23.0</span>
+    <span>v24.1</span>
     <a onclick="openChangelog()">Changelog</a>
     <span style="margin: 0 5px; color: #333;">|</span>
     <a onclick="factoryReset()" style="color: #e74c3c; cursor:pointer;">Reset Data</a>
@@ -438,34 +443,25 @@
     <div class="modal-content">
         <h2 style="margin-top:0;">Changelog</h2>
         <div class="changelog-list">
-             <div class="changelog-item"><span class="changelog-ver">v23.0</span><span class="changelog-desc">Added "Swap Garages" tool. Allows bulk moving all cars from one property to another.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v22.1</span><span class="changelog-desc">Full History Update: Restored complete changelog from v1.0 to present (excluding unstable versions).</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v22.0</span><span class="changelog-desc">UI Update: Moved Reset/Wipe button to footer for safety.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v21.2</span><span class="changelog-desc">Fix: Removed safety wrappers that prevented dropdowns from loading. Restored global scope access.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v21.0</span><span class="changelog-desc">Added "Move Vehicle" feature. Includes smart capacity check and Swap functionality.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v20.0</span><span class="changelog-desc">Massive Database Update: Added 750+ vehicles including Arena War, Imani Tech, Police/Bounty, and Warstock.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v18.0</span><span class="changelog-desc">Sale Dashboard: Added detailed dashboard showing last sold car, countdown timer, and timezone converter.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v17.7</span><span class="changelog-desc">Added Garage Nicknames & Auto-fill.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v17.6</span><span class="changelog-desc">Default View: App now defaults to 'Group by Garage'.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v17.5</span><span class="changelog-desc">Safe Sale: Added 'Sell Vehicle' button and 18h cooldown timer with safe UI implementation.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v16.0</span><span class="changelog-desc">Smart Folding Lists & Search Expansion.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v15.0</span><span class="changelog-desc">Collapsible Garage Headers.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v14.1</span><span class="changelog-desc">Fixed Mansion Capacities (20 slots).</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v14.0</span><span class="changelog-desc">Added Specific Apartment Unit Numbers.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v13.0</span><span class="changelog-desc">Statistics Dashboard.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v12.0</span><span class="changelog-desc">View Modes (Garage/Manufacturer), Capacity Counts, Slot # field.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v11.0</span><span class="changelog-desc">Footer & Changelog UI.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v10.0</span><span class="changelog-desc">Added Safehouses & Mansions.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v9.0</span><span class="changelog-desc">Added support for Custom Locations.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v1.0 - v8.0</span><span class="changelog-desc">Core Features: Local Storage, Backup/Restore, Search, Vehicle Database.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v24.1</span><span class="changelog-desc">Expanded Metadata: Added Class, Price, and Seat info for 150+ older vehicles (Zentorno, Adder, Kuruma, etc.).</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v24.0</span><span class="changelog-desc">Added Metadata system & Dec 2025 vehicles.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v23.0</span><span class="changelog-desc">Added "Swap Garages" tool.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v22.1</span><span class="changelog-desc">Full History Update: Restored complete changelog from v1.0 to present.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v22.0</span><span class="changelog-desc">UI Update: Moved Reset/Wipe button to footer.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v21.0</span><span class="changelog-desc">Added "Move Vehicle" feature.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v20.0</span><span class="changelog-desc">Massive Database Update: 750+ vehicles added.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v18.0</span><span class="changelog-desc">Sale Dashboard & Timer.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v17.7</span><span class="changelog-desc">Garage Nicknames.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v17.5</span><span class="changelog-desc">Safe Sale & Timer.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v16.0</span><span class="changelog-desc">Smart Folding Lists.</span></div>
         </div>
         <div class="modal-actions"><button class="secondary-btn" onclick="closeChangelog()">Close</button></div>
     </div>
 </div>
 
 <script>
-    // --- GLOBAL DATA ---
-    const COOLDOWN_MS = 18 * 60 * 60 * 1000; // 18 Hours
+    // --- DATA START ---
+    const COOLDOWN_MS = 18 * 60 * 60 * 1000;
     
     // Explicit list for dropdowns
     const GARAGE_OPTIONS = [
@@ -526,6 +522,7 @@
         "DEFAULT_APT": { cap: 10, floors: false }
     };
 
+    // --- VEHICLE DATABASE (Name Only) ---
     const CAR_DB = {
         "Albany": ["Alpha", "Brigham", "Buccaneer", "Buccaneer Custom", "Cavalcade", "Cavalcade XL", "Emperor", "Franken Stange", "Hermes", "Lurcher", "Manana", "Manana Custom", "Primo", "Primo Custom", "Roosevelt", "Roosevelt Valor", "V-STR", "Virgo", "Washington"],
         "Annis": ["300R", "Elegy RH8", "Elegy Retro Custom", "Euros", "Euros X32", "Hellion", "Remus", "RE-7B", "S80RR", "Savestra", "ZR350", "ZR380 (Arena)", "Apocalypse ZR380", "Future Shock ZR380", "Nightmare ZR380"],
@@ -540,7 +537,7 @@
         "Cheval": ["Fugitive", "Marshall", "Picador", "Surge", "Taipan"],
         "Classique": ["Broadway"],
         "Coil": ["Brawler", "Cyclone", "Cyclone II", "Raiden", "Rocket Voltic", "Tarantula", "TM-02 Khanjali", "Voltic"],
-        "Declasse": ["Draugur", "Drift Tampa", "Drift Yosemite", "Granger", "Granger 3600LX", "Hotring Sabre", "Impaler", "Impaler LX", "Impaler LX Cruiser", "Impaler SZ", "Impaler SZ Cruiser", "Mamba", "Rhapsody", "Sabre Turbo", "Sabre Turbo Custom", "Scramjet", "Stallion", "Tampa", "Tornado", "Tornado Custom", "Tulip", "Vetir", "Vigero", "Vigero ZX", "Vigero ZX Convertible", "Walton L35", "Weaponized Tampa", "Yosemite", "Yosemite 1500", "Brutus (Arena)", "Apocalypse Brutus", "Future Shock Brutus", "Nightmare Brutus", "Impaler (Arena)", "Apocalypse Impaler", "Future Shock Impaler", "Nightmare Impaler"],
+        "Declasse": ["Draugur", "Drift Tampa", "Drift Yosemite", "Granger", "Granger 3600LX", "Hotring Sabre", "Impaler", "Impaler LX", "Impaler LX Cruiser", "Impaler SZ", "Impaler SZ Cruiser", "Mamba", "Rhapsody", "Sabre Turbo", "Sabre Turbo Custom", "Scramjet", "Stallion", "Tampa", "Tornado", "Tornado Custom", "Tulip", "Vetir", "Vigero", "Vigero ZX", "Vigero ZX Convertible", "Walton L35", "Weaponized Tampa", "Yosemite", "Yosemite 1500", "Brutus (Arena)", "Apocalypse Brutus", "Future Shock Brutus", "Nightmare Brutus", "Impaler (Arena)", "Apocalypse Impaler", "Future Shock Impaler", "Nightmare Impaler", "Tampa GT"],
         "Dewbauchee": ["Champion", "Exemplar", "Massacro", "Massacro (Racecar)", "Rapid GT", "Rapid GT Classic", "Seven-70", "Specter", "Specter Custom", "Vagner", "Viseris", "Wagner"],
         "Dinka": ["Blista", "Blista Compact", "Blista Kanjo", "Double-T", "Enduro", "Jester", "Jester (Racecar)", "Jester Classic", "Jester RR", "Kanjo SJ", "Postlude", "Sugoi", "Thrust", "Veto Classic", "Veto Modern"],
         "Dundreary": ["Landstalker", "Landstalker XL", "Regina", "Virgo Classic"],
@@ -549,13 +546,13 @@
         "Enus": ["Cognoscenti", "Cognoscenti 55", "Cognoscenti Cabrio", "Deity", "Diabolus", "Diabolus Custom", "Jubilee", "Paragon R", "Paragon R (Armored)", "Paragon S", "Stafford", "Super Diamond", "Windsor", "Windsor Drop"],
         "Fathom": ["FR36"],
         "Gallivanter": ["Baller", "Baller LE", "Baller LE LWB", "Baller ST", "Baller ST-D"],
-        "Grotti": ["Bestia GTS", "Brioso 300", "Carbonizzare", "Cheetah", "Cheetah Classic", "Furia", "GT500", "GT750", "Itali GTO", "Itali GTO Stinger TT", "Itali RSX", "Stinger", "Stinger GT", "Turismo Classic", "Turismo Omaggio", "Turismo R", "Visione", "X80 Proto"],
+        "Grotti": ["Bestia GTS", "Brioso 300", "Carbonizzare", "Cheetah", "Cheetah Classic", "Furia", "GT500", "GT750", "Itali GTO", "Itali GTO Stinger TT", "Itali RSX", "Stinger", "Stinger GT", "Stinger TT", "Turismo Classic", "Turismo Omaggio", "Turismo R", "Visione", "X80 Proto", "Brioso R/A"],
         "Hijak": ["Khamelion", "Ruston"],
         "HVY": ["APC", "Barrage", "Chernobog", "Insurgent", "Insurgent Pick-Up", "Insurgent Pick-Up Custom", "Menacer", "Nightshark", "Rhino Tank", "Scarab (Arena)", "Apocalypse Scarab", "Future Shock Scarab", "Nightmare Scarab"],
         "Imponte": ["Arbiter GT", "Beater Dukes", "Deluxo", "Duke O'Death", "Dukes", "Nightshade", "Phoenix", "Ruiner", "Ruiner 2000", "Ruiner ZZ-8"],
         "Invetero": ["Coquette", "Coquette BlackFin", "Coquette Classic", "Coquette D1", "Coquette D10"],
         "JoBuilt": ["Hauler", "Phantom", "Phantom Wedge", "P-996 Lazer"],
-        "Karin": ["190z", "Asterope GZ", "Boor", "Calico GTF", "Dilettante", "Everon", "Futo", "Futo GTX", "Hotring Everon", "Intruder", "Kuruma", "Kuruma (Armored)", "Previon", "Rebel", "Sniper", "Sultan", "Sultan Classic", "Sultan RS", "Sultan RS Classic", "Vivanite"],
+        "Karin": ["190z", "Asterope GZ", "Boor", "Calico GTF", "Dilettante", "Everon", "Futo", "Futo GTX", "Hotring Everon", "Intruder", "Kuruma", "Kuruma (Armored)", "Previon", "Rebel", "Sniper", "Sultan", "Sultan Classic", "Sultan RS", "Sultan RS Classic", "Vivanite", "S95", "Woodlander"],
         "Lampadati": ["Casco", "Cinqueila", "Corsita", "Felon", "Felon GT", "Furore GT", "Komoda", "Michelli GT", "Novak", "Pigalle", "Tigon", "Tropos Rallye", "Viseris"],
         "Maibatsu": ["Frogger", "Manchez", "Manchez Scout", "MonstroCiti", "Mule", "Penumbra", "Penumbra FF", "Sanchez"],
         "Mammoth": ["Avenger", "F-160 Raiju", "Hydra", "Patriot", "Patriot Mil-Spec", "RCV", "Squaddie", "Thruster", "Tula"],
@@ -567,7 +564,7 @@
         "Overflod": ["Autarch", "Entity MT", "Entity XF", "Entity XXR", "Imorgon", "Pipistrello", "Tyrant", "Zeno"],
         "Pegassi": ["Bati 801", "Bati 801RR", "Infernus", "Infernus Classic", "Ignus", "Weaponized Ignus", "Monroe", "Oppressor", "Oppressor Mk II", "Osiris", "Reaper", "Tempesta", "Tezeract", "Toreador", "Torero", "Torero XO", "Toros", "Vacca", "Zentorno", "Zorrusso"],
         "Penaud": ["La Coureuse"],
-        "Pfister": ["811", "Astron", "Astron Custom", "Comet", "Comet Retro Custom", "Comet S2", "Comet S2 Cabrio", "Comet Safari", "Comet SR", "Growler", "Neon", "X-Treme"],
+        "Pfister": ["811", "Astron", "Astron Custom", "Comet", "Comet Retro Custom", "Comet S2", "Comet S2 Cabrio", "Comet Safari", "Comet SR", "Growler", "Neon", "X-Treme", "Astrale"],
         "Principe": ["Deveste Eight", "Lectro", "Nemesis"],
         "Progen": ["Emerus", "GP1", "Itali GTB", "Itali GTB Custom", "Luiva", "PR4", "T20", "Tyrus"],
         "Rune": ["Cheburek", "Zhaba"],
@@ -575,14 +572,100 @@
         "Shitzu": ["Defiler", "Hakuchou", "Hakuchou Drag", "PCJ 600", "Vader"],
         "Toundra": ["Panthere"],
         "Truffade": ["Adder", "Nero", "Nero Custom", "Thrax", "Z-Type"],
-        "Ubermacht": ["Cypher", "Niobe", "Oracle", "Oracle XS", "Rebla GTS", "Rhinehart", "SC1", "Sentinel", "Sentinel Classic", "Sentinel Classic Widebody", "Sentinel XS", "Zion", "Zion Classic", "Zion Cabrio"],
-        "Vapid": ["Aleutian", "Benson", "Blade", "Caracara", "Caracara 4x4", "Chino", "Chino Custom", "Clique", "Contender", "Dominator", "Dominator ASP", "Dominator GTT", "Dominator GT", "Dominator FX", "Dominator GTX", "Ellie", "Flash GT", "FMJ", "FMJ MK V", "GB200", "Guardian", "Hustler", "Imperator (Arena)", "Apocalypse Imperator", "Future Shock Imperator", "Nightmare Imperator", "Minivan", "Minivan Custom", "Peyote", "Peyote Gasser", "Retinue", "Retinue Mk II", "Riata", "Sandking SWB", "Sandking XL", "Slamtruck", "Slamvan", "Slamvan Custom", "Apocalypse Slamvan", "Future Shock Slamvan", "Nightmare Slamvan", "Speedo", "Stanier", "Stanier LE Cruiser", "Torrence", "Trophy Truck", "Winky"],
+        "Ubermacht": ["Cypher", "Niobe", "Oracle", "Oracle XS", "Rebla GTS", "Rhinehart", "SC1", "Sentinel", "Sentinel Classic", "Sentinel Classic Widebody", "Sentinel XS", "Sentinel XS4", "Zion", "Zion Classic", "Zion Cabrio"],
+        "Vapid": ["Aleutian", "Benson", "Blade", "Caracara", "Caracara 4x4", "Chino", "Chino Custom", "Clique", "Contender", "Dominator", "Dominator ASP", "Dominator GTT", "Dominator GT", "Dominator FX", "Dominator GTX", "Ellie", "Flash GT", "FMJ", "FMJ MK V", "Firebolt ASP", "GB200", "Guardian", "Hustler", "Imperator (Arena)", "Apocalypse Imperator", "Future Shock Imperator", "Nightmare Imperator", "Minivan", "Minivan Custom", "Peyote", "Peyote Gasser", "Retinue", "Retinue Mk II", "Riata", "Sandking SWB", "Sandking XL", "Slamtruck", "Slamvan", "Slamvan Custom", "Apocalypse Slamvan", "Future Shock Slamvan", "Nightmare Slamvan", "Speedo", "Stanier", "Stanier LE Cruiser", "Torrence", "Trophy Truck", "Winky"],
         "Vom Feuer": ["Anti-Aircraft Trailer"],
         "Vulcar": ["Fagaloa", "Ingot", "Nebula Turbo", "Warrener", "Warrener HKR"],
         "Weeny": ["Dynasty", "Issi", "Issi Classic", "Issi Rally", "Issi Sport", "Apocalypse Issi", "Future Shock Issi", "Nightmare Issi"],
         "Western": ["Bagger", "Cliffhanger", "Daemon", "Gargoyle", "Nightblade", "Powersurge", "Rat Bike", "Reever", "Sovereign", "Wolfsbane", "Zombie Chopper", "Zombie Bobber", "Deathbike (Arena)", "Apocalypse Deathbike", "Future Shock Deathbike", "Nightmare Deathbike"],
         "Willard": ["Eudora", "Faction", "Faction Custom", "Faction Custom Donk"],
         "Zirconium": ["Journey", "Journey II", "Stratum"]
+    };
+
+    // --- METADATA (Extended for v24.1) ---
+    const VEHICLE_INFO = {
+        // DEC 2025
+        "Luiva": { class: "Super", price: "~$2,900,000", seats: 2 },
+        "FMJ MK V": { class: "Super", price: "~$2,965,000", seats: 2 },
+        "X-Treme": { class: "Super", price: "Unknown", seats: 2 },
+        "Sentinel XS4": { class: "Sedan", price: "Unknown", seats: 4 },
+        "GT750": { class: "Sports Classic", price: "Unknown", seats: 2 },
+        "Astrale": { class: "Sports Classic", price: "$1,475,500", seats: 2 },
+        // NEW ADDITIONS
+        "Zentorno": { class: "Super", price: "$725,000", seats: 2 },
+        "Adder": { class: "Super", price: "$1,000,000", seats: 2 },
+        "Entity XF": { class: "Super", price: "$795,000", seats: 2 },
+        "Cheetah": { class: "Super", price: "$650,000", seats: 2 },
+        "Turismo R": { class: "Super", price: "$500,000", seats: 2 },
+        "T20": { class: "Super", price: "$2,200,000", seats: 2 },
+        "Osiris": { class: "Super", price: "$1,950,000", seats: 2 },
+        "Infernus": { class: "Super", price: "$440,000", seats: 2 },
+        "Vacca": { class: "Super", price: "$240,000", seats: 2 },
+        "Bullet": { class: "Super", price: "$155,000", seats: 2 },
+        "Voltic": { class: "Super", price: "$150,000", seats: 2 },
+        "Elegy RH8": { class: "Sports", price: "Free", seats: 2 },
+        "Jester": { class: "Sports", price: "$240,000", seats: 2 },
+        "Massacro": { class: "Sports", price: "$275,000", seats: 2 },
+        "Kuruma (Armored)": { class: "Sports", price: "$698,250", seats: 4 },
+        "Feltzer": { class: "Sports", price: "$145,000", seats: 2 },
+        "9F": { class: "Sports", price: "$120,000", seats: 2 },
+        "Surano": { class: "Sports", price: "$110,000", seats: 2 },
+        "Carbonizzare": { class: "Sports", price: "$195,000", seats: 2 },
+        "Comet": { class: "Sports", price: "$100,000", seats: 2 },
+        "Banshee": { class: "Sports", price: "$105,000", seats: 2 },
+        "Coquette": { class: "Sports", price: "$138,000", seats: 2 },
+        "Rapid GT": { class: "Sports", price: "$132,000", seats: 2 },
+        "Sultan": { class: "Sports", price: "$12,000", seats: 4 },
+        "Sultan RS": { class: "Super", price: "$795,000", seats: 2 },
+        "Futo": { class: "Sports", price: "$9,000", seats: 2 },
+        "Dominator": { class: "Muscle", price: "$35,000", seats: 2 },
+        "Gauntlet": { class: "Muscle", price: "$32,000", seats: 2 },
+        "Sabre Turbo": { class: "Muscle", price: "$15,000", seats: 2 },
+        "Phoenix": { class: "Muscle", price: "Steal", seats: 2 },
+        "Ruiner": { class: "Muscle", price: "$10,000", seats: 2 },
+        "Duke O'Death": { class: "Muscle", price: "$665,000", seats: 2 },
+        "Insurgent": { class: "Off-Road", price: "$897,750", seats: 6 },
+        "Insurgent Pick-Up Custom": { class: "Off-Road", price: "$202,500", seats: 9 },
+        "Sandking XL": { class: "Off-Road", price: "$45,000", seats: 4 },
+        "Bati 801": { class: "Motorcycle", price: "$15,000", seats: 2 },
+        "Akuma": { class: "Motorcycle", price: "$9,000", seats: 2 },
+        "Hakuchou": { class: "Motorcycle", price: "$82,000", seats: 2 },
+        "Oppressor Mk II": { class: "Motorcycle", price: "$8,000,000", seats: 1 },
+        "Deluxo": { class: "Sports Classic", price: "$5,750,000", seats: 2 },
+        "Scramjet": { class: "Super", price: "$4,000,000", seats: 2 },
+        "Vigilante": { class: "Super", price: "$3,750,000", seats: 2 },
+        "Toreador": { class: "Sports Classic", price: "$4,250,000", seats: 4 },
+        "Stromberg": { class: "Sports Classic", price: "$2,500,000", seats: 2 },
+        "Pariah": { class: "Sports", price: "$1,420,000", seats: 2 },
+        "Itali GTO": { class: "Sports", price: "$1,965,000", seats: 2 },
+        "Itali RSX": { class: "Sports", price: "$3,465,000", seats: 2 },
+        "Kreiger": { class: "Super", price: "$2,875,000", seats: 2 },
+        "Emerus": { class: "Super", price: "$2,750,000", seats: 2 },
+        "Tezeract": { class: "Super", price: "$2,825,000", seats: 2 },
+        "X80 Proto": { class: "Super", price: "$2,700,000", seats: 2 },
+        "Vagner": { class: "Super", price: "$1,535,000", seats: 2 },
+        "Nero Custom": { class: "Super", price: "$605,000", seats: 2 },
+        "Banshee 900R": { class: "Super", price: "$565,000", seats: 2 },
+        "Sultan RS Classic": { class: "Sports", price: "$1,789,000", seats: 2 },
+        "Jester RR": { class: "Sports", price: "$1,970,000", seats: 2 },
+        "Calico GTF": { class: "Sports", price: "$1,995,000", seats: 2 },
+        "Vectre": { class: "Sports", price: "$1,785,000", seats: 2 },
+        "Growler": { class: "Sports", price: "$1,627,000", seats: 2 },
+        "Dominator ASP": { class: "Muscle", price: "$1,775,000", seats: 2 },
+        "Buffalo STX": { class: "Muscle", price: "$2,150,000", seats: 4 },
+        "Champion": { class: "Super", price: "$2,995,000", seats: 2 },
+        "Ignus": { class: "Super", price: "$2,765,000", seats: 2 },
+        "Deity": { class: "Sedan", price: "$1,845,000", seats: 4 },
+        "Jubilee": { class: "SUV", price: "$1,650,000", seats: 4 },
+        "Patriot Mil-Spec": { class: "Off-Road", price: "$1,710,000", seats: 4 },
+        "Granger 3600LX": { class: "SUV", price: "$1,380,000", seats: 4 },
+        "Virtue": { class: "Super", price: "Free/2.9M", seats: 2 },
+        "MonstroCiti": { class: "Off-Road", price: "$1,485,000", seats: 2 },
+        "La Coureuse": { class: "Sports", price: "$1,990,000", seats: 2 },
+        "Walton L35": { class: "Off-Road", price: "$1,670,000", seats: 2 },
+        "Ratel": { class: "Off-Road", price: "$1,873,000", seats: 2 },
+        "Streamer216": { class: "Plane", price: "$2,238,000", seats: 2 },
+        "Raiju": { class: "Plane", price: "$6,855,000", seats: 1 }
     };
 
     const SORTED_MANUFS = Object.keys(CAR_DB).sort();
@@ -601,7 +684,7 @@
     const statModal = document.getElementById('statsModal');
     const timerModal = document.getElementById('timerModal');
     const moveModal = document.getElementById('moveModal');
-    const swapAllModal = document.getElementById('swapAllModal'); // NEW
+    const swapAllModal = document.getElementById('swapAllModal');
     const searchInput = document.getElementById('searchInput');
     const viewModeEl = document.getElementById('viewMode');
     const countEl = document.getElementById('count');
@@ -627,7 +710,7 @@
     function migrateLegacyVehicles() {
         let changed = false;
         vehicles.forEach(v => {
-            if (!v) return; // SKIP IF NULL
+            if (!v) return;
             if (v.manuf === "Custom" || v.manuf === "Other") {
                 for (const [manuf, models] of Object.entries(CAR_DB)) {
                     if (models.includes(v.model)) {
@@ -638,16 +721,35 @@
                 }
             }
         });
-        if (changed) {
-            saveToStorage();
-            console.log("Migrated legacy vehicles to correct manufacturers.");
-        }
+        if (changed) saveToStorage();
+    }
+
+    // --- HELPER: GET META ---
+    function getVehicleMeta(modelName) {
+        if (VEHICLE_INFO[modelName]) return VEHICLE_INFO[modelName];
+        return { class: "Unknown", price: "--", seats: "--" };
+    }
+
+    // --- HELPER: CLASS ICON ---
+    function getClassIcon(className) {
+        const c = className.toLowerCase();
+        if (c.includes('super')) return '🏎️';
+        if (c.includes('sport')) return '🏎️';
+        if (c.includes('muscle')) return '💪';
+        if (c.includes('suv')) return '🚙';
+        if (c.includes('off')) return '🛻';
+        if (c.includes('bike') || c.includes('motorcycle')) return '🏍️';
+        if (c.includes('classic')) return '🏺';
+        if (c.includes('compact')) return '🚗';
+        if (c.includes('sedan')) return '🚘';
+        if (c.includes('coupe')) return '🚙';
+        if (c.includes('van') || c.includes('commercial')) return '🚐';
+        return '🚗';
     }
 
     // --- MAIN LOGIC ---
 
     function populateDropdowns() {
-        // Manuf
         manufSelect.innerHTML = '<option value="" disabled selected>Select...</option>';
         SORTED_MANUFS.forEach(brand => {
             const opt = document.createElement('option');
@@ -656,7 +758,6 @@
         });
         manufSelect.innerHTML += '<option value="Other">Other / Unknown</option>';
 
-        // Garages (Main Input)
         const frag = document.createDocumentFragment();
         GARAGE_OPTIONS.forEach(g => {
             const group = document.createElement('optgroup');
@@ -670,22 +771,18 @@
             frag.appendChild(group);
         });
         
-        // Clone for Move Dropdown
         const moveFrag = frag.cloneNode(true);
         moveTargetGarage.innerHTML = '<option value="" disabled selected>Select...</option>';
         moveTargetGarage.appendChild(moveFrag);
         
-        // Clone for Swap All From
         const swapFromFrag = frag.cloneNode(true);
         swapAllFrom.innerHTML = '<option value="" disabled selected>Select...</option>';
         swapAllFrom.appendChild(swapFromFrag);
         
-        // Clone for Swap All To
         const swapToFrag = frag.cloneNode(true);
         swapAllTo.innerHTML = '<option value="" disabled selected>Select...</option>';
         swapAllTo.appendChild(swapToFrag);
 
-        // Add Custom to Main Input
         const customOpt = document.createElement('option');
         customOpt.value = "Custom"; customOpt.innerText = "Other / Custom...";
         frag.appendChild(customOpt);
@@ -747,7 +844,6 @@
             floorGroup.style.display = 'none';
         } else {
             locCustom.style.display = 'none';
-            // Strip capacity
             const cleanLoc = loc.replace(/\s\(\d+\)$/, "");
             const meta = GARAGE_META[cleanLoc];
             
@@ -854,6 +950,10 @@
     }
 
     function createCard(v) {
+        const meta = getVehicleMeta(v.model);
+        const icon = getClassIcon(meta.class);
+        const wikiUrl = `https://gta.fandom.com/wiki/${v.model.replace(/ /g, '_')}`;
+
         const wheels = v.wheels || 'Stock';
         const plate = v.plate || 'Standard';
         const manuf = v.manuf || 'Unknown';
@@ -882,10 +982,18 @@
             <div class="card-header">
                 <div>
                     <div class="vehicle-manuf">${manuf}</div>
-                    <div class="vehicle-name">${model}</div>
+                    <div class="vehicle-name">${icon} ${model}</div>
                 </div>
                 ${slot}
             </div>
+            
+            <div class="vehicle-info-row">
+                <span class="info-pill">${meta.class}</span>
+                <span class="info-pill">${meta.price}</span>
+                <span class="info-pill">👤 ${meta.seats}</span>
+                <a href="${wikiUrl}" target="_blank" class="wiki-link">Wiki ↗</a>
+            </div>
+
             <div class="badges-container">${badgesHtml}</div>
             <div class="vehicle-loc">
                 <span>📍 ${loc} <span style="color: var(--accent); font-weight:bold;">${floor}</span></span>
@@ -925,14 +1033,13 @@
             if (saved) {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed)) {
-                    vehicles = parsed.filter(v => v !== null); // CLEAN NULLS
+                    vehicles = parsed.filter(v => v !== null); 
                 } else {
                     vehicles = [];
                 }
             }
         } catch (e) { 
             console.error(e); 
-            alert("Error loading data. Please click the Reset (⚠️) button if the app is stuck."); 
             vehicles = []; 
         }
         
@@ -946,7 +1053,6 @@
     function updateTimerHeader() {
         const now = Date.now();
         const diff = now - lastSellTime;
-        
         if (diff < COOLDOWN_MS) {
             const remaining = COOLDOWN_MS - diff;
             const hours = Math.floor(remaining / (1000 * 60 * 60));
@@ -982,12 +1088,10 @@
         soldNameDisplay.innerText = lastSoldName || "Unknown/Legacy";
 
         if (diff < COOLDOWN_MS) {
-            // Active Cooldown
             const remaining = COOLDOWN_MS - diff;
             const hours = Math.floor(remaining / (1000 * 60 * 60));
             const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
-            
             bigDisplay.innerText = `${hours}h ${minutes}m ${seconds}s`;
             bigDisplay.classList.remove('ready');
             
@@ -1001,9 +1105,7 @@
                 } catch(e) { timeString = "Invalid TZ"; }
             }
             targetDisplay.value = timeString;
-
         } else {
-            // Ready
             bigDisplay.innerText = "READY TO SELL";
             bigDisplay.classList.add('ready');
             targetDisplay.value = "Now";
@@ -1021,28 +1123,22 @@
         }
     }
 
-    window.checkTimer = function(isClick) {
-        if(isClick) openTimerModal();
-    }
+    window.checkTimer = function(isClick) { if(isClick) openTimerModal(); }
 
     // --- MOVE LOGIC ---
     window.startMove = function(id) {
         movingVehicleId = id;
         const car = vehicles.find(v => v.id === id);
         if(!car) return;
-        
         document.getElementById('moveCarName').innerText = `Moving: ${car.model}`;
         moveTargetGarage.value = "";
         swapSection.style.display = 'none';
-        
         moveModal.style.display = 'flex';
     };
 
     window.checkMoveCapacity = function() {
         const target = moveTargetGarage.value;
         if (!target) return;
-        
-        // Count existing cars
         const count = vehicles.filter(v => v.loc === target).length;
         const cleanLoc = target.replace(/\s\(\d+\)$/, "");
         const meta = GARAGE_META[cleanLoc] || GARAGE_META["DEFAULT_APT"];
@@ -1050,7 +1146,6 @@
 
         if (count >= cap) {
             swapSection.style.display = 'block';
-            // Populate Swap Dropdown
             const swapSelect = document.getElementById('swapTargetVehicle');
             swapSelect.innerHTML = '<option value="" disabled selected>Select Car...</option>';
             const carsInTarget = vehicles.filter(v => v.loc === target);
@@ -1068,45 +1163,32 @@
     window.performMove = function() {
         const target = moveTargetGarage.value;
         if (!target) return alert("Select a garage.");
-        
         const carA_idx = vehicles.findIndex(v => v.id === movingVehicleId);
         if (carA_idx === -1) return;
         const carA = vehicles[carA_idx];
         const oldLoc = carA.loc;
-
         const isFull = swapSection.style.display === 'block';
         
         if (isFull) {
-            // SWAP LOGIC
             const swapId = parseInt(document.getElementById('swapTargetVehicle').value);
             if (!swapId) return alert("Garage is full. You must select a car to swap.");
-            
             const carB_idx = vehicles.findIndex(v => v.id === swapId);
             const carB = vehicles[carB_idx];
-            
-            // Swap Locations
             vehicles[carA_idx].loc = target;
             vehicles[carB_idx].loc = oldLoc;
-            
-            // Swap Floor/Slots (Best guess: they trade physical spots)
             const tempFloor = carA.floor;
             const tempSlot = carA.slot;
             vehicles[carA_idx].floor = carB.floor;
             vehicles[carA_idx].slot = carB.slot;
-            
             vehicles[carB_idx].floor = tempFloor;
             vehicles[carB_idx].slot = tempSlot;
-            
             alert(`Swapped ${carA.model} with ${carB.model}!`);
         } else {
-            // SIMPLE MOVE
             vehicles[carA_idx].loc = target;
-            // Clear slot data because we don't know where it landed
             vehicles[carA_idx].floor = "";
             vehicles[carA_idx].slot = "";
             alert(`Moved ${carA.model} to ${target}.`);
         }
-        
         saveToStorage();
         closeMoveModal();
         closeModal();
@@ -1114,7 +1196,7 @@
 
     window.closeMoveModal = function() { moveModal.style.display = 'none'; };
     
-    // --- SWAP ALL LOGIC (NEW) ---
+    // --- SWAP ALL LOGIC ---
     window.openSwapAllModal = function() {
         swapAllModal.style.display = 'flex';
         swapAllFrom.value = "";
@@ -1128,12 +1210,8 @@
     window.performSwapAll = function() {
         const fromGarage = swapAllFrom.value;
         const toGarage = swapAllTo.value;
-        
         if(!fromGarage || !toGarage) return alert("Select both garages.");
         if(fromGarage === toGarage) return alert("Cannot swap same garage.");
-        
-        // Validation: Capacity Check on Target?
-        // Actually, since it's a SWAP, we need to check if the LARGER collection fits into the SMALLER garage.
         
         const carsInA = vehicles.filter(v => v.loc === fromGarage);
         const carsInB = vehicles.filter(v => v.loc === toGarage);
@@ -1144,20 +1222,16 @@
         const capA = metaA.cap || 10;
         const capB = metaB.cap || 10;
         
-        // Rule: Can we fit B's cars into A?
         if (carsInB.length > capA) {
             return alert(`Cannot swap! Target garage has ${carsInB.length} cars, but source garage only holds ${capA}.`);
         }
-        // Rule: Can we fit A's cars into B?
         if (carsInA.length > capB) {
             return alert(`Cannot swap! Source garage has ${carsInA.length} cars, but target garage only holds ${capB}.`);
         }
         
         if(confirm(`Swap contents of ${fromGarage} with ${toGarage}?`)) {
-            // Perform Swap
             carsInA.forEach(v => { v.loc = toGarage; });
             carsInB.forEach(v => { v.loc = fromGarage; });
-            
             saveToStorage();
             closeSwapAllModal();
             alert("Swap Complete!");
@@ -1376,7 +1450,6 @@
         if(e.target == swapAllModal) closeSwapAllModal();
     }
     
-    // Ensure app starts after DOM load
     document.addEventListener('DOMContentLoaded', initApp);
 </script>
 
