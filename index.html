@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v22.1</title>
+    <title>My GTA Garage v23.0</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
 
@@ -60,6 +60,8 @@
         
         button.timer-btn { background-color: #333; color: var(--sell-color); border: 1px solid var(--sell-color); padding: 8px 10px; font-size: 0.8rem; min-width: 45px; }
         button.timer-btn.active { color: var(--timer-color); border-color: var(--timer-color); }
+        
+        button.swap-all-btn { background-color: #2c2c2c; color: var(--accent); border: 1px solid var(--accent); min-width: 50px; }
 
         #vehicle-list {
             flex-grow: 1; overflow-y: auto; padding: 10px;
@@ -202,6 +204,7 @@
             <option value="manuf">View: By Manufacturer</option>
             <option value="all">View: All Vehicles</option>
         </select>
+        <button class="swap-all-btn" onclick="openSwapAllModal()">⇄</button>
         <button class="primary-btn" type="button" onclick="openModal()">+ Add</button>
     </div>
     <div style="font-size: 0.8rem; color: var(--text-dim); text-align: center;">
@@ -214,7 +217,7 @@
 </div>
 
 <footer>
-    <span>v22.1</span>
+    <span>v23.0</span>
     <a onclick="openChangelog()">Changelog</a>
     <span style="margin: 0 5px; color: #333;">|</span>
     <a onclick="factoryReset()" style="color: #e74c3c; cursor:pointer;">Reset Data</a>
@@ -353,6 +356,34 @@
     </div>
 </div>
 
+<div id="swapAllModal" class="modal">
+    <div class="modal-content">
+        <h2 style="margin-top:0;">Swap Entire Garage</h2>
+        <p style="color:#ccc; font-size:0.9rem; margin-bottom:20px;">Move all cars from one property to another (e.g., when buying a new apartment).</p>
+        
+        <div class="form-group">
+            <label>Move FROM (Old Garage)</label>
+            <select id="swapAllFrom">
+                <option value="" disabled selected>Select...</option>
+                </select>
+        </div>
+        
+        <div style="text-align:center; font-size:1.5rem; margin:10px 0;">⬇️</div>
+        
+        <div class="form-group">
+            <label>Move TO (New Garage)</label>
+            <select id="swapAllTo">
+                <option value="" disabled selected>Select...</option>
+                </select>
+        </div>
+
+        <div class="modal-actions">
+            <button class="secondary-btn" onclick="closeSwapAllModal()">Cancel</button>
+            <button class="primary-btn" onclick="performSwapAll()">Swap All Vehicles</button>
+        </div>
+    </div>
+</div>
+
 <div id="timerModal" class="modal">
     <div class="modal-content">
         <h2 style="margin-top:0;">Sale Dashboard</h2>
@@ -407,6 +438,7 @@
     <div class="modal-content">
         <h2 style="margin-top:0;">Changelog</h2>
         <div class="changelog-list">
+             <div class="changelog-item"><span class="changelog-ver">v23.0</span><span class="changelog-desc">Added "Swap Garages" tool. Allows bulk moving all cars from one property to another.</span></div>
             <div class="changelog-item"><span class="changelog-ver">v22.1</span><span class="changelog-desc">Full History Update: Restored complete changelog from v1.0 to present (excluding unstable versions).</span></div>
             <div class="changelog-item"><span class="changelog-ver">v22.0</span><span class="changelog-desc">UI Update: Moved Reset/Wipe button to footer for safety.</span></div>
             <div class="changelog-item"><span class="changelog-ver">v21.2</span><span class="changelog-desc">Fix: Removed safety wrappers that prevented dropdowns from loading. Restored global scope access.</span></div>
@@ -569,6 +601,7 @@
     const statModal = document.getElementById('statsModal');
     const timerModal = document.getElementById('timerModal');
     const moveModal = document.getElementById('moveModal');
+    const swapAllModal = document.getElementById('swapAllModal'); // NEW
     const searchInput = document.getElementById('searchInput');
     const viewModeEl = document.getElementById('viewMode');
     const countEl = document.getElementById('count');
@@ -586,6 +619,9 @@
     const swapSection = document.getElementById('swapSection');
     const swapTargetVehicle = document.getElementById('swapTargetVehicle');
     const moveCarName = document.getElementById('moveCarName');
+    
+    const swapAllFrom = document.getElementById('swapAllFrom');
+    const swapAllTo = document.getElementById('swapAllTo');
 
     // --- MIGRATION LOGIC ---
     function migrateLegacyVehicles() {
@@ -638,6 +674,16 @@
         const moveFrag = frag.cloneNode(true);
         moveTargetGarage.innerHTML = '<option value="" disabled selected>Select...</option>';
         moveTargetGarage.appendChild(moveFrag);
+        
+        // Clone for Swap All From
+        const swapFromFrag = frag.cloneNode(true);
+        swapAllFrom.innerHTML = '<option value="" disabled selected>Select...</option>';
+        swapAllFrom.appendChild(swapFromFrag);
+        
+        // Clone for Swap All To
+        const swapToFrag = frag.cloneNode(true);
+        swapAllTo.innerHTML = '<option value="" disabled selected>Select...</option>';
+        swapAllTo.appendChild(swapToFrag);
 
         // Add Custom to Main Input
         const customOpt = document.createElement('option');
@@ -1067,6 +1113,56 @@
     };
 
     window.closeMoveModal = function() { moveModal.style.display = 'none'; };
+    
+    // --- SWAP ALL LOGIC (NEW) ---
+    window.openSwapAllModal = function() {
+        swapAllModal.style.display = 'flex';
+        swapAllFrom.value = "";
+        swapAllTo.value = "";
+    };
+    
+    window.closeSwapAllModal = function() {
+        swapAllModal.style.display = 'none';
+    };
+    
+    window.performSwapAll = function() {
+        const fromGarage = swapAllFrom.value;
+        const toGarage = swapAllTo.value;
+        
+        if(!fromGarage || !toGarage) return alert("Select both garages.");
+        if(fromGarage === toGarage) return alert("Cannot swap same garage.");
+        
+        // Validation: Capacity Check on Target?
+        // Actually, since it's a SWAP, we need to check if the LARGER collection fits into the SMALLER garage.
+        
+        const carsInA = vehicles.filter(v => v.loc === fromGarage);
+        const carsInB = vehicles.filter(v => v.loc === toGarage);
+        
+        const metaA = GARAGE_META[fromGarage.replace(/\s\(\d+\)$/, "")] || GARAGE_META["DEFAULT_APT"];
+        const metaB = GARAGE_META[toGarage.replace(/\s\(\d+\)$/, "")] || GARAGE_META["DEFAULT_APT"];
+        
+        const capA = metaA.cap || 10;
+        const capB = metaB.cap || 10;
+        
+        // Rule: Can we fit B's cars into A?
+        if (carsInB.length > capA) {
+            return alert(`Cannot swap! Target garage has ${carsInB.length} cars, but source garage only holds ${capA}.`);
+        }
+        // Rule: Can we fit A's cars into B?
+        if (carsInA.length > capB) {
+            return alert(`Cannot swap! Source garage has ${carsInA.length} cars, but target garage only holds ${capB}.`);
+        }
+        
+        if(confirm(`Swap contents of ${fromGarage} with ${toGarage}?`)) {
+            // Perform Swap
+            carsInA.forEach(v => { v.loc = toGarage; });
+            carsInB.forEach(v => { v.loc = fromGarage; });
+            
+            saveToStorage();
+            closeSwapAllModal();
+            alert("Swap Complete!");
+        }
+    };
 
     // --- ACTIONS ---
     window.openModal = function(vehicle = null) {
@@ -1277,6 +1373,7 @@
         if(e.target == statModal) closeStats();
         if(e.target == timerModal) closeTimerModal();
         if(e.target == moveModal) closeMoveModal();
+        if(e.target == swapAllModal) closeSwapAllModal();
     }
     
     // Ensure app starts after DOM load
