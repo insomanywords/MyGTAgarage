@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v17.7</title>
+    <title>My GTA Garage v18.0</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
@@ -160,6 +160,13 @@
         .top-list li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; }
         .top-list li:last-child { border: none; }
 
+        /* Timer Modal Specifics */
+        .timer-info-row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .timer-info-label { color: var(--text-dim); font-size: 0.9rem; }
+        .timer-info-val { color: #fff; font-weight: bold; }
+        .timer-big { font-size: 2rem; text-align: center; color: var(--timer-color); font-weight: bold; margin: 20px 0; }
+        .timer-big.ready { color: var(--sell-color); }
+
         /* Changelog Specifics */
         .changelog-list { text-align: left; margin-bottom: 20px; }
         .changelog-item { margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
@@ -193,7 +200,7 @@
 <header>
     <h1>My GTA Garage</h1>
     <div class="header-actions">
-        <button id="timerBtn" class="timer-btn" onclick="checkTimer(true)">💲</button>
+        <button id="timerBtn" class="timer-btn" onclick="openTimerModal()">💲</button>
         
         <button class="secondary-btn" onclick="openStats()">📊</button>
         <button class="secondary-btn" onclick="downloadBackup()">💾</button>
@@ -224,7 +231,7 @@
 </div>
 
 <footer>
-    <span>v17.7</span>
+    <span>v18.0</span>
     <a onclick="openChangelog()">Changelog</a>
 </footer>
 
@@ -411,6 +418,38 @@
     </div>
 </div>
 
+<div id="timerModal" class="modal">
+    <div class="modal-content">
+        <h2 style="margin-top:0;">Sale Dashboard</h2>
+        
+        <div class="timer-info-row">
+            <span class="timer-info-label">Last Sold Vehicle:</span>
+            <span class="timer-info-val" id="lastSoldName">--</span>
+        </div>
+        
+        <div class="timer-big" id="timerBigDisplay">--:--</div>
+        
+        <div class="form-group">
+            <label>Full Price Sale Available At:</label>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="targetTimeDisplay" readonly style="color:var(--accent);">
+                <select id="timeZoneSelect" onchange="updateTimerModal()" style="width:100px; flex:none;">
+                    <option value="Local">Local</option>
+                    <option value="America/New_York">EST</option>
+                    <option value="America/Chicago">CST</option>
+                    <option value="America/Denver">MST</option>
+                    <option value="America/Los_Angeles">PST</option>
+                    <option value="UTC">UTC</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="secondary-btn" onclick="closeTimerModal()">Close</button>
+        </div>
+    </div>
+</div>
+
 <div id="statsModal" class="modal">
     <div class="modal-content">
         <h2 style="margin-top:0;">Garage Stats</h2>
@@ -439,9 +478,9 @@
     <div class="modal-content">
         <h2 style="margin-top:0;">Changelog</h2>
         <div class="changelog-list">
-            <div class="changelog-item"><span class="changelog-ver">v17.7</span><span class="changelog-desc">Added Garage Nicknames. You can now name your garages (e.g., "Super Cars") and it will show in the list view. Includes auto-fill for new cars in the same garage.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v17.6</span><span class="changelog-desc">Default View: App now defaults to 'Group by Garage' for better organization.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v17.5</span><span class="changelog-desc">Safe Sale: Added 'Sell Vehicle' button and 18h cooldown timer with safe UI implementation.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v18.0</span><span class="changelog-desc">Sale Dashboard: Added detailed dashboard showing last sold car, countdown timer, and timezone converter for next sale time.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v17.7</span><span class="changelog-desc">Added Garage Nicknames. You can now name your garages (e.g., "Super Cars") and it will show in the list view.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v17.6</span><span class="changelog-desc">Default View: App now defaults to 'Group by Garage'.</span></div>
         </div>
         <div class="modal-actions"><button class="secondary-btn" onclick="closeChangelog()">Close</button></div>
     </div>
@@ -557,13 +596,16 @@
     const STORAGE_KEY = 'gta_vehicles_v1';
     let vehicles = [];
     let lastSellTime = 0;
+    let lastSoldName = "Unknown";
     let editingId = null;
+    let timerInterval = null;
 
     // --- DOM ---
     const listEl = document.getElementById('vehicle-list');
     const modal = document.getElementById('vehicleModal');
     const clModal = document.getElementById('changelogModal');
     const statModal = document.getElementById('statsModal');
+    const timerModal = document.getElementById('timerModal');
     const searchInput = document.getElementById('searchInput');
     const viewModeEl = document.getElementById('viewMode');
     const countEl = document.getElementById('count');
@@ -571,7 +613,7 @@
     const modelSelect = document.getElementById('inputModelDropdown');
     const modelCustom = document.getElementById('inputModelCustom');
     const locSelect = document.getElementById('inputLoc');
-    const locNickname = document.getElementById('inputLocNickname'); // NEW
+    const locNickname = document.getElementById('inputLocNickname'); 
     const locCustom = document.getElementById('inputLocCustom');
     const floorGroup = document.getElementById('floorGroup');
     const editActions = document.getElementById('editActions');
@@ -640,11 +682,9 @@
     function handleGarageChange() {
         checkCustomLoc();
         const loc = locSelect.value;
-        // Strip capacity
         const cleanLoc = loc.replace(/\s\(\d+\)$/, "");
         const meta = GARAGE_META[cleanLoc];
         
-        // Floor Logic
         if (meta && meta.floors) {
             floorGroup.style.display = 'block';
         } else {
@@ -652,13 +692,11 @@
             document.getElementById('inputFloor').value = ""; 
         }
 
-        // Auto-Fill Nickname Logic
-        // Find if any other car in this garage has a nickname
         const existingCar = vehicles.find(v => v.loc === loc && v.locNickname);
         if (existingCar) {
             locNickname.value = existingCar.locNickname;
         } else {
-            locNickname.value = ""; // clear if new
+            locNickname.value = ""; 
         }
     }
 
@@ -668,7 +706,7 @@
             (v.model && v.model.toLowerCase().includes(term)) || 
             (v.manuf && v.manuf.toLowerCase().includes(term)) || 
             (v.loc && v.loc.toLowerCase().includes(term)) ||
-            (v.locNickname && v.locNickname.toLowerCase().includes(term)) || // Search by nickname too
+            (v.locNickname && v.locNickname.toLowerCase().includes(term)) || 
             (v.floor && v.floor.toLowerCase().includes(term)) ||
             (v.notes && v.notes.toLowerCase().includes(term))
         );
@@ -715,7 +753,6 @@
                     const isFull = count > cap;
                     metaHtml = `<span class="group-meta ${isFull ? 'full' : ''}">${count} / ${cap}</span>`;
                     
-                    // Check for nickname in this group
                     const nickCar = groups[key].find(c => c.locNickname);
                     if (nickCar) {
                         nicknameHtml = `<span class="garage-nickname">- "${nickCar.locNickname}"</span>`;
@@ -736,7 +773,6 @@
                 grid.className = 'vehicle-grid' + (isSearching ? '' : ' hidden');
                 groups[key].forEach(v => grid.appendChild(createCard(v)));
                 
-                // Add click handler
                 header.onclick = function() { toggleGroup(this, grid); };
                 
                 listEl.appendChild(header);
@@ -799,18 +835,20 @@
         try { 
             localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles));
             localStorage.setItem('gta_last_sale', lastSellTime);
+            localStorage.setItem('gta_last_sold_name', lastSoldName);
         } catch(e){}
         renderVehicles(vehicles);
-        updateTimerDisplay();
+        updateTimerHeader();
     }
 
-    // --- INIT CALL AT BOTTOM (SAFE) ---
     function initApp() {
         populateManufDropdown();
         try {
-            // Load Last Sale
             const sale = localStorage.getItem('gta_last_sale');
             if (sale) lastSellTime = parseInt(sale);
+            
+            const soldName = localStorage.getItem('gta_last_sold_name');
+            if (soldName) lastSoldName = soldName;
 
             let saved = localStorage.getItem(STORAGE_KEY);
             if (!saved) {
@@ -823,51 +861,99 @@
             }
         } catch (e) { console.error(e); vehicles = []; }
         renderVehicles(vehicles);
-        updateTimerDisplay();
-        setInterval(updateTimerDisplay, 60000); // Update timer every minute
+        updateTimerHeader();
+        setInterval(updateTimerHeader, 60000); 
     }
     
     // --- TIMER LOGIC ---
-    function updateTimerDisplay() {
+    function updateTimerHeader() {
         const now = Date.now();
         const diff = now - lastSellTime;
         
         if (diff < COOLDOWN_MS) {
-            // Cooldown Active
             const remaining = COOLDOWN_MS - diff;
             const hours = Math.floor(remaining / (1000 * 60 * 60));
             const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
             timerBtn.innerHTML = `⏳ ${hours}h ${minutes}m`;
             timerBtn.classList.add('active');
         } else {
-            // Ready
             timerBtn.innerHTML = `💲`;
             timerBtn.classList.remove('active');
         }
     }
 
-    window.checkTimer = function(isClick) {
+    window.openTimerModal = function() {
+        timerModal.style.display = 'flex';
+        updateTimerModal();
+        // Clear old interval if exists to prevent doubles
+        if(timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(updateTimerModal, 1000);
+    }
+
+    window.closeTimerModal = function() {
+        timerModal.style.display = 'none';
+        if(timerInterval) clearInterval(timerInterval);
+    }
+
+    window.updateTimerModal = function() {
         const now = Date.now();
         const diff = now - lastSellTime;
-        if (diff < COOLDOWN_MS && isClick) {
+        const bigDisplay = document.getElementById('timerBigDisplay');
+        const targetDisplay = document.getElementById('targetTimeDisplay');
+        const soldNameDisplay = document.getElementById('lastSoldName');
+        const timeZone = document.getElementById('timeZoneSelect').value;
+
+        soldNameDisplay.innerText = lastSoldName || "Unknown/Legacy";
+
+        if (diff < COOLDOWN_MS) {
+            // Active Cooldown
             const remaining = COOLDOWN_MS - diff;
             const hours = Math.floor(remaining / (1000 * 60 * 60));
             const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-            alert(`Cooldown Active: Wait ${hours}h ${minutes}m before selling for full price.`);
-        } else if (isClick) {
-            alert("No cooldown active. You can sell for full price.");
+            const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+            
+            bigDisplay.innerText = `${hours}h ${minutes}m ${seconds}s`;
+            bigDisplay.classList.remove('ready');
+            
+            // Calculate Target Time
+            const targetDate = new Date(lastSellTime + COOLDOWN_MS);
+            
+            let timeString;
+            if (timeZone === 'Local') {
+                timeString = targetDate.toLocaleTimeString();
+            } else {
+                try {
+                    timeString = targetDate.toLocaleTimeString('en-US', { timeZone: timeZone });
+                } catch(e) { timeString = "Invalid TZ"; }
+            }
+            targetDisplay.value = timeString;
+
+        } else {
+            // Ready
+            bigDisplay.innerText = "READY TO SELL";
+            bigDisplay.classList.add('ready');
+            targetDisplay.value = "Now";
         }
     }
 
     window.sellVehicle = function(id) {
         if(confirm("Sell this vehicle? It will be removed from your garage and the 18h timer will start.")) {
+            // Find name before deleting
+            const v = vehicles.find(c => c.id === id);
+            lastSoldName = v ? `${v.manuf} ${v.model}` : "Unknown";
+            
             // Remove vehicle
-            vehicles = vehicles.filter(v => v.id !== id);
+            vehicles = vehicles.filter(c => c.id !== id);
+            
             // Set Timer
             lastSellTime = Date.now();
             saveToStorage();
             closeModal();
         }
+    }
+
+    window.checkTimer = function(isClick) {
+        if(isClick) openTimerModal();
     }
 
     // START
@@ -894,13 +980,9 @@
                 locCustom.style.display = 'block';
                 locCustom.value = vehicle.loc;
             }
-            // Trigger garage change to handle floor & nickname logic
             handleGarageChange(); 
 
-            // If existing vehicle has nickname, ensure it's loaded (handleGarageChange might have set it, but we overwrite if specific)
-            if (vehicle.locNickname) {
-                locNickname.value = vehicle.locNickname;
-            }
+            if (vehicle.locNickname) locNickname.value = vehicle.locNickname;
 
             document.getElementById('inputFloor').value = vehicle.floor || "";
             document.getElementById('inputSlot').value = vehicle.slot || "";
@@ -924,44 +1006,35 @@
     
     window.openStats = function() {
         statModal.style.display = 'flex';
-        // Calculate Stats
         document.getElementById('statTotal').innerText = vehicles.length;
         
         let wCount = 0, f1Count = 0, bennyCount = 0;
         const brandCounts = {};
-        let totalSlotsUsed = 0;
+        let totalCap = 0;
         
-        // Loop vehicles
         vehicles.forEach(v => {
             if(v.isWeapon) wCount++;
             if(v.wheels === 'F1') f1Count++;
             if(v.wheels.includes('Benny')) bennyCount++;
-            
             const brand = v.manuf || "Unknown";
             brandCounts[brand] = (brandCounts[brand] || 0) + 1;
         });
 
-        // Top Brands
-        const topBrands = Object.entries(brandCounts)
-            .sort((a,b) => b[1] - a[1])
-            .slice(0, 5);
-        
+        const topBrands = Object.entries(brandCounts).sort((a,b) => b[1] - a[1]).slice(0, 5);
         const topListEl = document.getElementById('topManufs');
         topListEl.innerHTML = '';
         topBrands.forEach(([brand, count]) => {
             topListEl.innerHTML += `<li><span>${brand}</span><span>${count}</span></li>`;
         });
 
-        // Update counts
         document.getElementById('statWeapon').innerText = wCount;
         document.getElementById('statF1').innerText = f1Count;
         document.getElementById('statBenny').innerText = bennyCount;
 
-        // Capacity Bar (Rough Estimate based on used garages)
-        let totalCap = 0;
         const usedGarages = new Set(vehicles.map(v => v.loc));
         usedGarages.forEach(loc => {
-            const meta = GARAGE_META[loc] || GARAGE_META["DEFAULT_APT"];
+            const cleanLoc = loc ? loc.replace(/\s\(\d+\)$/, "") : "";
+            const meta = GARAGE_META[cleanLoc] || GARAGE_META["DEFAULT_APT"];
             totalCap += meta.cap || 10;
         });
         
@@ -976,11 +1049,9 @@
         manufSelect.value = "";
         modelSelect.innerHTML = '<option value="" disabled selected>--</option>';
         modelCustom.style.display = 'none'; modelCustom.value = "";
-        
         locSelect.value = "";
         locCustom.style.display = 'none'; locCustom.value = "";
-        locNickname.value = ""; // Clear nickname
-
+        locNickname.value = "";
         document.getElementById('inputFloor').value = "";
         document.getElementById('inputSlot').value = "";
         document.getElementById('inputWheels').value = "Stock";
@@ -1004,7 +1075,7 @@
         const plate = document.getElementById('inputPlate').value;
         const notes = document.getElementById('inputNotes').value;
         const isWeapon = document.getElementById('inputWeaponized').checked;
-        const nick = locNickname.value; // Get nickname
+        const nick = locNickname.value;
 
         if (!manuf || !model || !loc) {
             alert('Please fill Make, Model & Garage.');
@@ -1086,6 +1157,7 @@
         if(e.target == modal) closeModal(); 
         if(e.target == clModal) closeChangelog();
         if(e.target == statModal) closeStats();
+        if(e.target == timerModal) closeTimerModal();
     }
 </script>
 
