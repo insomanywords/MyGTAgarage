@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v17.6</title>
+    <title>My GTA Garage v17.7</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
@@ -56,10 +56,8 @@
         button.secondary-btn { background-color: #333; color: #ccc; border: 1px solid #444; padding: 8px 12px; font-size: 0.8rem; }
         button.danger-btn { background-color: #3e1212; color: #e74c3c; border: 1px solid #e74c3c; padding: 8px 12px; font-size: 0.8rem; }
         
-        /* New Buttons */
         button.sell-btn { background-color: #145A32; color: #2ecc71; border: 1px solid #2ecc71; padding: 10px; width: 100%; margin-top: 10px; }
         
-        /* Timer Button */
         button.timer-btn { background-color: #333; color: var(--sell-color); border: 1px solid var(--sell-color); padding: 8px 10px; font-size: 0.8rem; min-width: 45px; }
         button.timer-btn.active { color: var(--timer-color); border-color: var(--timer-color); }
 
@@ -84,6 +82,8 @@
         
         .group-meta { font-size: 0.8rem; color: var(--text-dim); background: #111; padding: 4px 8px; border-radius: 10px; }
         .group-meta.full { color: #e74c3c; border: 1px solid #e74c3c; }
+        
+        .garage-nickname { color: #ccc; font-weight: normal; margin-left: 8px; font-style: italic; font-size: 0.9rem; }
 
         .vehicle-grid {
             display: grid; grid-template-columns: 1fr; gap: 10px;
@@ -186,7 +186,6 @@
         .empty-state { text-align: center; color: var(--text-dim); margin-top: 50px; }
         
         .hidden-input { display: none; }
-        .delete-section { display: flex; gap: 10px; margin-top: 20px; border-top: 1px solid #333; padding-top: 20px; flex-direction: column; }
     </style>
 </head>
 <body>
@@ -225,7 +224,7 @@
 </div>
 
 <footer>
-    <span>v17.6</span>
+    <span>v17.7</span>
     <a onclick="openChangelog()">Changelog</a>
 </footer>
 
@@ -351,6 +350,11 @@
                 <input type="number" id="inputSlot" placeholder="#">
             </div>
         </div>
+        
+        <div class="form-group">
+            <label>Garage Nickname (Optional)</label>
+            <input type="text" id="inputLocNickname" placeholder="e.g. Super Cars, Trucks, F1s">
+        </div>
 
         <div style="border-top: 1px solid #333; padding-top: 15px; margin-bottom: 15px;">
             <div class="form-group checkbox-wrapper">
@@ -363,9 +367,9 @@
                     <label>Wheels</label>
                     <select id="inputWheels">
                         <option value="Stock">Stock</option>
-                        <option value="F1">F1 Wheels</option>
-                        <option value="Benny's Original">Benny's Original</option>
-                        <option value="Benny's Bespoke">Benny's Bespoke</option>
+                        <option value="F1">F1</option>
+                        <option value="Benny's Original">Benny's Orig</option>
+                        <option value="Benny's Bespoke">Benny's Besp</option>
                         <option value="Street">Street</option>
                         <option value="Track">Track</option>
                         <option value="Offroad">Offroad</option>
@@ -410,44 +414,24 @@
 <div id="statsModal" class="modal">
     <div class="modal-content">
         <h2 style="margin-top:0;">Garage Stats</h2>
-        
         <div class="stats-grid">
-            <div class="stat-card">
-                <span class="stat-num" id="statTotal">0</span>
-                <span class="stat-label">Vehicles</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-num" id="statWeapon" style="color: var(--weapon-color);">0</span>
-                <span class="stat-label">Weaponized</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-num" id="statF1" style="color: var(--f1-color);">0</span>
-                <span class="stat-label">F1 Wheels</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-num" id="statBenny" style="color: var(--benny-color);">0</span>
-                <span class="stat-label">Benny's</span>
-            </div>
+            <div class="stat-card"><span class="stat-num" id="statTotal">0</span><span class="stat-label">Vehicles</span></div>
+            <div class="stat-card"><span class="stat-num" id="statWeapon" style="color:var(--weapon-color)">0</span><span class="stat-label">Weaponized</span></div>
+            <div class="stat-card"><span class="stat-num" id="statF1" style="color:var(--f1-color)">0</span><span class="stat-label">F1 Wheels</span></div>
+            <div class="stat-card"><span class="stat-num" id="statBenny" style="color:var(--benny-color)">0</span><span class="stat-label">Benny's</span></div>
         </div>
-
         <div style="margin-bottom: 20px;">
             <span class="stat-label">Top Manufacturers</span>
             <ul class="top-list" id="topManufs"></ul>
         </div>
-
         <div>
             <div style="display:flex; justify-content:space-between;">
                 <span class="stat-label">Total Storage Usage</span>
                 <span class="stat-label" id="usageText">0 / 0</span>
             </div>
-            <div class="progress-container">
-                <div class="progress-bar" id="usageBar"></div>
-            </div>
+            <div class="progress-container"><div class="progress-bar" id="usageBar"></div></div>
         </div>
-
-        <div class="modal-actions">
-            <button class="secondary-btn" onclick="closeStats()">Close</button>
-        </div>
+        <div class="modal-actions"><button class="secondary-btn" onclick="closeStats()">Close</button></div>
     </div>
 </div>
 
@@ -455,22 +439,11 @@
     <div class="modal-content">
         <h2 style="margin-top:0;">Changelog</h2>
         <div class="changelog-list">
-            <div class="changelog-item">
-                <span class="changelog-ver">v17.6</span>
-                <span class="changelog-desc">Default View: App now defaults to 'Group by Garage' for better organization.</span>
-            </div>
-            <div class="changelog-item">
-                <span class="changelog-ver">v17.5</span>
-                <span class="changelog-desc">Safe Sale: Added 'Sell Vehicle' button and 18h cooldown timer with safe UI implementation.</span>
-            </div>
-            <div class="changelog-item">
-                <span class="changelog-ver">v16.0</span>
-                <span class="changelog-desc">Smart Folding: Grouped lists (Garage/Manufacturer) now start Collapsed. Search automatically expands groups with matches.</span>
-            </div>
+            <div class="changelog-item"><span class="changelog-ver">v17.7</span><span class="changelog-desc">Added Garage Nicknames. You can now name your garages (e.g., "Super Cars") and it will show in the list view. Includes auto-fill for new cars in the same garage.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v17.6</span><span class="changelog-desc">Default View: App now defaults to 'Group by Garage' for better organization.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v17.5</span><span class="changelog-desc">Safe Sale: Added 'Sell Vehicle' button and 18h cooldown timer with safe UI implementation.</span></div>
         </div>
-        <div class="modal-actions">
-            <button class="secondary-btn" onclick="closeChangelog()">Close</button>
-        </div>
+        <div class="modal-actions"><button class="secondary-btn" onclick="closeChangelog()">Close</button></div>
     </div>
 </div>
 
@@ -493,7 +466,6 @@
         "The Vinewood Residence": { cap: 20, floors: false },
         "Richman Villa": { cap: 20, floors: false },
         "The Tongva Estate": { cap: 20, floors: false },
-        
         "Eclipse Towers, Penthouse Suite 1": { cap: 10, floors: false },
         "Eclipse Towers, Penthouse Suite 2": { cap: 10, floors: false },
         "Eclipse Towers, Penthouse Suite 3": { cap: 10, floors: false },
@@ -502,30 +474,23 @@
         "Eclipse Towers, Apt 9": { cap: 10, floors: false },
         "Eclipse Towers, Apt 31": { cap: 10, floors: false },
         "Eclipse Towers, Apt 40": { cap: 10, floors: false },
-        
         "Richards Majestic, Apt 2": { cap: 10, floors: false },
         "Richards Majestic, Apt 4": { cap: 10, floors: false },
         "Richards Majestic, Apt 51": { cap: 10, floors: false },
-        
         "Tinsel Towers, Apt 29": { cap: 10, floors: false },
         "Tinsel Towers, Apt 42": { cap: 10, floors: false },
         "Tinsel Towers, Apt 45": { cap: 10, floors: false },
-        
         "4 Integrity Way, Apt 28": { cap: 10, floors: false },
         "4 Integrity Way, Apt 30": { cap: 10, floors: false },
         "4 Integrity Way, Apt 35": { cap: 10, floors: false },
-        
         "Del Perro Heights, Apt 4": { cap: 10, floors: false },
         "Del Perro Heights, Apt 7": { cap: 10, floors: false },
         "Del Perro Heights, Apt 20": { cap: 10, floors: false },
-        
         "Weazel Plaza, Apt 26": { cap: 10, floors: false },
         "Weazel Plaza, Apt 70": { cap: 10, floors: false },
         "Weazel Plaza, Apt 101": { cap: 10, floors: false },
-        
         "3 Alta St, Apt 10": { cap: 10, floors: false },
         "3 Alta St, Apt 57": { cap: 10, floors: false },
-
         "DEFAULT_APT": { cap: 10, floors: false }
     };
 
@@ -606,6 +571,7 @@
     const modelSelect = document.getElementById('inputModelDropdown');
     const modelCustom = document.getElementById('inputModelCustom');
     const locSelect = document.getElementById('inputLoc');
+    const locNickname = document.getElementById('inputLocNickname'); // NEW
     const locCustom = document.getElementById('inputLocCustom');
     const floorGroup = document.getElementById('floorGroup');
     const editActions = document.getElementById('editActions');
@@ -677,11 +643,22 @@
         // Strip capacity
         const cleanLoc = loc.replace(/\s\(\d+\)$/, "");
         const meta = GARAGE_META[cleanLoc];
+        
+        // Floor Logic
         if (meta && meta.floors) {
             floorGroup.style.display = 'block';
         } else {
             floorGroup.style.display = 'none';
             document.getElementById('inputFloor').value = ""; 
+        }
+
+        // Auto-Fill Nickname Logic
+        // Find if any other car in this garage has a nickname
+        const existingCar = vehicles.find(v => v.loc === loc && v.locNickname);
+        if (existingCar) {
+            locNickname.value = existingCar.locNickname;
+        } else {
+            locNickname.value = ""; // clear if new
         }
     }
 
@@ -691,6 +668,7 @@
             (v.model && v.model.toLowerCase().includes(term)) || 
             (v.manuf && v.manuf.toLowerCase().includes(term)) || 
             (v.loc && v.loc.toLowerCase().includes(term)) ||
+            (v.locNickname && v.locNickname.toLowerCase().includes(term)) || // Search by nickname too
             (v.floor && v.floor.toLowerCase().includes(term)) ||
             (v.notes && v.notes.toLowerCase().includes(term))
         );
@@ -720,8 +698,6 @@
             });
 
             const sortedKeys = Object.keys(groups).sort();
-            
-            // Check if searching to auto-expand
             const isSearching = term.length > 0;
 
             sortedKeys.forEach(key => {
@@ -729,6 +705,8 @@
                 header.className = 'group-header' + (isSearching ? '' : ' collapsed');
                 
                 let metaHtml = '';
+                let nicknameHtml = '';
+
                 if (mode === 'garage') {
                     const cleanKey = key.replace(/\s\(\d+\)$/, "");
                     const meta = GARAGE_META[cleanKey] || GARAGE_META["DEFAULT_APT"];
@@ -736,6 +714,12 @@
                     const count = groups[key].length;
                     const isFull = count > cap;
                     metaHtml = `<span class="group-meta ${isFull ? 'full' : ''}">${count} / ${cap}</span>`;
+                    
+                    // Check for nickname in this group
+                    const nickCar = groups[key].find(c => c.locNickname);
+                    if (nickCar) {
+                        nicknameHtml = `<span class="garage-nickname">- "${nickCar.locNickname}"</span>`;
+                    }
                 } else {
                     metaHtml = `<span class="group-meta">${groups[key].length}</span>`;
                 }
@@ -743,7 +727,7 @@
                 header.innerHTML = `
                     <div class="header-title-box">
                         <span class="arrow">▼</span>
-                        <span>${key}</span>
+                        <span>${key}${nicknameHtml}</span>
                     </div>
                     ${metaHtml}
                 `;
@@ -910,7 +894,13 @@
                 locCustom.style.display = 'block';
                 locCustom.value = vehicle.loc;
             }
+            // Trigger garage change to handle floor & nickname logic
             handleGarageChange(); 
+
+            // If existing vehicle has nickname, ensure it's loaded (handleGarageChange might have set it, but we overwrite if specific)
+            if (vehicle.locNickname) {
+                locNickname.value = vehicle.locNickname;
+            }
 
             document.getElementById('inputFloor').value = vehicle.floor || "";
             document.getElementById('inputSlot').value = vehicle.slot || "";
@@ -989,6 +979,7 @@
         
         locSelect.value = "";
         locCustom.style.display = 'none'; locCustom.value = "";
+        locNickname.value = ""; // Clear nickname
 
         document.getElementById('inputFloor').value = "";
         document.getElementById('inputSlot').value = "";
@@ -1013,6 +1004,7 @@
         const plate = document.getElementById('inputPlate').value;
         const notes = document.getElementById('inputNotes').value;
         const isWeapon = document.getElementById('inputWeaponized').checked;
+        const nick = locNickname.value; // Get nickname
 
         if (!manuf || !model || !loc) {
             alert('Please fill Make, Model & Garage.');
@@ -1034,12 +1026,12 @@
         if (editingId) {
             const index = vehicles.findIndex(v => v.id === editingId);
             if (index !== -1) {
-                vehicles[index] = { ...vehicles[index], manuf, model, loc, floor, slot, wheels, plate, notes, isWeapon };
+                vehicles[index] = { ...vehicles[index], manuf, model, loc, floor, slot, wheels, plate, notes, isWeapon, locNickname: nick };
             }
         } else {
             const newVehicle = {
                 id: Date.now(),
-                manuf, model, loc, floor, slot, wheels, plate, notes, isWeapon
+                manuf, model, loc, floor, slot, wheels, plate, notes, isWeapon, locNickname: nick
             };
             vehicles.push(newVehicle);
         }
