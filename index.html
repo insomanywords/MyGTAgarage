@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v18.0</title>
+    <title>My GTA Garage v18.1</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
@@ -231,7 +231,7 @@
 </div>
 
 <footer>
-    <span>v18.0</span>
+    <span>v18.1</span>
     <a onclick="openChangelog()">Changelog</a>
 </footer>
 
@@ -478,9 +478,66 @@
     <div class="modal-content">
         <h2 style="margin-top:0;">Changelog</h2>
         <div class="changelog-list">
-            <div class="changelog-item"><span class="changelog-ver">v18.0</span><span class="changelog-desc">Sale Dashboard: Added detailed dashboard showing last sold car, countdown timer, and timezone converter for next sale time.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v17.7</span><span class="changelog-desc">Added Garage Nicknames. You can now name your garages (e.g., "Super Cars") and it will show in the list view.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v17.6</span><span class="changelog-desc">Default View: App now defaults to 'Group by Garage'.</span></div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v18.1</span>
+                <span class="changelog-desc">Full History Update: Restored complete changelog from v1.0 to present (excluding unstable versions).</span>
+            </div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v18.0</span>
+                <span class="changelog-desc">Sale Dashboard: Added detailed dashboard showing last sold car, countdown timer, and timezone converter.</span>
+            </div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v17.7</span>
+                <span class="changelog-desc">Added Garage Nicknames & Auto-fill.</span>
+            </div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v17.6</span>
+                <span class="changelog-desc">Default View set to 'Group by Garage'.</span>
+            </div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v17.5</span>
+                <span class="changelog-desc">Added Safe "Sell Vehicle" button & 18h Timer.</span>
+            </div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v16.0</span>
+                <span class="changelog-desc">Smart Folding Lists & Search Expansion.</span>
+            </div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v15.0</span>
+                <span class="changelog-desc">Collapsible Garage Headers.</span>
+            </div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v14.1</span>
+                <span class="changelog-desc">Fixed Mansion Capacities (20 slots).</span>
+            </div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v14.0</span>
+                <span class="changelog-desc">Added Specific Apartment Unit Numbers.</span>
+            </div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v13.0</span>
+                <span class="changelog-desc">Statistics Dashboard.</span>
+            </div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v12.0</span>
+                <span class="changelog-desc">View Modes (Garage/Manufacturer), Capacity Counts, Slot # field.</span>
+            </div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v11.0</span>
+                <span class="changelog-desc">Footer & Changelog UI.</span>
+            </div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v10.0</span>
+                <span class="changelog-desc">Added Safehouses & Mansions.</span>
+            </div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v9.0</span>
+                <span class="changelog-desc">Added support for Custom Locations.</span>
+            </div>
+            <div class="changelog-item">
+                <span class="changelog-ver">v1.0 - v8.0</span>
+                <span class="changelog-desc">Core Features: Local Storage, Backup/Restore, Search, Vehicle Database.</span>
+            </div>
         </div>
         <div class="modal-actions"><button class="secondary-btn" onclick="closeChangelog()">Close</button></div>
     </div>
@@ -885,7 +942,6 @@
     window.openTimerModal = function() {
         timerModal.style.display = 'flex';
         updateTimerModal();
-        // Clear old interval if exists to prevent doubles
         if(timerInterval) clearInterval(timerInterval);
         timerInterval = setInterval(updateTimerModal, 1000);
     }
@@ -906,7 +962,6 @@
         soldNameDisplay.innerText = lastSoldName || "Unknown/Legacy";
 
         if (diff < COOLDOWN_MS) {
-            // Active Cooldown
             const remaining = COOLDOWN_MS - diff;
             const hours = Math.floor(remaining / (1000 * 60 * 60));
             const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
@@ -915,9 +970,7 @@
             bigDisplay.innerText = `${hours}h ${minutes}m ${seconds}s`;
             bigDisplay.classList.remove('ready');
             
-            // Calculate Target Time
             const targetDate = new Date(lastSellTime + COOLDOWN_MS);
-            
             let timeString;
             if (timeZone === 'Local') {
                 timeString = targetDate.toLocaleTimeString();
@@ -929,7 +982,6 @@
             targetDisplay.value = timeString;
 
         } else {
-            // Ready
             bigDisplay.innerText = "READY TO SELL";
             bigDisplay.classList.add('ready');
             targetDisplay.value = "Now";
@@ -938,14 +990,9 @@
 
     window.sellVehicle = function(id) {
         if(confirm("Sell this vehicle? It will be removed from your garage and the 18h timer will start.")) {
-            // Find name before deleting
             const v = vehicles.find(c => c.id === id);
             lastSoldName = v ? `${v.manuf} ${v.model}` : "Unknown";
-            
-            // Remove vehicle
             vehicles = vehicles.filter(c => c.id !== id);
-            
-            // Set Timer
             lastSellTime = Date.now();
             saveToStorage();
             closeModal();
@@ -956,10 +1003,8 @@
         if(isClick) openTimerModal();
     }
 
-    // START
     initApp();
 
-    // --- ACTIONS ---
     window.openModal = function(vehicle = null) {
         modal.style.display = 'flex';
         
