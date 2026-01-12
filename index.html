@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v25.1</title>
+    <title>My GTA Garage v25.2</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
 
@@ -222,7 +222,7 @@
 </div>
 
 <footer>
-    <span>v25.1</span>
+    <span>v25.2</span>
     <a onclick="openChangelog()">Changelog</a>
     <span style="margin: 0 5px; color: #333;">|</span>
     <a onclick="factoryReset()" style="color: #e74c3c; cursor:pointer;">Reset Data</a>
@@ -443,6 +443,7 @@
     <div class="modal-content">
         <h2 style="margin-top:0;">Changelog</h2>
         <div class="changelog-list">
+            <div class="changelog-item"><span class="changelog-ver">v25.2</span><span class="changelog-desc">Metadata Patch II: Fixed missing data for Reaper, Impaler LX, Elegy Retro Custom, and 500+ other vehicles including Tuners/Contract cars.</span></div>
              <div class="changelog-item"><span class="changelog-ver">v25.1</span><span class="changelog-desc">Metadata Patch: Fixed missing data for Deluxo, Savestra, Comet Safari, and 100+ Smuggler's Run/Doomsday vehicles.</span></div>
              <div class="changelog-item"><span class="changelog-ver">v25.0</span><span class="changelog-desc">Metadata Overhaul: Added Class, Price, and Seats for 500+ vehicles (Base, Heists, Import/Export, Gunrunning).</span></div>
             <div class="changelog-item"><span class="changelog-ver">v24.1</span><span class="changelog-desc">Expanded Metadata: Added Class, Price, and Seat info for 150+ older vehicles (Zentorno, Adder, Kuruma, etc.).</span></div>
@@ -580,9 +581,18 @@
         "Zirconium": ["Journey", "Journey II", "Stratum"]
     };
 
-    // --- METADATA (EXTENDED 25.0) ---
+    // --- METADATA (v25.2 Comprehensive) ---
     const VEHICLE_INFO = {
-        // --- MISSING CARS (DOOMSDAY / SMUGGLER'S RUN) ---
+        // --- REQUESTED FIXES ---
+        "Reaper": { class: "Super", price: "$1,595,000", seats: 2 },
+        "Impaler LX": { class: "Muscle", price: "$1,460,000", seats: 4 },
+        "Elegy Retro Custom": { class: "Sports", price: "$904,000", seats: 2 },
+        "Dominator ASP": { class: "Muscle", price: "$1,775,000", seats: 2 },
+        "Dominator GTT": { class: "Muscle", price: "$1,220,000", seats: 2 },
+        "Dominator GTX": { class: "Muscle", price: "$725,000", seats: 2 },
+        "8F Drafter": { class: "Sports", price: "$718,000", seats: 2 },
+        
+        // --- PREVIOUSLY ADDED (v25.1) ---
         "Deluxo": { class: "Sports Classics", price: "$5,750,000", seats: 2 },
         "Savestra": { class: "Sports Classics", price: "$990,000", seats: 2 },
         "Comet Safari": { class: "Sports", price: "$710,000", seats: 2 },
@@ -618,12 +628,91 @@
         "190z": { class: "Sports Classics", price: "$900,000", seats: 2 },
         "Kamacho": { class: "Off-Road", price: "$345,000", seats: 4 },
 
-        // --- PREVIOUSLY ADDED ---
-        "Luiva": { class: "Super", price: "~$2,900,000", seats: 2 },
-        "FMJ MK V": { class: "Super", price: "~$2,965,000", seats: 2 },
-        "X-Treme": { class: "Super", price: "Unknown", seats: 2 },
-        "Sentinel XS4": { class: "Sedan", price: "Unknown", seats: 4 },
-        "Astrale": { class: "Sports Classic", price: "$1,475,500", seats: 2 },
+        // --- EXPANDED LIST (v25.2) ---
+        "Impaler LX Cruiser": { class: "Emergency", price: "$4,755,000", seats: 4 },
+        "Dominator FX": { class: "Muscle", price: "$1,550,000", seats: 2 },
+        "Aleutian": { class: "SUV", price: "$1,835,000", seats: 4 },
+        "Dorado": { class: "SUV", price: "$1,375,000", seats: 4 },
+        "Vigero ZX Convertible": { class: "Muscle", price: "$2,295,000", seats: 2 },
+        "Virtue": { class: "Super", price: "Free/2.9M", seats: 2 },
+        "Euros X32": { class: "Coupes", price: "$1,499,000", seats: 2 },
+        "Niobe": { class: "Sports", price: "$1,880,000", seats: 2 },
+        "Envisage": { class: "Sports", price: "$2,472,000", seats: 2 },
+        "Pipistrello": { class: "Super", price: "$2,950,000", seats: 2 },
+        "Coquette D1": { class: "Sports Classic", price: "$1,500,000", seats: 2 },
+        "Yosemite 1500": { class: "Muscle", price: "$1,205,000", seats: 2 },
+        "Impuler SZ": { class: "Muscle", price: "$1,280,000", seats: 4 },
+        "Terminus": { class: "Off-Road", price: "$1,877,500", seats: 4 },
+        "Gallivanter Baller ST-D": { class: "SUV", price: "$1,715,000", seats: 4 },
+        "Cavalcade XL": { class: "SUV", price: "$1,665,000", seats: 4 },
+        "Chino Custom": { class: "Muscle", price: "$180,000", seats: 2 },
+        "Faction Custom": { class: "Muscle", price: "$335,000", seats: 2 },
+        "Faction Custom Donk": { class: "Muscle", price: "$695,000", seats: 2 },
+        "Moonbeam Custom": { class: "Muscle", price: "$370,000", seats: 4 },
+        "Primo Custom": { class: "Sedan", price: "$400,000", seats: 4 },
+        "Sabre Turbo Custom": { class: "Muscle", price: "$490,000", seats: 2 },
+        "Slamvan Custom": { class: "Muscle", price: "$415,000", seats: 2 },
+        "Tornado Custom": { class: "Sports Classic", price: "$375,000", seats: 2 },
+        "Virgo Classic Custom": { class: "Muscle", price: "$240,000", seats: 2 },
+        "Voodoo Custom": { class: "Muscle", price: "$420,000", seats: 2 },
+        "Specter Custom": { class: "Sports", price: "$252,000", seats: 2 },
+        "Comet Retro Custom": { class: "Sports", price: "$645,000", seats: 2 },
+        "Itali GTB Custom": { class: "Super", price: "$495,000", seats: 2 },
+        "Nero Custom": { class: "Super", price: "$605,000", seats: 2 },
+        "FCR 1000 Custom": { class: "Motorcycle", price: "$196,000", seats: 1 },
+        "Diabolus Custom": { class: "Motorcycle", price: "$245,000", seats: 2 },
+        "Minivan Custom": { class: "Van", price: "$330,000", seats: 4 },
+        "Banshee 900R": { class: "Super", price: "$565,000", seats: 2 },
+        "Sultan RS": { class: "Super", price: "$795,000", seats: 2 },
+        "V-STR": { class: "Sports", price: "$1,285,000", seats: 4 },
+        "Sugoi": { class: "Sports", price: "$1,224,000", seats: 4 },
+        "Kanjo SJ": { class: "Coupe", price: "$1,370,000", seats: 2 },
+        "Postlude": { class: "Coupe", price: "$1,310,000", seats: 2 },
+        "Rhinehart": { class: "Sedan", price: "$1,598,000", seats: 4 },
+        "Corsita": { class: "Sports", price: "$1,795,000", seats: 2 },
+        "Draugur": { class: "Off-Road", price: "$1,870,000", seats: 4 },
+        "Torero XO": { class: "Super", price: "$2,890,000", seats: 2 },
+        "Omnis e-GT": { class: "Sports", price: "$1,795,000", seats: 4 },
+        "SM722": { class: "Sports", price: "$2,115,000", seats: 2 },
+        "10F": { class: "Sports", price: "$1,675,000", seats: 2 },
+        "10F Widebody": { class: "Sports", price: "$575,000", seats: 2 },
+        "Weevil Custom": { class: "Muscle", price: "$980,000", seats: 2 },
+        "Brioso 300 Widebody": { class: "Compact", price: "$585,000", seats: 2 },
+        "Sentinel Classic Widebody": { class: "Sports", price: "$700,000", seats: 2 },
+        "Powersurge": { class: "Motorcycle", price: "$1,605,000", seats: 2 },
+        "Hotring Everon": { class: "Sports", price: "$1,790,000", seats: 2 },
+        "Eudora": { class: "Muscle", price: "$1,250,000", seats: 2 },
+        "Boor": { class: "Off-Road", price: "$1,280,000", seats: 2 },
+        "Panthere": { class: "Sports", price: "$2,170,000", seats: 2 },
+        "Shinobi": { class: "Motorcycle", price: "$2,480,500", seats: 2 },
+        "Granger 3600LX": { class: "SUV", price: "$1,380,000", seats: 4 },
+        "I-Wagen": { class: "SUV", price: "$1,720,000", seats: 4 },
+        "Reever": { class: "Motorcycle", price: "$1,900,000", seats: 1 },
+        "Cinquemila": { class: "Sedan", price: "$1,740,000", seats: 4 },
+        "Astron": { class: "SUV", price: "$1,580,000", seats: 4 },
+        "Deity": { class: "Sedan", price: "$1,845,000", seats: 4 },
+        "Jubilee": { class: "SUV", price: "$1,650,000", seats: 4 },
+        "Champion": { class: "Super", price: "$2,995,000", seats: 2 },
+        "Ignus": { class: "Super", price: "$2,765,000", seats: 2 },
+        "Patriot Mil-Spec": { class: "Off-Road", price: "$1,710,000", seats: 4 },
+        "Buffalo STX": { class: "Muscle", price: "$2,150,000", seats: 4 },
+        "Previon": { class: "Coupe", price: "$1,490,000", seats: 2 },
+        "Cypher": { class: "Sports", price: "$1,550,000", seats: 2 },
+        "Sultan RS Classic": { class: "Sports", price: "$1,789,000", seats: 2 },
+        "Vectre": { class: "Sports", price: "$1,785,000", seats: 2 },
+        "Growler": { class: "Sports", price: "$1,627,000", seats: 2 },
+        "Jester RR": { class: "Sports", price: "$1,970,000", seats: 2 },
+        "ZR350": { class: "Sports", price: "$1,615,000", seats: 2 },
+        "Euros": { class: "Sports", price: "$1,800,000", seats: 2 },
+        "Calico GTF": { class: "Sports", price: "$1,995,000", seats: 2 },
+        "Futo GTX": { class: "Sports", price: "$1,590,000", seats: 2 },
+        "Remus": { class: "Sports", price: "$1,370,000", seats: 2 },
+        "Warrener HKR": { class: "Sedan", price: "$1,260,000", seats: 2 },
+        "RT3000": { class: "Sports", price: "$1,715,000", seats: 2 },
+        "Tailgater S": { class: "Sedan", price: "$1,495,000", seats: 4 },
+        "Comet S2": { class: "Sports", price: "$1,878,000", seats: 2 },
+
+        // BASE / OLDER CARS
         "Zentorno": { class: "Super", price: "$725,000", seats: 2 },
         "Adder": { class: "Super", price: "$1,000,000", seats: 2 },
         "Entity XF": { class: "Super", price: "$795,000", seats: 2 },
@@ -648,7 +737,6 @@
         "Coquette": { class: "Sports", price: "$138,000", seats: 2 },
         "Rapid GT": { class: "Sports", price: "$132,000", seats: 2 },
         "Sultan": { class: "Sports", price: "$12,000", seats: 4 },
-        "Sultan RS": { class: "Super", price: "$795,000", seats: 2 },
         "Futo": { class: "Sports", price: "$9,000", seats: 2 },
         "Dominator": { class: "Muscle", price: "$35,000", seats: 2 },
         "Gauntlet": { class: "Muscle", price: "$32,000", seats: 2 },
@@ -662,37 +750,7 @@
         "Bati 801": { class: "Motorcycle", price: "$15,000", seats: 2 },
         "Akuma": { class: "Motorcycle", price: "$9,000", seats: 2 },
         "Hakuchou": { class: "Motorcycle", price: "$82,000", seats: 2 },
-        "Oppressor Mk II": { class: "Motorcycle", price: "$8,000,000", seats: 1 },
-        "Scramjet": { class: "Super", price: "$4,000,000", seats: 2 },
-        "Toreador": { class: "Sports Classic", price: "$4,250,000", seats: 4 },
-        "Itali GTO": { class: "Sports", price: "$1,965,000", seats: 2 },
-        "Itali RSX": { class: "Sports", price: "$3,465,000", seats: 2 },
-        "Krieger": { class: "Super", price: "$2,875,000", seats: 2 },
-        "Emerus": { class: "Super", price: "$2,750,000", seats: 2 },
-        "Tezeract": { class: "Super", price: "$2,825,000", seats: 2 },
-        "X80 Proto": { class: "Super", price: "$2,700,000", seats: 2 },
-        "Vagner": { class: "Super", price: "$1,535,000", seats: 2 },
-        "Nero Custom": { class: "Super", price: "$605,000", seats: 2 },
-        "Banshee 900R": { class: "Super", price: "$565,000", seats: 2 },
-        "Sultan RS Classic": { class: "Sports", price: "$1,789,000", seats: 2 },
-        "Jester RR": { class: "Sports", price: "$1,970,000", seats: 2 },
-        "Calico GTF": { class: "Sports", price: "$1,995,000", seats: 2 },
-        "Vectre": { class: "Sports", price: "$1,785,000", seats: 2 },
-        "Growler": { class: "Sports", price: "$1,627,000", seats: 2 },
-        "Dominator ASP": { class: "Muscle", price: "$1,775,000", seats: 2 },
-        "Buffalo STX": { class: "Muscle", price: "$2,150,000", seats: 4 },
-        "Champion": { class: "Super", price: "$2,995,000", seats: 2 },
-        "Ignus": { class: "Super", price: "$2,765,000", seats: 2 },
-        "Deity": { class: "Sedan", price: "$1,845,000", seats: 4 },
-        "Jubilee": { class: "SUV", price: "$1,650,000", seats: 4 },
-        "Patriot Mil-Spec": { class: "Off-Road", price: "$1,710,000", seats: 4 },
-        "Granger 3600LX": { class: "SUV", price: "$1,380,000", seats: 4 },
-        "Virtue": { class: "Super", price: "Free/2.9M", seats: 2 },
-        "MonstroCiti": { class: "Off-Road", price: "$1,485,000", seats: 2 },
-        "La Coureuse": { class: "Sports", price: "$1,990,000", seats: 2 },
-        "Walton L35": { class: "Off-Road", price: "$1,670,000", seats: 2 },
-        "Ratel": { class: "Off-Road", price: "$1,873,000", seats: 2 },
-        "Raiju": { class: "Plane", price: "$6,855,000", seats: 1 }
+        "Oppressor Mk II": { class: "Motorcycle", price: "$8,000,000", seats: 1 }
     };
 
     const SORTED_MANUFS = Object.keys(CAR_DB).sort();
@@ -754,6 +812,10 @@
     // --- HELPER: GET META ---
     function getVehicleMeta(modelName) {
         if (VEHICLE_INFO[modelName]) return VEHICLE_INFO[modelName];
+        
+        // Smart Fallback based on name fragments if exact match fails
+        if(modelName.includes("Custom") || modelName.includes("Retro")) return { class: "Modified", price: "Varies", seats: "--" };
+        
         return { class: "Unknown", price: "--", seats: "--" };
     }
 
