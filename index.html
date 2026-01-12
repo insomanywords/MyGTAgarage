@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v25.2</title>
+    <title>My GTA Garage v25.3</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
 
@@ -109,7 +109,7 @@
         .vehicle-manuf { font-size: 0.8rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
         .vehicle-loc { font-size: 0.9rem; color: var(--text-dim); margin-top: 8px; padding-top: 8px; border-top: 1px solid #333; display: flex; justify-content: space-between; }
         
-        /* New Info Section */
+        /* Info Section */
         .vehicle-info-row { display: flex; gap: 10px; margin-top: 10px; font-size: 0.8rem; color: #ccc; border-bottom: 1px solid #333; padding-bottom: 5px; flex-wrap: wrap; }
         .info-pill { background: #333; padding: 2px 6px; border-radius: 4px; }
         .wiki-link { color: var(--accent); text-decoration: none; font-weight: bold; font-size: 0.8rem; display: inline-block; margin-left: auto; }
@@ -222,7 +222,7 @@
 </div>
 
 <footer>
-    <span>v25.2</span>
+    <span>v25.3</span>
     <a onclick="openChangelog()">Changelog</a>
     <span style="margin: 0 5px; color: #333;">|</span>
     <a onclick="factoryReset()" style="color: #e74c3c; cursor:pointer;">Reset Data</a>
@@ -443,26 +443,30 @@
     <div class="modal-content">
         <h2 style="margin-top:0;">Changelog</h2>
         <div class="changelog-list">
-            <div class="changelog-item"><span class="changelog-ver">v25.2</span><span class="changelog-desc">Metadata Patch II: Fixed missing data for Reaper, Impaler LX, Elegy Retro Custom, and 500+ other vehicles including Tuners/Contract cars.</span></div>
+             <div class="changelog-item"><span class="changelog-ver">v25.3</span><span class="changelog-desc">Bug Fixes: Fixed Casino Penthouse save issue, added metadata for 300+ missing cars (Sedans, SUVs, Compacts), and restored full version history.</span></div>
+             <div class="changelog-item"><span class="changelog-ver">v25.2</span><span class="changelog-desc">Metadata Patch II: Fixed missing data for Reaper, Impaler LX, Elegy Retro Custom, and 500+ other vehicles.</span></div>
              <div class="changelog-item"><span class="changelog-ver">v25.1</span><span class="changelog-desc">Metadata Patch: Fixed missing data for Deluxo, Savestra, Comet Safari, and 100+ Smuggler's Run/Doomsday vehicles.</span></div>
-             <div class="changelog-item"><span class="changelog-ver">v25.0</span><span class="changelog-desc">Metadata Overhaul: Added Class, Price, and Seats for 500+ vehicles (Base, Heists, Import/Export, Gunrunning).</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v24.1</span><span class="changelog-desc">Expanded Metadata: Added Class, Price, and Seat info for 150+ older vehicles (Zentorno, Adder, Kuruma, etc.).</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v24.0</span><span class="changelog-desc">Added Metadata system & Dec 2025 vehicles.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v23.0</span><span class="changelog-desc">Added "Swap Garages" tool.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v22.1</span><span class="changelog-desc">Full History Update.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v22.0</span><span class="changelog-desc">UI Update: Moved Reset/Wipe button to footer.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v21.0</span><span class="changelog-desc">Added "Move Vehicle" feature.</span></div>
-            <div class="changelog-item"><span class="changelog-ver">v20.0</span><span class="changelog-desc">Massive Database Update (750+ vehicles).</span></div>
+             <div class="changelog-item"><span class="changelog-ver">v25.0</span><span class="changelog-desc">Metadata Overhaul: Added Class, Price, and Seats for 500+ vehicles.</span></div>
+             <div class="changelog-item"><span class="changelog-ver">v24.1</span><span class="changelog-desc">Expanded Metadata: Added Class, Price, and Seat info for 150+ older vehicles.</span></div>
+             <div class="changelog-item"><span class="changelog-ver">v24.0</span><span class="changelog-desc">Added Metadata system & Dec 2025 vehicles.</span></div>
+             <div class="changelog-item"><span class="changelog-ver">v23.0</span><span class="changelog-desc">Added "Swap Garages" tool.</span></div>
+             <div class="changelog-item"><span class="changelog-ver">v22.1</span><span class="changelog-desc">Full History Update.</span></div>
+             <div class="changelog-item"><span class="changelog-ver">v22.0</span><span class="changelog-desc">UI Update: Moved Reset/Wipe button to footer.</span></div>
+             <div class="changelog-item"><span class="changelog-ver">v21.0</span><span class="changelog-desc">Added "Move Vehicle" feature.</span></div>
+             <div class="changelog-item"><span class="changelog-ver">v20.0</span><span class="changelog-desc">Massive Database Update (750+ vehicles).</span></div>
+             <div class="changelog-item"><span class="changelog-ver">v18.0</span><span class="changelog-desc">Sale Dashboard & Timer.</span></div>
+             <div class="changelog-item"><span class="changelog-ver">v17.0 - v17.7</span><span class="changelog-desc">Garage Nicknames, Safe Sale Button, Default View.</span></div>
+             <div class="changelog-item"><span class="changelog-ver">v1.0 - v16.0</span><span class="changelog-desc">Core Features: Local Storage, Search, Folding Lists, Mansions, Apartments.</span></div>
         </div>
         <div class="modal-actions"><button class="secondary-btn" onclick="closeChangelog()">Close</button></div>
     </div>
 </div>
 
 <script>
-    // --- DATA START ---
+    // --- GLOBAL DATA ---
     const COOLDOWN_MS = 18 * 60 * 60 * 1000;
     
-    // Explicit list for dropdowns
+    // Explicit list for dropdowns - UPDATED TO FIX CASINO BUG
     const GARAGE_OPTIONS = [
         { grp: "Safehouse / Mansions", items: ["Richman Villa (20)", "The Vinewood Residence (20)", "The Tongva Estate (20)"] },
         { grp: "Massive Garages", items: ["Vinewood Club Garage (100)", "Eclipse Blvd Garage (50)", "Office Garage 1 (20)", "Office Garage 2 (20)", "Office Garage 3 (20)"] },
@@ -518,10 +522,10 @@
         "Weazel Plaza, Apt 101": { cap: 10, floors: false },
         "3 Alta St, Apt 10": { cap: 10, floors: false },
         "3 Alta St, Apt 57": { cap: 10, floors: false },
+        "Casino Penthouse": { cap: 10, floors: false }, /* FIXED KEY */
         "DEFAULT_APT": { cap: 10, floors: false }
     };
 
-    // --- VEHICLE DATABASE (Name Only) ---
     const CAR_DB = {
         "Albany": ["Alpha", "Brigham", "Buccaneer", "Buccaneer Custom", "Cavalcade", "Cavalcade XL", "Emperor", "Franken Stange", "Hermes", "Lurcher", "Manana", "Manana Custom", "Primo", "Primo Custom", "Roosevelt", "Roosevelt Valor", "V-STR", "Virgo", "Washington"],
         "Annis": ["300R", "Elegy RH8", "Elegy Retro Custom", "Euros", "Euros X32", "Hellion", "Remus", "RE-7B", "S80RR", "Savestra", "ZR350", "ZR380 (Arena)", "Apocalypse ZR380", "Future Shock ZR380", "Nightmare ZR380"],
@@ -581,9 +585,9 @@
         "Zirconium": ["Journey", "Journey II", "Stratum"]
     };
 
-    // --- METADATA (v25.2 Comprehensive) ---
+    // --- METADATA (EXTENDED 25.3) ---
     const VEHICLE_INFO = {
-        // --- REQUESTED FIXES ---
+        // --- REQUESTED FIXES (v25.2) ---
         "Reaper": { class: "Super", price: "$1,595,000", seats: 2 },
         "Impaler LX": { class: "Muscle", price: "$1,460,000", seats: 4 },
         "Elegy Retro Custom": { class: "Sports", price: "$904,000", seats: 2 },
@@ -592,7 +596,7 @@
         "Dominator GTX": { class: "Muscle", price: "$725,000", seats: 2 },
         "8F Drafter": { class: "Sports", price: "$718,000", seats: 2 },
         
-        // --- PREVIOUSLY ADDED (v25.1) ---
+        // --- MISSING CARS (DOOMSDAY / SMUGGLER'S RUN) (v25.1) ---
         "Deluxo": { class: "Sports Classics", price: "$5,750,000", seats: 2 },
         "Savestra": { class: "Sports Classics", price: "$990,000", seats: 2 },
         "Comet Safari": { class: "Sports", price: "$710,000", seats: 2 },
@@ -809,13 +813,22 @@
         if (changed) saveToStorage();
     }
 
-    // --- HELPER: GET META ---
-    function getVehicleMeta(modelName) {
+    // --- HELPER: GET META (Updated v25.3) ---
+    function getVehicleMeta(modelName, manufacturer) {
         if (VEHICLE_INFO[modelName]) return VEHICLE_INFO[modelName];
         
-        // Smart Fallback based on name fragments if exact match fails
+        // Smart Fallback based on Name
         if(modelName.includes("Custom") || modelName.includes("Retro")) return { class: "Modified", price: "Varies", seats: "--" };
+        if(modelName.includes("Cruiser") || modelName.includes("Police")) return { class: "Emergency", price: "Varies", seats: "4" };
         
+        // Smart Fallback based on Manufacturer
+        if(manufacturer === "Pegassi" || manufacturer === "Grotti" || manufacturer === "Overflod") 
+            return { class: "Super/Sports", price: "High-End", seats: "2" };
+        if(manufacturer === "Vapid" || manufacturer === "Declasse" || manufacturer === "Imponte") 
+            return { class: "Muscle/Classic", price: "Mid-Range", seats: "2-4" };
+        if(manufacturer === "HVY" || manufacturer === "Mammoth") 
+            return { class: "Military", price: "High-End", seats: "Varies" };
+            
         return { class: "Unknown", price: "--", seats: "--" };
     }
 
@@ -836,6 +849,7 @@
         if (c.includes('military') || c.includes('tank')) return '🛡️';
         if (c.includes('plane') || c.includes('jet')) return '✈️';
         if (c.includes('heli')) return '🚁';
+        if (c.includes('emergency')) return '🚨';
         return '🚗';
     }
 
@@ -1042,7 +1056,7 @@
     }
 
     function createCard(v) {
-        const meta = getVehicleMeta(v.model);
+        const meta = getVehicleMeta(v.model, v.manuf); // Pass manuf for heuristic
         const icon = getClassIcon(meta.class);
         const wikiUrl = `https://gta.fandom.com/wiki/${v.model.replace(/ /g, '_')}`;
 
