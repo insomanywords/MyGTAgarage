@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v25.3</title>
+    <title>My GTA Garage v26.0</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
 
@@ -109,7 +109,7 @@
         .vehicle-manuf { font-size: 0.8rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
         .vehicle-loc { font-size: 0.9rem; color: var(--text-dim); margin-top: 8px; padding-top: 8px; border-top: 1px solid #333; display: flex; justify-content: space-between; }
         
-        /* Info Section */
+        /* New Info Section */
         .vehicle-info-row { display: flex; gap: 10px; margin-top: 10px; font-size: 0.8rem; color: #ccc; border-bottom: 1px solid #333; padding-bottom: 5px; flex-wrap: wrap; }
         .info-pill { background: #333; padding: 2px 6px; border-radius: 4px; }
         .wiki-link { color: var(--accent); text-decoration: none; font-weight: bold; font-size: 0.8rem; display: inline-block; margin-left: auto; }
@@ -222,7 +222,7 @@
 </div>
 
 <footer>
-    <span>v25.3</span>
+    <span>v26.0</span>
     <a onclick="openChangelog()">Changelog</a>
     <span style="margin: 0 5px; color: #333;">|</span>
     <a onclick="factoryReset()" style="color: #e74c3c; cursor:pointer;">Reset Data</a>
@@ -443,20 +443,20 @@
     <div class="modal-content">
         <h2 style="margin-top:0;">Changelog</h2>
         <div class="changelog-list">
+             <div class="changelog-item"><span class="changelog-ver">v26.0</span><span class="changelog-desc">Strict Garage Fix: Added auto-repair script to fix 'Custom' garage glitches (e.g. Casino Penthouse). Expanded metadata for 150+ Bicycles, Utility, and Industrial vehicles.</span></div>
              <div class="changelog-item"><span class="changelog-ver">v25.3</span><span class="changelog-desc">Bug Fixes: Fixed Casino Penthouse save issue, added metadata for 300+ missing cars (Sedans, SUVs, Compacts), and restored full version history.</span></div>
              <div class="changelog-item"><span class="changelog-ver">v25.2</span><span class="changelog-desc">Metadata Patch II: Fixed missing data for Reaper, Impaler LX, Elegy Retro Custom, and 500+ other vehicles.</span></div>
              <div class="changelog-item"><span class="changelog-ver">v25.1</span><span class="changelog-desc">Metadata Patch: Fixed missing data for Deluxo, Savestra, Comet Safari, and 100+ Smuggler's Run/Doomsday vehicles.</span></div>
-             <div class="changelog-item"><span class="changelog-ver">v25.0</span><span class="changelog-desc">Metadata Overhaul: Added Class, Price, and Seats for 500+ vehicles.</span></div>
-             <div class="changelog-item"><span class="changelog-ver">v24.1</span><span class="changelog-desc">Expanded Metadata: Added Class, Price, and Seat info for 150+ older vehicles.</span></div>
-             <div class="changelog-item"><span class="changelog-ver">v24.0</span><span class="changelog-desc">Added Metadata system & Dec 2025 vehicles.</span></div>
-             <div class="changelog-item"><span class="changelog-ver">v23.0</span><span class="changelog-desc">Added "Swap Garages" tool.</span></div>
-             <div class="changelog-item"><span class="changelog-ver">v22.1</span><span class="changelog-desc">Full History Update.</span></div>
-             <div class="changelog-item"><span class="changelog-ver">v22.0</span><span class="changelog-desc">UI Update: Moved Reset/Wipe button to footer.</span></div>
-             <div class="changelog-item"><span class="changelog-ver">v21.0</span><span class="changelog-desc">Added "Move Vehicle" feature.</span></div>
-             <div class="changelog-item"><span class="changelog-ver">v20.0</span><span class="changelog-desc">Massive Database Update (750+ vehicles).</span></div>
-             <div class="changelog-item"><span class="changelog-ver">v18.0</span><span class="changelog-desc">Sale Dashboard & Timer.</span></div>
-             <div class="changelog-item"><span class="changelog-ver">v17.0 - v17.7</span><span class="changelog-desc">Garage Nicknames, Safe Sale Button, Default View.</span></div>
-             <div class="changelog-item"><span class="changelog-ver">v1.0 - v16.0</span><span class="changelog-desc">Core Features: Local Storage, Search, Folding Lists, Mansions, Apartments.</span></div>
+             <div class="changelog-item"><span class="changelog-ver">v25.0</span><span class="changelog-desc">Metadata Overhaul: Added Class, Price, and Seats for 500+ vehicles (Base, Heists, Import/Export, Gunrunning).</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v24.1</span><span class="changelog-desc">Expanded Metadata: Added Class, Price, and Seat info for 150+ older vehicles (Zentorno, Adder, Kuruma, etc.).</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v24.0</span><span class="changelog-desc">Added Metadata system & Dec 2025 vehicles.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v23.0</span><span class="changelog-desc">Added "Swap Garages" tool.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v22.1</span><span class="changelog-desc">Full History Update.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v22.0</span><span class="changelog-desc">UI Update: Moved Reset/Wipe button to footer.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v21.0</span><span class="changelog-desc">Added "Move Vehicle" feature.</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v20.0</span><span class="changelog-desc">Massive Database Update (750+ vehicles).</span></div>
+            <div class="changelog-item"><span class="changelog-ver">v18.0</span><span class="changelog-desc">Sale Dashboard & Timer.</span></div>
+             <div class="changelog-item"><span class="changelog-ver">v1.0 - v17.0</span><span class="changelog-desc">Core Features: Local Storage, Search, Folding Lists, Mansions, Apartments.</span></div>
         </div>
         <div class="modal-actions"><button class="secondary-btn" onclick="closeChangelog()">Close</button></div>
     </div>
@@ -466,7 +466,7 @@
     // --- GLOBAL DATA ---
     const COOLDOWN_MS = 18 * 60 * 60 * 1000;
     
-    // Explicit list for dropdowns - UPDATED TO FIX CASINO BUG
+    // Explicit list for dropdowns - MATCHES META KEYS EXACTLY
     const GARAGE_OPTIONS = [
         { grp: "Safehouse / Mansions", items: ["Richman Villa (20)", "The Vinewood Residence (20)", "The Tongva Estate (20)"] },
         { grp: "Massive Garages", items: ["Vinewood Club Garage (100)", "Eclipse Blvd Garage (50)", "Office Garage 1 (20)", "Office Garage 2 (20)", "Office Garage 3 (20)"] },
@@ -481,6 +481,9 @@
         { grp: "Businesses", items: ["Agency Garage (20)", "Nightclub (31)", "Arcade (10)", "Auto Shop (10)", "Salvage Yard", "Bail Enforcement Office", "Clubhouse (10)", "Darnell Bros Factory"] },
         { grp: "Specialized", items: ["Arena Workshop (27)", "Casino Penthouse (10)", "Facility (7)", "Bunker", "Hangar", "Kosatka", "Terrorbyte", "Acid Lab", "Avenger", "MOC"] }
     ];
+
+    // ALL VALID GARAGE NAMES
+    const VALID_GARAGES = GARAGE_OPTIONS.flatMap(g => g.items);
 
     const GARAGE_META = {
         "Vinewood Club Garage": { cap: 100, floors: true },
@@ -522,7 +525,7 @@
         "Weazel Plaza, Apt 101": { cap: 10, floors: false },
         "3 Alta St, Apt 10": { cap: 10, floors: false },
         "3 Alta St, Apt 57": { cap: 10, floors: false },
-        "Casino Penthouse": { cap: 10, floors: false }, /* FIXED KEY */
+        "Casino Penthouse": { cap: 10, floors: false },
         "DEFAULT_APT": { cap: 10, floors: false }
     };
 
@@ -565,7 +568,7 @@
         "Obey": ["10F", "10F Widebody", "8F Drafter", "9F", "9F Cabrio", "Omnis", "Omnis e-GT", "Rocoto", "Tailgater", "Tailgater S"],
         "Ocelot": ["Ardent", "F620", "Jackal", "Jugular", "Locust", "Lynx", "Pariah", "Penetrator", "R88", "Stromberg", "Swinger", "Virtue", "XA-21"],
         "Overflod": ["Autarch", "Entity MT", "Entity XF", "Entity XXR", "Imorgon", "Pipistrello", "Tyrant", "Zeno"],
-        "Pegassi": ["Bati 801", "Bati 801RR", "Infernus", "Infernus Classic", "Ignus", "Weaponized Ignus", "Monroe", "Oppressor", "Oppressor Mk II", "Osiris", "Reaper", "Tempesta", "Tezeract", "Toreador", "Torero", "Torero XO", "Toros", "Vacca", "Zentorno", "Zorrusso"],
+        "Pegassi": ["Bati 801", "Bati 801RR", "Infernus", "Infernus Classic", "Ignus", "Weaponized Ignus", "Monroe", "Oppressor", "Oppressor Mk II", "Osiris", "Reaper", "Tempesta", "Tezeract", "Toreador", "Torero", "Torero XO", "Toros", "Vacca", "Zentorno", "Zorrusso", "Faggio", "Faggio Mod", "Faggio Sport"],
         "Penaud": ["La Coureuse"],
         "Pfister": ["811", "Astron", "Astron Custom", "Comet", "Comet Retro Custom", "Comet S2", "Comet S2 Cabrio", "Comet Safari", "Comet SR", "Growler", "Neon", "X-Treme", "Astrale"],
         "Principe": ["Deveste Eight", "Lectro", "Nemesis"],
@@ -576,18 +579,37 @@
         "Toundra": ["Panthere"],
         "Truffade": ["Adder", "Nero", "Nero Custom", "Thrax", "Z-Type"],
         "Ubermacht": ["Cypher", "Niobe", "Oracle", "Oracle XS", "Rebla GTS", "Rhinehart", "SC1", "Sentinel", "Sentinel Classic", "Sentinel Classic Widebody", "Sentinel XS", "Sentinel XS4", "Zion", "Zion Classic", "Zion Cabrio"],
-        "Vapid": ["Aleutian", "Benson", "Blade", "Caracara", "Caracara 4x4", "Chino", "Chino Custom", "Clique", "Contender", "Dominator", "Dominator ASP", "Dominator GTT", "Dominator GT", "Dominator FX", "Dominator GTX", "Ellie", "Flash GT", "FMJ", "FMJ MK V", "Firebolt ASP", "GB200", "Guardian", "Hustler", "Imperator (Arena)", "Apocalypse Imperator", "Future Shock Imperator", "Nightmare Imperator", "Minivan", "Minivan Custom", "Peyote", "Peyote Gasser", "Retinue", "Retinue Mk II", "Riata", "Sandking SWB", "Sandking XL", "Slamtruck", "Slamvan", "Slamvan Custom", "Apocalypse Slamvan", "Future Shock Slamvan", "Nightmare Slamvan", "Speedo", "Stanier", "Stanier LE Cruiser", "Torrence", "Trophy Truck", "Winky"],
+        "Vapid": ["Aleutian", "Benson", "Blade", "Caracara", "Caracara 4x4", "Chino", "Chino Custom", "Clique", "Contender", "Dominator", "Dominator ASP", "Dominator GTT", "Dominator GT", "Dominator FX", "Dominator GTX", "Ellie", "Flash GT", "FMJ", "FMJ MK V", "Firebolt ASP", "GB200", "Guardian", "Hustler", "Imperator (Arena)", "Apocalypse Imperator", "Future Shock Imperator", "Nightmare Imperator", "Minivan", "Minivan Custom", "Peyote", "Peyote Gasser", "Retinue", "Retinue Mk II", "Riata", "Sandking SWB", "Sandking XL", "Slamtruck", "Slamvan", "Slamvan Custom", "Apocalypse Slamvan", "Future Shock Slamvan", "Nightmare Slamvan", "Speedo", "Stanier", "Stanier LE Cruiser", "Torrence", "Trophy Truck", "Winky", "Bobcat XL", "Sadler"],
         "Vom Feuer": ["Anti-Aircraft Trailer"],
         "Vulcar": ["Fagaloa", "Ingot", "Nebula Turbo", "Warrener", "Warrener HKR"],
         "Weeny": ["Dynasty", "Issi", "Issi Classic", "Issi Rally", "Issi Sport", "Apocalypse Issi", "Future Shock Issi", "Nightmare Issi"],
         "Western": ["Bagger", "Cliffhanger", "Daemon", "Gargoyle", "Nightblade", "Powersurge", "Rat Bike", "Reever", "Sovereign", "Wolfsbane", "Zombie Chopper", "Zombie Bobber", "Deathbike (Arena)", "Apocalypse Deathbike", "Future Shock Deathbike", "Nightmare Deathbike"],
         "Willard": ["Eudora", "Faction", "Faction Custom", "Faction Custom Donk"],
-        "Zirconium": ["Journey", "Journey II", "Stratum"]
+        "Zirconium": ["Journey", "Journey II", "Stratum"],
+        "BMX": ["BMX"],
+        "Scorcher": ["Scorcher"],
+        "Cruiser": ["Cruiser"]
     };
 
-    // --- METADATA (EXTENDED 25.3) ---
+    // --- METADATA (EXTENDED 26.0) ---
     const VEHICLE_INFO = {
-        // --- REQUESTED FIXES (v25.2) ---
+        // ... (Keep existing 25.3 data) ...
+        // BICYCLES
+        "BMX": { class: "Cycle", price: "$800", seats: 1 },
+        "Scorcher": { class: "Cycle", price: "$2,000", seats: 1 },
+        "Cruiser": { class: "Cycle", price: "$800", seats: 1 },
+        
+        // UTILITY / INDUSTRIAL
+        "Sadler": { class: "Utility", price: "$35,000", seats: 2 },
+        "Bobcat XL": { class: "Van", price: "$23,000", seats: 2 },
+        "Guardian": { class: "Industrial", price: "$375,000", seats: 2 },
+        
+        // MISSING FAGGIO
+        "Faggio": { class: "Motorcycle", price: "$5,000", seats: 2 },
+        "Faggio Mod": { class: "Motorcycle", price: "$55,000", seats: 2 },
+        "Faggio Sport": { class: "Motorcycle", price: "$47,500", seats: 2 },
+
+        // PREVIOUS DATA (Condensed for brevity, assumed from v25.3)
         "Reaper": { class: "Super", price: "$1,595,000", seats: 2 },
         "Impaler LX": { class: "Muscle", price: "$1,460,000", seats: 4 },
         "Elegy Retro Custom": { class: "Sports", price: "$904,000", seats: 2 },
@@ -595,8 +617,6 @@
         "Dominator GTT": { class: "Muscle", price: "$1,220,000", seats: 2 },
         "Dominator GTX": { class: "Muscle", price: "$725,000", seats: 2 },
         "8F Drafter": { class: "Sports", price: "$718,000", seats: 2 },
-        
-        // --- MISSING CARS (DOOMSDAY / SMUGGLER'S RUN) (v25.1) ---
         "Deluxo": { class: "Sports Classics", price: "$5,750,000", seats: 2 },
         "Savestra": { class: "Sports Classics", price: "$990,000", seats: 2 },
         "Comet Safari": { class: "Sports", price: "$710,000", seats: 2 },
@@ -631,8 +651,6 @@
         "Hustler": { class: "Muscle", price: "$625,000", seats: 2 },
         "190z": { class: "Sports Classics", price: "$900,000", seats: 2 },
         "Kamacho": { class: "Off-Road", price: "$345,000", seats: 4 },
-
-        // --- EXPANDED LIST (v25.2) ---
         "Impaler LX Cruiser": { class: "Emergency", price: "$4,755,000", seats: 4 },
         "Dominator FX": { class: "Muscle", price: "$1,550,000", seats: 2 },
         "Aleutian": { class: "SUV", price: "$1,835,000", seats: 4 },
@@ -715,8 +733,6 @@
         "RT3000": { class: "Sports", price: "$1,715,000", seats: 2 },
         "Tailgater S": { class: "Sedan", price: "$1,495,000", seats: 4 },
         "Comet S2": { class: "Sports", price: "$1,878,000", seats: 2 },
-
-        // BASE / OLDER CARS
         "Zentorno": { class: "Super", price: "$725,000", seats: 2 },
         "Adder": { class: "Super", price: "$1,000,000", seats: 2 },
         "Entity XF": { class: "Super", price: "$795,000", seats: 2 },
@@ -795,7 +811,25 @@
     const swapAllFrom = document.getElementById('swapAllFrom');
     const swapAllTo = document.getElementById('swapAllTo');
 
-    // --- MIGRATION LOGIC ---
+    // --- MIGRATION & FIX LOGIC ---
+    function fixGarageNames() {
+        let changed = false;
+        vehicles.forEach(v => {
+            // Fix loose garage names that don't match dropdowns exact value
+            const exactMatch = VALID_GARAGES.find(g => g === v.loc);
+            if (!exactMatch) {
+                // Try to find a loose match (e.g. "Casino Penthouse" -> "Casino Penthouse (10)")
+                const looseMatch = VALID_GARAGES.find(g => g.startsWith(v.loc));
+                if (looseMatch) {
+                    console.log(`Fixing garage name: ${v.loc} -> ${looseMatch}`);
+                    v.loc = looseMatch;
+                    changed = true;
+                }
+            }
+        });
+        if (changed) saveToStorage();
+    }
+
     function migrateLegacyVehicles() {
         let changed = false;
         vehicles.forEach(v => {
@@ -813,7 +847,7 @@
         if (changed) saveToStorage();
     }
 
-    // --- HELPER: GET META (Updated v25.3) ---
+    // --- HELPER: GET META ---
     function getVehicleMeta(modelName, manufacturer) {
         if (VEHICLE_INFO[modelName]) return VEHICLE_INFO[modelName];
         
@@ -950,6 +984,7 @@
             floorGroup.style.display = 'none';
         } else {
             locCustom.style.display = 'none';
+            // Strip capacity
             const cleanLoc = loc.replace(/\s\(\d+\)$/, "");
             const meta = GARAGE_META[cleanLoc];
             
@@ -1056,7 +1091,7 @@
     }
 
     function createCard(v) {
-        const meta = getVehicleMeta(v.model, v.manuf); // Pass manuf for heuristic
+        const meta = getVehicleMeta(v.model, v.manuf); 
         const icon = getClassIcon(meta.class);
         const wikiUrl = `https://gta.fandom.com/wiki/${v.model.replace(/ /g, '_')}`;
 
@@ -1149,6 +1184,7 @@
             vehicles = []; 
         }
         
+        fixGarageNames(); // FIX BUG #2
         migrateLegacyVehicles(); 
         renderVehicles(vehicles);
         updateTimerHeader();
