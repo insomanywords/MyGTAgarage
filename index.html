@@ -4,1621 +4,735 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v28.0</title>
+    <title>My GTA Garage v34.9.1</title>
     
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
 
     <style>
+        /* --- CORE THEME --- */
         :root {
-            --bg-color: #121212; --card-bg: #1e1e1e; --text-main: #e0e0e0; --text-dim: #a0a0a0;
-            --accent: #9b59b6; --accent-hover: #8e44ad;
-            --f1-color: #e67e22; --benny-color: #3498db; --plate-color: #f1c40f; 
-            --weapon-color: #e74c3c; --stock: #95a5a6;
-            --sell-color: #2ecc71; --timer-color: #e67e22; --move-color: #3498db;
-            --group-header-bg: #2c2c2c;
+            --bg: #121212; --card: #1e1e1e; --head: #181818;
+            --text: #ffffff; --text-dim: #a0a0a0; --accent: #9b59b6;
+            --wep: #ef4444; --f1: #f59e0b; --benny: #3b82f6; --sell: #22c55e; --timer: #f97316;
+            --border: #333; --radius: 8px;
+            
+            /* Plates */
+            --pl-yankton: #ffd700; --pl-liberty: #1e3a8a; --pl-panic: #6366f1;
+            --pl-pound: #3b82f6; --pl-venturas: #b91c1c; --pl-ecola: #dc2626; --pl-sprunk: #16a34a;
         }
 
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color); color: var(--text-main);
-            margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh;
-            overscroll-behavior-y: none;
+            font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text);
+            margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
 
+        /* HEADER */
         header {
-            background-color: #000; padding: 15px 20px;
-            border-bottom: 2px solid var(--accent);
-            display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 100;
+            background-color: #000; padding: 12px 16px; border-bottom: 2px solid var(--accent);
+            display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; z-index: 50; gap: 10px;
+        }
+        
+        .header-info { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+        h1 { margin: 0; font-size: 1.1rem; text-transform: uppercase; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .total-badge { 
+            background: #333; padding: 4px 8px; border-radius: 4px; 
+            font-size: 0.8rem; font-weight: bold; color: #fff; border: 1px solid var(--border); 
+            white-space: nowrap; flex-shrink: 0;
         }
 
-        h1 { margin: 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; }
-        .header-actions { display: flex; gap: 8px; align-items: center; }
-        
+        .header-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+        @media (max-width: 380px) { h1 { display: none; } }
+
+        /* CONTROLS */
         .controls {
-            padding: 10px; display: flex; flex-direction: column; gap: 10px;
-            background-color: #181818; border-bottom: 1px solid #333;
+            padding: 10px; background-color: var(--head); border-bottom: 1px solid var(--border);
+            display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;
         }
-        .search-row { display: flex; gap: 10px; width: 100%; }
-        .filter-row { display: flex; gap: 10px; width: 100%; overflow-x: auto; padding-bottom: 5px; }
-
-        input[type="text"], select, input[type="number"] {
-            flex-grow: 1; padding: 12px; border-radius: 8px; border: 1px solid #333;
-            background: #252525; color: white; font-size: 16px; width: 100%; box-sizing: border-box;
-        }
-
-        button { border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
-        button.primary-btn { background-color: var(--accent); color: white; width: 100%; }
-        button.secondary-btn { background-color: #333; color: #ccc; border: 1px solid #444; padding: 8px 12px; font-size: 0.8rem; }
-        button.danger-btn { background-color: #3e1212; color: #e74c3c; border: 1px solid #e74c3c; padding: 8px 12px; font-size: 0.8rem; }
         
-        button.sell-btn { background-color: #145A32; color: #2ecc71; border: 1px solid #2ecc71; padding: 10px; width: 100%; margin-top: 10px; }
-        button.move-btn { background-color: #1A3E5C; color: #3498db; border: 1px solid #3498db; padding: 10px; width: 100%; margin-top: 10px; }
-        
-        button.timer-btn { background-color: #333; color: var(--sell-color); border: 1px solid var(--sell-color); padding: 8px 10px; font-size: 0.8rem; min-width: 45px; }
-        button.timer-btn.active { color: var(--timer-color); border-color: var(--timer-color); }
-        
-        button.swap-all-btn { background-color: #2c2c2c; color: var(--accent); border: 1px solid var(--accent); min-width: 50px; }
+        .search-wrapper { position: relative; width: 100%; }
+        .search-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-dim); pointer-events: none; }
+        .search-wrapper input { padding-left: 38px !important; padding-right: 35px !important; width: 100%; height: 44px; }
+        .clear-search { position: absolute; right: 0; top: 0; height: 100%; width: 40px; display: none; align-items: center; justify-content: center; color: var(--text-dim); cursor: pointer; }
 
-        #vehicle-list {
-            flex-grow: 1; overflow-y: auto; padding: 10px;
-            display: flex; flex-direction: column; gap: 10px; padding-bottom: 80px;
+        .filter-row { display: flex; gap: 8px; width: 100%; }
+        #viewMode { flex-grow: 1; width: auto; min-width: 0; }
+        .filter-row button { flex-shrink: 0; width: auto; white-space: nowrap; }
+
+        @media (min-width: 768px) {
+            .controls { flex-direction: row; align-items: center; }
+            .search-wrapper { flex: 1; }
+            .filter-row { width: auto; min-width: 400px; flex-shrink: 0; }
         }
 
-        /* Group Headers */
+        input, select {
+            padding: 10px 12px; border-radius: var(--radius); border: 1px solid #333;
+            background: #252525; color: white; font-size: 16px; outline: none; transition: border-color 0.2s; height: 44px;
+        }
+        input:focus, select:focus { border-color: var(--accent); }
+
+        button { border: none; padding: 0 16px; border-radius: var(--radius); font-weight: 600; cursor: pointer; height: 44px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
+        .btn-pri { background: var(--accent); color: #fff; }
+        .btn-sec { background: #2c2c2c; color: #ccc; border: 1px solid #333; }
+        .timer-btn { background: #1a1a1a; border: 1px solid var(--sell); color: var(--sell); font-weight: bold; min-width: 50px; }
+        .timer-btn.active { border-color: var(--timer); color: var(--timer); }
+
+        /* LIST */
+        #vehicle-list { flex-grow: 1; overflow-y: auto; padding: 10px; scroll-behavior: smooth; padding-bottom: 80px; }
+        .vehicle-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 8px; }
+        @media (min-width: 600px) { .vehicle-grid { grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); } }
+        .vehicle-grid.hidden { display: none !important; }
+
+        /* GROUPS */
         .group-header {
-            background-color: var(--group-header-bg);
-            padding: 12px 15px; border-radius: 8px; margin-top: 10px;
-            font-weight: bold; color: var(--accent);
-            display: flex; justify-content: space-between; align-items: center;
-            border-left: 5px solid var(--accent);
-            cursor: pointer; user-select: none;
-            transition: background 0.2s;
+            background: #252525; padding: 12px 15px; border-radius: var(--radius); margin-top: 15px;
+            font-weight: 700; color: var(--accent); 
+            display: flex; flex-wrap: wrap; 
+            justify-content: space-between; align-items: center;
+            cursor: pointer; border: 1px solid #333; position: relative; overflow: hidden;
+            gap: 10px;
         }
-        .group-header:hover { background-color: #383838; }
+        .group-name-wrap { display: flex; align-items: center; flex: 1; min-width: 50%; }
         .group-header.collapsed .arrow { transform: rotate(-90deg); }
-        .arrow { display: inline-block; transition: transform 0.2s ease; font-size: 0.8rem; }
+        .arrow { display: inline-block; transition: 0.2s; margin-right: 10px; color: #666; }
+        .group-meta { font-size: 0.8rem; color: var(--text-dim); z-index: 2; white-space: nowrap; margin-left: auto; }
+        .cap-bar { position: absolute; bottom: 0; left: 0; height: 3px; background: var(--accent); opacity: 0.6; transition: width 0.3s; }
+
+        /* CARDS */
+        .card {
+            background: var(--card); border-radius: 12px; overflow: hidden;
+            display: flex; min-height: 115px; height: auto;
+            border: 1px solid #2a2a2a; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .card-img-box { width: 130px; background: #000; flex-shrink: 0; position: relative; display: flex; align-items: center; justify-content: center; cursor: pointer; border-right: 1px solid #222; align-self: stretch; }
+        .card-img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
         
-        .group-meta { font-size: 0.8rem; color: var(--text-dim); background: #111; padding: 4px 8px; border-radius: 10px; }
-        .group-meta.full { color: #e74c3c; border: 1px solid #e74c3c; }
+        .card-badges { position: absolute; bottom: 4px; left: 4px; display: flex; gap: 3px; flex-wrap: wrap; z-index: 2; }
+        .badge { font-size: 0.55rem; padding: 2px 5px; border-radius: 4px; font-weight: 800; text-transform: uppercase; color: #fff; background: rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(2px); }
+        .badge.w { background: var(--wep); border-color: var(--wep); }
+        .badge.f { background: var(--f1); border-color: var(--f1); color: #000; }
+        .badge.b { background: var(--benny); border-color: var(--benny); }
+        .badge.y { background: var(--pl-yankton); color: #000; border-color: var(--pl-yankton); }
+        .badge.l { background: var(--pl-liberty); border-color: var(--pl-liberty); }
+        .badge.p { background: var(--pl-panic); border-color: var(--pl-panic); }
+        .badge.pd { background: var(--pl-pound); border-color: var(--pl-pound); }
+        .badge.v { background: var(--pl-venturas); border-color: var(--pl-venturas); }
+        .badge.e { background: var(--pl-ecola); border-color: var(--pl-ecola); }
+        .badge.s { background: var(--pl-sprunk); border-color: var(--pl-sprunk); }
         
-        .garage-nickname { color: #ccc; font-weight: normal; margin-left: 8px; font-style: italic; font-size: 0.9rem; }
+        .card-info { flex: 1; padding: 8px 12px; min-width: 0; display: flex; flex-direction: column; }
+        .card-top { margin-bottom: 4px; padding-right: 75px; } 
+        .card-manuf { font-size: 0.65rem; color: var(--accent); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
+        .card-model { font-size: 1.05rem; font-weight: 700; color: #fff; line-height: 1.2; white-space: normal; word-wrap: break-word; }
+        .card-chips { display: flex; gap: 5px; margin-bottom: 6px; flex-wrap: wrap; }
+        .chip { background: #252525; color: #ccc; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; display: flex; align-items: center; gap: 4px; border: 1px solid #333; }
+        .card-loc { font-size: 0.75rem; color: var(--text-dim); border-top: 1px solid #2a2a2a; padding-top: 6px; margin-top: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .card-loc i { color: var(--accent); font-size: 0.7rem; align-self: flex-start; margin-top: 2px; }
+        .loc-text { white-space: normal; line-height: 1.3; display: flex; flex-direction: column; }
+        .loc-floor { font-size: 0.65rem; color: #777; margin-top: 1px; }
 
-        .vehicle-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
-        .vehicle-grid.hidden { display: none; }
+        .card-actions-top { position: absolute; top: 0; right: 0; display: flex; height: 45px; align-items: center; padding-right: 5px; z-index: 5; }
+        .action-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: #444; font-size: 0.9rem; cursor: pointer; transition: 0.2s; border: none; background: transparent; }
+        .action-btn:hover { color: #fff; background: rgba(255,255,255,0.05); border-radius: 4px; }
+        .gtacars-link:hover { color: var(--benny); }
 
-        @media (min-width: 600px) {
-            .vehicle-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-            .controls { flex-direction: row; align-items: center; flex-wrap: wrap; }
-            button.primary-btn { width: auto; }
-        }
-
-        /* CARD REDESIGN FOR IMAGE */
-        .vehicle-card {
-            background-color: var(--card-bg); border-radius: 8px; padding: 10px;
-            border-left: 5px solid var(--stock); box-shadow: 0 2px 4px rgba(0,0,0,0.3); position: relative;
-            display: grid; grid-template-columns: 100px 1fr; gap: 15px; align-items: start;
-        }
-
-        .vehicle-thumb-container {
-            width: 100px; height: 75px; display: flex; align-items: center; justify-content: center;
-            background: #111; border-radius: 6px; overflow: hidden; cursor: pointer; position: relative;
-        }
-        .vehicle-thumb { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .vehicle-icon-fallback { font-size: 2.5rem; position: absolute; }
-
-        .card-content { flex-grow: 1; min-width: 0; }
-
-        .vehicle-card.has-weapon { border-left-color: var(--weapon-color); }
-        .vehicle-card:not(.has-weapon).has-f1 { border-left-color: var(--f1-color); }
-        .vehicle-card:not(.has-weapon):not(.has-f1).has-benny { border-left-color: var(--benny-color); }
-
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
-        .vehicle-name { font-size: 1.1rem; font-weight: bold; color: #fff; }
-        .vehicle-manuf { font-size: 0.8rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
-        .vehicle-loc { font-size: 0.85rem; color: var(--text-dim); margin-top: 8px; padding-top: 8px; border-top: 1px solid #333; display: flex; justify-content: space-between; }
+        /* MODALS */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; align-items: center; justify-content: center; padding: 15px; }
+        .modal-box { background: #1e1e1e; width: 100%; max-width: 500px; max-height: 95vh; overflow-y: auto; border-radius: 12px; padding: 20px; border: 1px solid #333; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        .modal-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 20px; color: #fff; border-bottom: 1px solid #333; padding-bottom: 12px; }
         
-        .vehicle-info-row { display: flex; gap: 8px; margin-top: 5px; font-size: 0.75rem; color: #ccc; flex-wrap: wrap; align-items: center; }
-        .info-pill { background: #333; padding: 2px 6px; border-radius: 4px; }
-        .wiki-link { color: var(--accent); text-decoration: none; font-weight: bold; font-size: 0.75rem; margin-left: auto; background: #2a1a2a; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--accent); }
-
-        .badges-container { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
-        .badge { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
-        .badge.weapon { background: rgba(231, 76, 60, 0.2); color: var(--weapon-color); border: 1px solid var(--weapon-color); }
-        .badge.f1 { background: rgba(230, 126, 34, 0.2); color: var(--f1-color); border: 1px solid var(--f1-color); }
-        .badge.benny { background: rgba(52, 152, 219, 0.2); color: var(--benny-color); border: 1px solid var(--benny-color); }
-        .badge.plate { background: rgba(241, 196, 15, 0.2); color: var(--plate-color); border: 1px solid var(--plate-color); }
-        .badge.stock { background: rgba(149, 165, 166, 0.2); color: var(--stock); }
-
-        .vehicle-notes { background: #2a2a2a; padding: 6px; margin-top: 8px; font-size: 0.8rem; border-radius: 4px; color: #ccc; }
-        .card-actions { margin-top: 8px; display: flex; justify-content: flex-end; }
-        .icon-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 1.2rem; padding: 0 5px; }
-
-        footer { background-color: #181818; padding: 15px; text-align: center; font-size: 0.8rem; color: var(--text-dim); border-top: 1px solid #333; }
-        footer a { color: var(--accent); text-decoration: none; margin-left: 10px; cursor: pointer; font-weight: bold; }
-
-        /* MODAL & LIGHTBOX */
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: flex-end;
-        }
-        @media(min-width: 600px) { .modal { align-items: center; } }
-
-        .modal-content {
-            background: #1e1e1e; width: 100%; max-height: 85vh; overflow-y: auto;
-            border-radius: 15px 15px 0 0; padding: 20px; animation: slideUp 0.3s ease-out;
-            padding-bottom: 50px;
-        }
-        @media(min-width: 600px) { .modal-content { width: 90%; max-width: 500px; border-radius: 10px; animation: fadeIn 0.2s; } }
-
-        .lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; }
-        .lightbox img { max-width: 90%; max-height: 80vh; object-fit: contain; }
-        .lightbox-close { color: #fff; font-size: 2rem; margin-top: 20px; cursor: pointer; }
-
-        /* Timer Modal Specifics */
-        .timer-info-row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .timer-info-label { color: var(--text-dim); font-size: 0.9rem; }
-        .timer-info-val { color: #fff; font-weight: bold; }
-        .timer-big { font-size: 2rem; text-align: center; color: var(--timer-color); font-weight: bold; margin: 20px 0; }
-        .timer-big.ready { color: var(--sell-color); }
-
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: var(--text-dim); }
-        .row-group { display: flex; gap: 10px; }
-        .row-group > div { flex: 1; }
-        .checkbox-wrapper { display: flex; align-items: center; gap: 10px; background: #252525; padding: 12px; border-radius: 8px; border: 1px solid #333; }
-        .checkbox-wrapper input { width: auto; height: 20px; width: 20px; }
-
-        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-row { display: flex; gap: 12px; margin-bottom: 15px; flex-direction: column; }
+        @media(min-width: 500px) { .modal-row { flex-direction: row; } }
+        .modal-row > div { flex: 1; }
+        
+        .form-section { background: #252525; padding: 15px; border-radius: 10px; border: 1px solid #333; margin-bottom: 15px; }
+        .form-group { margin-bottom: 15px; width: 100%; }
+        .label { display: block; color: var(--text-dim); font-size: 0.75rem; margin-bottom: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 25px; }
         .modal-actions button { flex: 1; }
-        .empty-state { text-align: center; color: var(--text-dim); margin-top: 50px; }
-        .hidden-input { display: none; }
-        
-        .warning-text { color: #e74c3c; font-size: 0.9rem; margin-bottom: 10px; font-weight: bold; }
-        .delete-section { margin-top: 20px; border-top: 1px solid #333; padding-top: 15px; display: flex; flex-direction: column; gap: 8px; }
-        
-        /* Stats */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .stat-card { background: #2c2c2c; padding: 15px; border-radius: 8px; text-align: center; }
-        .stat-num { font-size: 1.5rem; font-weight: bold; color: white; display: block; }
-        .stat-label { font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; }
-        .progress-container { background: #333; height: 10px; border-radius: 5px; margin-top: 5px; overflow: hidden; }
-        .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s; }
-        .top-list { list-style: none; padding: 0; margin: 0; }
-        .top-list li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; }
 
-        /* Changelog */
-        .changelog-list { text-align: left; margin-bottom: 20px; }
-        .changelog-item { margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .changelog-ver { color: var(--accent); font-weight: bold; display: block; margin-bottom: 5px; }
-        .changelog-desc { color: #ccc; font-size: 0.9rem; line-height: 1.4; }
+        .wep-toggle { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #333; border-radius: 8px; cursor: pointer; border: 1px solid #444; margin-bottom: 15px; transition: 0.2s; }
+        .wep-toggle:hover { background: #3a3a3a; }
+        .wep-toggle input { width: 20px; height: 20px; accent-color: var(--wep); }
 
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* DASHBOARD */
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+        @media (min-width: 450px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
+        .stat-card { background: #252525; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #333; display: flex; flex-direction: column; justify-content: center; }
+        .stat-val { font-size: 1.4rem; font-weight: 800; display: block; color: var(--accent); }
+        .stat-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; margin-top: 4px; }
+        .timer-big { font-size: 3rem; font-weight: 800; text-align: center; margin: 20px 0; color: var(--timer); font-variant-numeric: tabular-nums; }
+        .usage-container { background: #111; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 5px; }
+        .usage-bar { height: 100%; background: var(--accent); width: 0%; transition: 0.5s; }
+
+        footer { background: #111; padding: 15px; text-align: center; font-size: 0.8rem; color: #555; border-top: 1px solid #222; flex-shrink: 0; }
+        footer a { color: var(--accent); text-decoration: none; margin: 0 10px; font-weight: bold; cursor: pointer; }
+        
+        #lightbox { display: none; position: fixed; inset: 0; background: #000; z-index: 2000; align-items: center; justify-content: center; }
+        #lbImg { max-width: 95%; max-height: 90%; object-fit: contain; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>My GTA Garage</h1>
+    <div class="header-info">
+        <h1>My GTA Garage</h1>
+        <div class="total-badge"><span class="total-label">Owned: </span><span id="headerCount">0</span></div>
+    </div>
     <div class="header-actions">
         <button id="timerBtn" class="timer-btn" onclick="openTimerModal()">💲</button>
-        <button class="secondary-btn" onclick="openStats()">📊</button>
-        <button class="secondary-btn" onclick="downloadBackup()">💾</button>
-        <button class="secondary-btn" onclick="document.getElementById('restoreInput').click()">📂</button>
+        <button class="btn-sec" style="width:44px" onclick="openStats()">📊</button>
+        <button class="btn-sec" style="width:44px" onclick="downloadBackup()">💾</button>
+        <button class="btn-sec" style="width:44px" onclick="document.getElementById('restoreInput').click()">📂</button>
         <input type="file" id="restoreInput" style="display:none" onchange="restoreBackup(this)">
     </div>
 </header>
 
 <div class="controls">
-    <div class="search-row">
-        <input type="text" id="searchInput" placeholder="Search..." onkeyup="renderVehicles(vehicles)">
+    <div class="search-wrapper">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Search collection..." onkeyup="render()">
+        <div class="clear-search" id="clearSearch" onclick="clearSearch()">✕</div>
     </div>
     <div class="filter-row">
-        <select id="viewMode" onchange="renderVehicles(vehicles)">
-            <option value="garage" selected>View: By Garage</option>
-            <option value="manuf">View: By Manufacturer</option>
-            <option value="all">View: All Vehicles</option>
+        <select id="viewMode" onchange="render()">
+            <option value="garage">Group: Garage</option>
+            <option value="manuf">Group: Brand</option>
+            <option value="class">Group: Class</option>
+            <option value="drive">Group: Drive</option>
+            <option value="all">View All</option>
         </select>
-        <button class="swap-all-btn" onclick="openSwapAllModal()">⇄</button>
-        <button class="primary-btn" type="button" onclick="openModal()">+ Add</button>
-    </div>
-    <div style="font-size: 0.8rem; color: var(--text-dim); text-align: center;">
-        Total: <span id="count">0</span>
+        <button class="btn-sec" onclick="openSwapAllModal()"><i class="fas fa-exchange-alt"></i></button>
+        <button class="btn-pri" onclick="openAddModal()">+ Add</button>
     </div>
 </div>
 
-<div id="vehicle-list">
-    <div class="empty-state">Loading...</div>
-</div>
+<div id="vehicle-list"></div>
 
 <footer>
-    <span>v28.0</span>
-    <a onclick="openChangelog()">Changelog</a>
-    <span style="margin: 0 5px; color: #333;">|</span>
-    <a onclick="factoryReset()" style="color: #e74c3c; cursor:pointer;">Reset Data</a>
+    <span>v34.9.1</span> | 
+    <a onclick="openModal('changelogModal')">Changelog</a> | 
+    <a onclick="factoryReset()" style="color: #ef4444">Reset</a>
 </footer>
 
-<div id="lightbox" class="lightbox" onclick="closeLightbox()">
-    <img id="lightboxImg" src="" alt="Vehicle Full Size">
-    <div class="lightbox-close">✖</div>
-</div>
-
 <div id="vehicleModal" class="modal">
-    <div class="modal-content">
-        <h2 id="modalTitle" style="margin-top: 0; margin-bottom: 20px;">Add Vehicle</h2>
+    <div class="modal-box">
+        <div id="modalTitle" class="modal-title">Vehicle Details</div>
         
-        <div class="row-group">
-            <div class="form-group">
-                <label>Make</label>
-                <select id="inputManuf" onchange="updateModelDropdown()">
-                    <option value="" disabled selected>Select...</option>
-                </select>
+        <div class="modal-row">
+            <div>
+                <span class="label">Make</span>
+                <input type="text" id="inManuf" list="manufDatalist" placeholder="Select Make" onchange="updateModelDD()">
+                <datalist id="manufDatalist"></datalist>
             </div>
-            <div class="form-group">
-                <label>Model</label>
-                <select id="inputModelDropdown" onchange="checkCustomModel()">
-                    <option value="" disabled selected>--</option>
-                </select>
-                <input type="text" id="inputModelCustom" placeholder="Custom Name" style="display:none; margin-top:5px;">
+            <div>
+                <span class="label">Model</span>
+                <input type="text" id="inModel" list="modelDatalist" placeholder="Select Model">
+                <datalist id="modelDatalist"></datalist>
             </div>
         </div>
-
-        <div class="row-group">
-            <div class="form-group" style="flex: 2;">
-                <label>Garage</label>
-                <select id="inputLoc" onchange="handleGarageChange()">
-                    <option value="" disabled selected>Select...</option>
-                </select>
-                <input type="text" id="inputLocCustom" placeholder="Type Custom Location" style="display:none; margin-top:5px;">
-            </div>
-
-            <div class="form-group" id="floorGroup" style="flex: 1; display:none;">
-                <label>Floor</label>
-                <input type="text" id="inputFloor" list="floorList" placeholder="Lvl">
-                <datalist id="floorList">
-                    <option value="Floor 1"></option><option value="Floor 2"></option><option value="Floor 3"></option>
-                </datalist>
-            </div>
-            
-             <div class="form-group" style="flex: 0.8;">
-                <label>Slot #</label>
-                <input type="number" id="inputSlot" placeholder="#">
-            </div>
-        </div>
-        
-        <div class="form-group">
-            <label>Garage Nickname (Optional)</label>
-            <input type="text" id="inputLocNickname" placeholder="e.g. Super Cars, Trucks, F1s">
-        </div>
-
-        <div style="border-top: 1px solid #333; padding-top: 15px; margin-bottom: 15px;">
-            <div class="form-group checkbox-wrapper">
-                <input type="checkbox" id="inputWeaponized">
-                <label for="inputWeaponized" style="margin:0; color: #e74c3c; font-weight:bold;">Weaponized?</label>
-            </div>
-
-            <div class="row-group">
-                <div class="form-group">
-                    <label>Wheels</label>
-                    <select id="inputWheels">
-                        <option value="Stock">Stock</option>
-                        <option value="F1">F1</option>
-                        <option value="Benny's Original">Benny's Orig</option>
-                        <option value="Benny's Bespoke">Benny's Besp</option>
-                        <option value="Street">Street</option>
-                        <option value="Track">Track</option>
-                        <option value="Offroad">Offroad</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Plate</label>
-                    <select id="inputPlate">
-                        <option value="Standard">Standard</option>
-                        <option value="Yankton">Yankton</option>
-                        <option value="Liberty City">Liberty City</option>
-                        <option value="Panic">Panic</option>
-                        <option value="Pounders">Pounders</option>
-                        <option value="Las Venturas">Las Venturas</option>
-                        <option value="E-Cola">E-Cola</option>
-                        <option value="Sprunk">Sprunk</option>
-                    </select>
-                </div>
-            </div>
-        </div>
+        <input type="text" id="inModelCustom" class="form-group" style="display:none; width:100%; margin-top:-10px;" placeholder="Enter custom model">
 
         <div class="form-group">
-            <label>Notes</label>
-            <input type="text" id="inputNotes" placeholder="Paint, Livery...">
+            <span class="label">Garage</span>
+            <input type="text" id="inLoc" list="locDatalist" onchange="handleLocChange()" placeholder="Select Garage">
+            <datalist id="locDatalist"></datalist>
         </div>
+        <input type="text" id="inLocCustom" class="form-group" style="display:none; width:100%; margin-top:-10px;" placeholder="Enter custom garage">
+
+        <div id="floorRow" style="display:none;" class="modal-row">
+            <div style="flex:2">
+                <span class="label">Floor</span>
+                <input type="text" id="inFloor" list="floorDatalist" placeholder="Lvl">
+                <datalist id="floorDatalist"></datalist>
+            </div>
+            <div style="flex:1"><span class="label">Slot</span><input type="number" id="inSlot" placeholder="#"></div>
+        </div>
+
+        <div class="form-section">
+            <label class="wep-toggle">
+                <span style="font-weight:700; color:#fff;">Weaponized Vehicle</span>
+                <input type="checkbox" id="inWep">
+            </label>
+            <div class="modal-row" style="margin-bottom:0;">
+                <div><span class="label">Wheels</span><select id="inWheels"><option value="Stock">Stock</option><option value="F1">F1 Wheels</option><option value="Benny">Benny's</option></select></div>
+                <div><span class="label">Plate</span><select id="inPlate">
+                    <option value="Standard">Standard</option><option value="Yankton">Yankton</option>
+                    <option value="Liberty City">Liberty City</option><option value="Panic">Panic</option>
+                    <option value="Pounders">Pounders</option><option value="Las Venturas">Las Venturas</option>
+                    <option value="E-Cola">E-Cola</option><option value="Sprunk">Sprunk</option>
+                </select></div>
+            </div>
+        </div>
+
+        <div class="form-group"><span class="label">Notes</span><input type="text" id="inNotes" style="width:100%" placeholder="Paint, livery, upgrades..."></div>
 
         <div class="modal-actions">
-            <button class="secondary-btn" onclick="closeModal()">Cancel</button>
-            <button class="primary-btn" onclick="saveVehicle()">Save</button>
+            <button class="btn-sec" onclick="closeModal('vehicleModal')">Cancel</button>
+            <button class="btn-primary" onclick="saveVehicle()">Save</button>
         </div>
         
-        <div id="editActions" style="display:none;">
-            <div class="delete-section">
-                <button class="move-btn" onclick="startMove(editingId)">🚚 Move to Another Garage</button>
-                <button class="sell-btn" onclick="sellVehicle(editingId)">💲 Sell Vehicle (18h Timer)</button>
-                <button class="danger-btn" onclick="deleteVehicle(editingId)">Delete</button>
-            </div>
+        <div id="editActions" style="display:none; margin-top:20px; flex-direction:column; gap:8px; border-top:1px solid #333; padding-top:15px;">
+            <button onclick="startMove()" style="background:#2980b9; color:#fff; width:100%"><i class="fas fa-exchange-alt"></i> Move Vehicle</button>
+            <button onclick="sellVehicle()" style="background:var(--sell); color:#fff; width:100%"><i class="fas fa-dollar-sign"></i> Sell (18h Timer)</button>
+            <button onclick="deleteVehicle()" style="background:var(--wep); color:#fff; width:100%"><i class="fas fa-trash"></i> Delete Permanent</button>
         </div>
-    </div>
-</div>
-
-<div id="moveModal" class="modal">
-    <div class="modal-content">
-        <h2 style="margin-top:0;">Move Vehicle</h2>
-        <p id="moveCarName" style="color:var(--accent); font-weight:bold; margin-bottom:20px;"></p>
-        <div class="form-group">
-            <label>Select Destination Garage</label>
-            <select id="moveTargetGarage" onchange="checkMoveCapacity()">
-                <option value="" disabled selected>Select...</option>
-            </select>
-        </div>
-        <div id="swapSection" style="display:none; background:#3e1212; padding:15px; border-radius:8px; border:1px solid #e74c3c; margin-bottom:15px;">
-            <p class="warning-text">⚠️ This garage is FULL.</p>
-            <label style="display:block; margin-bottom:5px; color:#ccc;">Select a vehicle to swap locations with:</label>
-            <select id="swapTargetVehicle"></select>
-        </div>
-        <div class="modal-actions">
-            <button class="secondary-btn" onclick="closeMoveModal()">Cancel</button>
-            <button class="primary-btn" onclick="performMove()">Confirm Move</button>
-        </div>
-    </div>
-</div>
-
-<div id="swapAllModal" class="modal">
-    <div class="modal-content">
-        <h2 style="margin-top:0;">Swap Entire Garage</h2>
-        <p style="color:#ccc; font-size:0.9rem; margin-bottom:20px;">Move all cars from one property to another.</p>
-        <div class="form-group">
-            <label>Move FROM</label>
-            <select id="swapAllFrom"><option value="" disabled selected>Select...</option></select>
-        </div>
-        <div style="text-align:center; font-size:1.5rem; margin:10px 0;">⬇️</div>
-        <div class="form-group">
-            <label>Move TO</label>
-            <select id="swapAllTo"><option value="" disabled selected>Select...</option></select>
-        </div>
-        <div class="modal-actions">
-            <button class="secondary-btn" onclick="closeSwapAllModal()">Cancel</button>
-            <button class="primary-btn" onclick="performSwapAll()">Swap All Vehicles</button>
-        </div>
-    </div>
-</div>
-
-<div id="timerModal" class="modal">
-    <div class="modal-content">
-        <h2 style="margin-top:0;">Sale Dashboard</h2>
-        <div class="timer-info-row">
-            <span class="timer-info-label">Last Sold Vehicle:</span>
-            <span class="timer-info-val" id="lastSoldName">--</span>
-        </div>
-        <div class="timer-big" id="timerBigDisplay">--:--</div>
-        <div class="form-group">
-            <label>Full Price Sale Available At:</label>
-            <div style="display:flex; gap:10px;">
-                <input type="text" id="targetTimeDisplay" readonly style="color:var(--accent);">
-                <select id="timeZoneSelect" onchange="updateTimerModal()" style="width:100px; flex:none;">
-                    <option value="Local">Local</option>
-                    <option value="America/New_York">EST</option>
-                    <option value="America/Chicago">CST</option>
-                    <option value="America/Denver">MST</option>
-                    <option value="America/Los_Angeles">PST</option>
-                    <option value="UTC">UTC</option>
-                </select>
-            </div>
-        </div>
-        <div class="modal-actions"><button class="secondary-btn" onclick="closeTimerModal()">Close</button></div>
     </div>
 </div>
 
 <div id="statsModal" class="modal">
-    <div class="modal-content">
-        <h2 style="margin-top:0;">Garage Stats</h2>
+    <div class="modal-box">
+        <div class="modal-title">Garage Stats</div>
         <div class="stats-grid">
-            <div class="stat-card"><span class="stat-num" id="statTotal">0</span><span class="stat-label">Vehicles</span></div>
-            <div class="stat-card"><span class="stat-num" id="statWeapon" style="color:var(--weapon-color)">0</span><span class="stat-label">Weaponized</span></div>
-            <div class="stat-card"><span class="stat-num" id="statF1" style="color:var(--f1-color)">0</span><span class="stat-label">F1 Wheels</span></div>
-            <div class="stat-card"><span class="stat-num" id="statBenny" style="color:var(--benny-color)">0</span><span class="stat-label">Benny's</span></div>
+            <div class="stat-card"><span id="stTotal" class="stat-val">0</span><span class="stat-label">Total</span></div>
+            <div class="stat-card"><span id="stWep" class="stat-val" style="color:var(--wep)">0</span><span class="stat-label">Weapon</span></div>
+            <div class="stat-card"><span id="stF1" class="stat-val" style="color:var(--f1)">0</span><span class="stat-label">F1</span></div>
+            <div class="stat-card"><span id="stBenny" class="stat-val" style="color:var(--benny)">0</span><span class="stat-label">Benny</span></div>
         </div>
-        <div style="margin-bottom: 20px;">
-            <span class="stat-label">Top Manufacturers</span>
-            <ul class="top-list" id="topManufs"></ul>
-        </div>
-        <div>
-            <div style="display:flex; justify-content:space-between;">
-                <span class="stat-label">Total Storage Usage</span>
-                <span class="stat-label" id="usageText">0 / 0</span>
+        
+        <div class="form-section">
+            <div style="display:flex; justify-content:space-between; font-weight:800; margin-bottom:5px;">
+                <span class="label">Global Capacity</span>
+                <span id="usageTxt" style="color:#fff;">0/0</span>
             </div>
-            <div class="progress-container"><div class="progress-bar" id="usageBar"></div></div>
+            <div class="usage-container"><div id="usageBar" class="usage-bar"></div></div>
+            <div style="margin-top:10px; font-size:0.8rem; color:#aaa; text-align:center;">
+                <span id="stEmptySlots" style="color:var(--sell); font-weight:bold;">0</span> empty slots available
+            </div>
         </div>
-        <div class="modal-actions"><button class="secondary-btn" onclick="closeStats()">Close</button></div>
+        
+        <div class="form-section">
+            <span class="label">Top 5 Brands</span>
+            <ul id="stBrands" style="color:#ccc; padding-left:20px; line-height:1.6; margin:0; font-size:0.9rem;"></ul>
+        </div>
+        <button class="btn-pri" style="width:100%" onclick="closeModal('statsModal')">Close</button>
     </div>
 </div>
 
-<div id="changelogModal" class="modal">
-    <div class="modal-content">
-        <h2 style="margin-top:0;">Changelog</h2>
-        <div class="changelog-list">
-             <div class="changelog-item"><span class="changelog-ver">v28.0</span><span class="changelog-desc">Visual Overhaul: Added vehicle images hosted on user GitHub. Added Lightbox for full-size view. Switched Wiki links to GTABase. Added 2025/2026 vehicle metadata.</span></div>
-             <div class="changelog-item"><span class="changelog-ver">v26.0</span><span class="changelog-desc">Strict Garage Fix: Added auto-repair script to fix 'Custom' garage glitches. Expanded metadata for 150+ Bicycles, Utility, and Industrial vehicles.</span></div>
-             <div class="changelog-item"><span class="changelog-ver">v25.3</span><span class="changelog-desc">Bug Fixes: Fixed Casino Penthouse save issue, added metadata for 300+ missing cars.</span></div>
-             <div class="changelog-item"><span class="changelog-ver">v25.0</span><span class="changelog-desc">Metadata Overhaul: Added Class, Price, and Seats for 500+ vehicles.</span></div>
-             <div class="changelog-item"><span class="changelog-ver">v23.0</span><span class="changelog-desc">Added "Swap Garages" tool.</span></div>
-             <div class="changelog-item"><span class="changelog-ver">v21.0</span><span class="changelog-desc">Added "Move Vehicle" feature.</span></div>
-             <div class="changelog-item"><span class="changelog-ver">v20.0</span><span class="changelog-desc">Massive Database Update (750+ vehicles).</span></div>
-             <div class="changelog-item"><span class="changelog-ver">v1.0 - v19.0</span><span class="changelog-desc">Core Features: Local Storage, Search, Folding Lists, Sale Timer, Stats.</span></div>
-        </div>
-        <div class="modal-actions"><button class="secondary-btn" onclick="closeChangelog()">Close</button></div>
+<div id="successModal" class="modal">
+    <div class="modal-box" style="text-align:center;">
+        <div style="font-size:3rem; margin-bottom:10px;">✅</div>
+        <h2 id="successTitle" style="margin:0 0 10px 0; color:#fff;">Success</h2>
+        <p id="successMsg" style="color:#ccc; font-size:0.95rem; line-height:1.5;"></p>
+        <button class="btn-pri" style="width:100%; margin-top:20px;" onclick="closeModal('successModal')">Awesome</button>
     </div>
 </div>
+
+<div id="timerModal" class="modal">
+    <div class="modal-box">
+        <div class="modal-title">Sales Dashboard</div>
+        <div style="text-align:center; padding:10px 0;">
+            <span class="label">Cooldown Status</span>
+            <div id="timerBigDisplay" class="timer-big">READY</div>
+            <div id="dashNext" style="color:var(--accent); font-weight:bold; font-size:1rem;">Ready Now</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; background:#252525; padding:15px; border-radius:10px; margin-top:20px; align-items:center;">
+            <span class="label" style="margin:0">Last Sold:</span>
+            <span id="dashLast" style="font-weight:bold; color:#fff;">--</span>
+        </div>
+        <button class="btn-pri" style="margin-top:20px; width:100%" onclick="closeModal('timerModal')">Close</button>
+    </div>
+</div>
+
+<div id="swapAllModal" class="modal"><div class="modal-box"><div class="modal-title">Swap Entire Garage</div><div class="form-group"><span class="label">From</span><select id="saFrom" style="width:100%"></select></div><div style="text-align:center; padding:10px;"><i class="fas fa-arrow-down" style="color:var(--accent); font-size:1.5rem;"></i></div><div class="form-group"><span class="label">To</span><select id="saTo" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('swapAllModal')">Cancel</button><button class="btn-pri" onclick="performSwapAll()">Confirm Swap</button></div></div></div>
+<div id="moveModal" class="modal"><div class="modal-box"><div class="modal-title">Move Vehicle</div><p id="moveCarName" style="color:var(--accent); font-weight:bold; margin-bottom:20px; font-size:1.1rem;"></p><div class="form-group"><span class="label">Destination</span><select id="moveDest" style="width:100%" onchange="checkMoveCap()"></select></div><div id="moveSwapUI" style="display:none; background:rgba(245,158,11,0.1); padding:15px; border-radius:10px; border:1px solid var(--f1); margin-bottom:15px;"><span class="label" style="color:var(--f1)">Garage Full! Select car to swap with:</span><select id="moveSwapTarget" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('moveModal')">Cancel</button><button class="btn-pri" onclick="commitMove()">Confirm Move</button></div></div></div>
+<div id="migrationModal" class="modal"><div class="modal-box"><div class="modal-title" style="color:var(--accent)">Data Migration</div><p style="color:#ccc; font-size:0.9rem;">Syncing vehicle data with cloud database (Images & Drive stats).</p><div id="migLog" style="height:120px; overflow:auto; background:#000; padding:10px; font-family:monospace; color:var(--sell); border-radius:8px;"></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('migrationModal')">Cancel</button><button class="btn-pri" onclick="runMigration()">Run Update</button></div></div></div>
+<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v34.9.1 (Current)</strong><br>• Added Group by Class & Group by Drive.<br>• Fixed Class Name Display (No Underscores).<br>• Vehicle Card: Location & Floor now stacked.<br>• Fixed Ghost Data in Add Window.<br>• Optimized Mobile Group Headers.<br>• Fixed Stats Dashboard.</p><p><strong>v30-34</strong><br>• UI Polish & Core Logic Fixes.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
+<div id="lightbox" onclick="this.style.display='none'"><img id="lbImg"></div>
 
 <script>
-    // --- GLOBAL DATA ---
-    const COOLDOWN_MS = 18 * 60 * 60 * 1000;
-    
-    // Explicit list for dropdowns
-    const GARAGE_OPTIONS = [
-        { grp: "Safehouse / Mansions", items: ["Richman Villa (20)", "The Vinewood Residence (20)", "The Tongva Estate (20)"] },
-        { grp: "Massive Garages", items: ["Vinewood Club Garage (100)", "Eclipse Blvd Garage (50)", "Office Garage 1 (20)", "Office Garage 2 (20)", "Office Garage 3 (20)"] },
-        { grp: "Eclipse Towers", items: ["Eclipse Towers (Generic)", "Eclipse Towers, Penthouse Suite 1", "Eclipse Towers, Penthouse Suite 2", "Eclipse Towers, Penthouse Suite 3", "Eclipse Towers, Apt 3", "Eclipse Towers, Apt 5", "Eclipse Towers, Apt 9", "Eclipse Towers, Apt 31", "Eclipse Towers, Apt 40"] },
-        { grp: "Apartments", items: ["Richards Majestic (Generic)", "Tinsel Towers (Generic)", "4 Integrity Way (Generic)", "Del Perro Heights (Generic)", "Weazel Plaza (Generic)", "3 Alta St (Generic)"] },
-        { grp: "Richards Majestic", items: ["Richards Majestic, Apt 2", "Richards Majestic, Apt 4", "Richards Majestic, Apt 51"] },
-        { grp: "Tinsel Towers", items: ["Tinsel Towers, Apt 29", "Tinsel Towers, Apt 42", "Tinsel Towers, Apt 45"] },
-        { grp: "4 Integrity Way", items: ["4 Integrity Way, Apt 28", "4 Integrity Way, Apt 30", "4 Integrity Way, Apt 35"] },
-        { grp: "Del Perro Heights", items: ["Del Perro Heights, Apt 4", "Del Perro Heights, Apt 7", "Del Perro Heights, Apt 20"] },
-        { grp: "Weazel Plaza", items: ["Weazel Plaza, Apt 26", "Weazel Plaza, Apt 70", "Weazel Plaza, Apt 101"] },
-        { grp: "3 Alta St", items: ["3 Alta St, Apt 10", "3 Alta St, Apt 57"] },
-        { grp: "Businesses", items: ["Agency Garage (20)", "Nightclub (31)", "Arcade (10)", "Auto Shop (10)", "Salvage Yard", "Bail Enforcement Office", "Clubhouse (10)", "Darnell Bros Factory"] },
-        { grp: "Specialized", items: ["Arena Workshop (27)", "Casino Penthouse (10)", "Facility (7)", "Bunker", "Hangar", "Kosatka", "Terrorbyte", "Acid Lab", "Avenger", "MOC"] }
-    ];
-    
-    // Flattened list for validation
-    const VALID_GARAGES = GARAGE_OPTIONS.flatMap(g => g.items);
-
-    const GARAGE_META = {
-        "Vinewood Club Garage": { cap: 100, floors: true },
-        "Eclipse Blvd Garage": { cap: 50, floors: true },
-        "Office Garage 1": { cap: 20, floors: true },
-        "Office Garage 2": { cap: 20, floors: true },
-        "Office Garage 3": { cap: 20, floors: true },
-        "Agency Garage": { cap: 20, floors: false },
-        "Nightclub": { cap: 31, floors: true },
-        "Arena Workshop": { cap: 27, floors: true },
-        "Clubhouse": { cap: 10, floors: false },
-        "Facility": { cap: 7, floors: false },
-        "Mansion (Vinewood)": { cap: 10, floors: false },
-        "The Vinewood Residence": { cap: 20, floors: false },
-        "Richman Villa": { cap: 20, floors: false },
-        "The Tongva Estate": { cap: 20, floors: false },
-        "Eclipse Towers, Penthouse Suite 1": { cap: 10, floors: false },
-        "Eclipse Towers, Penthouse Suite 2": { cap: 10, floors: false },
-        "Eclipse Towers, Penthouse Suite 3": { cap: 10, floors: false },
-        "Eclipse Towers, Apt 3": { cap: 10, floors: false },
-        "Eclipse Towers, Apt 5": { cap: 10, floors: false },
-        "Eclipse Towers, Apt 9": { cap: 10, floors: false },
-        "Eclipse Towers, Apt 31": { cap: 10, floors: false },
-        "Eclipse Towers, Apt 40": { cap: 10, floors: false },
-        "Richards Majestic, Apt 2": { cap: 10, floors: false },
-        "Richards Majestic, Apt 4": { cap: 10, floors: false },
-        "Richards Majestic, Apt 51": { cap: 10, floors: false },
-        "Tinsel Towers, Apt 29": { cap: 10, floors: false },
-        "Tinsel Towers, Apt 42": { cap: 10, floors: false },
-        "Tinsel Towers, Apt 45": { cap: 10, floors: false },
-        "4 Integrity Way, Apt 28": { cap: 10, floors: false },
-        "4 Integrity Way, Apt 30": { cap: 10, floors: false },
-        "4 Integrity Way, Apt 35": { cap: 10, floors: false },
-        "Del Perro Heights, Apt 4": { cap: 10, floors: false },
-        "Del Perro Heights, Apt 7": { cap: 10, floors: false },
-        "Del Perro Heights, Apt 20": { cap: 10, floors: false },
-        "Weazel Plaza, Apt 26": { cap: 10, floors: false },
-        "Weazel Plaza, Apt 70": { cap: 10, floors: false },
-        "Weazel Plaza, Apt 101": { cap: 10, floors: false },
-        "3 Alta St, Apt 10": { cap: 10, floors: false },
-        "3 Alta St, Apt 57": { cap: 10, floors: false },
-        "Casino Penthouse": { cap: 10, floors: false },
-        "DEFAULT_APT": { cap: 10, floors: false }
-    };
-
-    const CAR_DB = {
-        "Albany": ["Alpha", "Brigham", "Buccaneer", "Buccaneer Custom", "Cavalcade", "Cavalcade XL", "Emperor", "Franken Stange", "Hermes", "Lurcher", "Manana", "Manana Custom", "Primo", "Primo Custom", "Roosevelt", "Roosevelt Valor", "V-STR", "Virgo", "Washington", "Police Roadcruiser"],
-        "Annis": ["300R", "Elegy RH8", "Elegy Retro Custom", "Euros", "Euros X32", "Hellion", "Remus", "RE-7B", "S80RR", "Savestra", "ZR350", "ZR380", "Apocalypse ZR380", "Future Shock ZR380", "Nightmare ZR380"],
-        "Benefactor": ["Dubsta", "Dubsta 6x6", "Feltzer", "Krieger", "LM87", "Panto", "Schafter", "Schafter V12", "Schafter LWB", "Schlagen GT", "SM722", "Stirling GT", "Terrorbyte", "Vorschlaghammer", "XLS", "Bruiser", "Apocalypse Bruiser", "Future Shock Bruiser", "Nightmare Bruiser", "Glendale", "Glendale Custom", "Streiter", "Surano", "Serrano", "Schwarzer"],
-        "BF": ["Bifta", "Club", "Dune FAV", "Injection", "Ramp Buggy", "Raptor", "Surfer", "Surfer Custom", "Weevil", "Weevil Custom", "Space Docker"],
-        "Bollokan": ["Envisage", "Prairie"],
-        "Bravado": ["Banshee", "Banshee 900R", "Banshee GTS", "Buffalo", "Buffalo S", "Buffalo EVX", "Buffalo STX", "Dorado", "Gauntlet", "Gauntlet Classic", "Gauntlet Classic Custom", "Gauntlet Hellfire", "Gauntlet Interceptor", "Greenwood", "Half-track", "Hotring Hellfire", "Redwood Gauntlet", "Verlierer", "Youga", "Youga Classic", "Youga Classic 4x4", "Sasquatch", "Apocalypse Sasquatch", "Future Shock Sasquatch", "Nightmare Sasquatch", "Bison", "Duneloader", "Gresley", "Paradise", "Rumpo", "Rumpo Custom"],
-        "Brute": ["Boxville", "Armored Boxville", "Stockade", "Police Riot", "Pony", "Bus", "Airport Bus", "Dashound", "Rental Shuttle Bus", "Tourbus", "Camper", "Taco Van"],
-        "Buckingham": ["Akula", "Alpha-Z1", "Conada", "Weaponized Conada", "Luxor", "Luxor Deluxe", "Maverick", "Nimbus", "Pyro", "Swift", "Swift Deluxe", "Vestra", "Volatus", "Howard NX-25", "Miljet", "Shamal", "SuperVolito", "SuperVolito Carbon", "Valkyrie", "Police Maverick"],
-        "Canis": ["Bodhi", "Castigator", "Crusader", "Freecrawler", "Kamacho", "Mesa", "Seminole", "Seminole Frontier", "Terminus", "Kalahari"],
-        "Chariot": ["Romero Hearse"],
-        "Cheval": ["Fugitive", "Marshall", "Picador", "Surge", "Taipan"],
-        "Classique": ["Broadway"],
-        "Coil": ["Brawler", "Cyclone", "Cyclone II", "Raiden", "Rocket Voltic", "Tarantula", "Khanjali", "Voltic"],
-        "Declasse": ["Draugur", "Drift Tampa", "Drift Yosemite", "Granger", "Granger 3600LX", "Hotring Sabre", "Impaler", "Impaler LX", "Impaler LX Cruiser", "Impaler SZ", "Impaler SZ Cruiser", "Mamba", "Rhapsody", "Sabre Turbo", "Sabre Turbo Custom", "Scramjet", "Stallion", "Tampa", "Tornado", "Tornado Custom", "Tulip", "Vetir", "Vigero", "Vigero ZX", "Vigero ZX Convertible", "Walton L35", "Weaponized Tampa", "Yosemite", "Yosemite 1500", "Brutus", "Apocalypse Brutus", "Future Shock Brutus", "Nightmare Brutus", "Apocalypse Impaler", "Future Shock Impaler", "Nightmare Impaler", "Tampa GT", "Asea", "Burrito", "Gang Burrito", "Moonbeam", "Moonbeam Custom", "Police Rancher", "Police Transporter", "Premier", "Rancher XL", "Sheriff SUV", "Lifeguard", "Park Ranger"],
-        "Dewbauchee": ["Champion", "Exemplar", "Massacro", "Massacro (Racecar)", "Rapid GT", "Rapid GT Classic", "Seven-70", "Specter", "Specter Custom", "Vagner", "Viseris", "Wagner", "JB 700", "JB 700W"],
-        "Dinka": ["Blista", "Blista Compact", "Blista Kanjo", "Double-T", "Enduro", "Jester", "Jester (Racecar)", "Jester Classic", "Jester RR", "Kanjo SJ", "Postlude", "Sugoi", "Thrust", "Veto Classic", "Veto Modern", "Akuma", "Vindicator"],
-        "Dundreary": ["Landstalker", "Landstalker XL", "Regina", "Virgo Classic", "Virgo Classic Custom", "Stretch"],
-        "Eberhan": ["Titan 250D"],
-        "Emperor": ["Etr1", "Habanero", "Sheava", "Vectre"],
-        "Enus": ["Cognoscenti", "Cognoscenti 55", "Cognoscenti Cabrio", "Deity", "Diabolus", "Diabolus Custom", "Jubilee", "Paragon R", "Paragon R (Armored)", "Paragon S", "Stafford", "Super Diamond", "Windsor", "Windsor Drop", "Huntley S"],
-        "Fathom": ["FR36", "FQ 2"],
-        "Gallivanter": ["Baller", "Baller LE", "Baller LE LWB", "Baller ST", "Baller ST-D"],
-        "Grotti": ["Bestia GTS", "Brioso 300", "Brioso 300 Widebody", "Carbonizzare", "Cheetah", "Cheetah Classic", "Furia", "GT500", "GT750", "Itali GTO", "Itali GTO Stinger TT", "Itali RSX", "Stinger", "Stinger GT", "Stinger TT", "Turismo Classic", "Turismo Omaggio", "Turismo R", "Visione", "X80 Proto", "Brioso R/A", "Itali GTO"],
-        "Hijak": ["Khamelion", "Ruston"],
-        "HVY": ["APC", "Barrage", "Chernobog", "Insurgent", "Insurgent Pick-Up", "Insurgent Pick-Up Custom", "Menacer", "Nightshark", "Rhino Tank", "Scarab", "Apocalypse Scarab", "Future Shock Scarab", "Nightmare Scarab", "Airlift", "Biff", "Brickade", "Brickade 6x6", "Bulldozer", "Cutter", "Dock Handler", "Dump", "Forklift", "Mixer", "Ripley", "Skylift"],
-        "Imponte": ["Arbiter GT", "Beater Dukes", "Deluxo", "Duke O'Death", "Dukes", "Nightshade", "Phoenix", "Ruiner", "Ruiner 2000", "Ruiner ZZ-8"],
-        "Invetero": ["Coquette", "Coquette BlackFin", "Coquette Classic", "Coquette D1", "Coquette D10", "Coquette D10 Pursuit"],
-        "JoBuilt": ["Hauler", "Phantom", "Phantom Wedge", "P-996 Lazer", "Mammatus", "Velum", "Velum 5-Seater", "Rubble"],
-        "Karin": ["190z", "Asterope", "Asterope GZ", "Boor", "Calico GTF", "Dilettante", "Everon", "Futo", "Futo GTX", "Hotring Everon", "Intruder", "Kuruma", "Kuruma (Armored)", "Previon", "Rebel", "Rusty Rebel", "Sniper", "Sultan", "Sultan Classic", "Sultan RS", "Sultan RS Classic", "Vivanite", "S95", "Woodlander", "BeeJay XL", "Technical", "Technical Aqua", "Technical Custom"],
-        "Lampadati": ["Casco", "Cinqueila", "Corsita", "Felon", "Felon GT", "Furore GT", "Komoda", "Michelli GT", "Novak", "Pigalle", "Tigon", "Tropos Rallye", "Viseris", "Felon", "Pigalle", "Toro"],
-        "Maibatsu": ["Frogger", "Manchez", "Manchez Scout", "MonstroCiti", "Mule", "Mule Custom", "Penumbra", "Penumbra FF", "Sanchez"],
-        "Mammoth": ["Avenger", "F-160 Raiju", "Hydra", "Patriot", "Patriot Mil-Spec", "RCV", "Squaddie", "Thruster", "Tula", "Dodo", "Mogul", "Streamer216"],
-        "Maxwell": ["Asbo", "Vagrant"],
-        "MTL": ["Brickade", "Brickade 6x6", "Dune", "Pounder", "Cerberus", "Apocalypse Cerberus", "Future Shock Cerberus", "Nightmare Cerberus", "Flatbed", "Packer", "Wastelander", "Fire Truck"],
-        "Nagasaki": ["BF400", "Blazer", "Blazer Aqua", "Buzzard", "Buzzard Attack Chopper", "Carbon RS", "Chimera", "Havok", "Hot Rod Blazer", "Outlaw", "Shinobi", "Shotaro", "Street Blazer", "Stryder", "Dinghy", "Weaponized Dinghy", "Ultralight"],
-        "Obey": ["10F", "10F Widebody", "8F Drafter", "9F", "9F Cabrio", "Omnis", "Omnis e-GT", "Rocoto", "Tailgater", "Tailgater S", "I-Wagen"],
-        "Ocelot": ["Ardent", "F620", "Jackal", "Jugular", "Locust", "Lynx", "Pariah", "Penetrator", "R88", "Stromberg", "Swinger", "Virtue", "XA-21"],
-        "Overflod": ["Autarch", "Entity MT", "Entity XF", "Entity XXR", "Imorgon", "Pipistrello", "Tyrant", "Zeno"],
-        "Pegassi": ["Bati 801", "Bati 801RR", "Infernus", "Infernus Classic", "Ignus", "Weaponized Ignus", "Monroe", "Oppressor", "Oppressor Mk II", "Osiris", "Reaper", "Tempesta", "Tezeract", "Toreador", "Torero", "Torero XO", "Toros", "Vacca", "Zentorno", "Zorrusso", "Faggio", "Faggio Mod", "Faggio Sport", "Ruffian", "Speeder", "Vortex"],
-        "Penaud": ["La Coureuse"],
-        "Pfister": ["811", "Astron", "Astron Custom", "Comet", "Comet Retro Custom", "Comet S2", "Comet S2 Cabrio", "Comet Safari", "Comet SR", "Growler", "Neon", "X-Treme", "Astrale"],
-        "Principe": ["Deveste Eight", "Lectro", "Nemesis"],
-        "Progen": ["Emerus", "GP1", "Itali GTB", "Itali GTB Custom", "Luiva", "PR4", "T20", "Tyrus"],
-        "Rune": ["Cheburek", "Zhaba", "Kosatka"],
-        "Schyster": ["Deviant", "Fusilade"],
-        "Shitzu": ["Defiler", "Hakuchou", "Hakuchou Drag", "PCJ 600", "Vader", "Jetmax", "Squalo", "Suntrap", "Tropic", "Longfin"],
-        "Toundra": ["Panthere"],
-        "Truffade": ["Adder", "Nero", "Nero Custom", "Thrax", "Z-Type"],
-        "Ubermacht": ["Cypher", "Niobe", "Oracle", "Oracle XS", "Rebla GTS", "Rhinehart", "SC1", "Sentinel", "Sentinel Classic", "Sentinel Classic Widebody", "Sentinel XS", "Sentinel XS4", "Zion", "Zion Classic", "Zion Cabrio", "Revolter"],
-        "Vapid": ["Aleutian", "Benson", "Blade", "Caracara", "Caracara 4x4", "Chino", "Chino Custom", "Clique", "Contender", "Dominator", "Dominator ASP", "Dominator GTT", "Dominator GT", "Dominator FX", "Dominator GTX", "Ellie", "Flash GT", "FMJ", "FMJ MK V", "Firebolt ASP", "GB200", "Guardian", "Hustler", "Imperator", "Apocalypse Imperator", "Future Shock Imperator", "Nightmare Imperator", "Minivan", "Minivan Custom", "Peyote", "Peyote Gasser", "Retinue", "Retinue Mk II", "Riata", "Sandking SWB", "Sandking XL", "Slamtruck", "Slamvan", "Slamvan Custom", "Apocalypse Slamvan", "Future Shock Slamvan", "Nightmare Slamvan", "Speedo", "Speedo Custom", "Stanier", "Stanier LE Cruiser", "Torrence", "Trophy Truck", "Winky", "Bobcat XL", "Sadler", "Police Cruiser", "Police Interceptor", "Unmarked Cruiser", "Taxi", "Towtruck", "Utility Truck", "Scrap Truck"],
-        "Vom Feuer": ["Anti-Aircraft Trailer"],
-        "Vulcar": ["Fagaloa", "Ingot", "Nebula Turbo", "Warrener", "Warrener HKR"],
-        "Weeny": ["Dynasty", "Issi", "Issi Classic", "Issi Rally", "Issi Sport", "Apocalypse Issi", "Future Shock Issi", "Nightmare Issi"],
-        "Western": ["Bagger", "Cliffhanger", "Daemon", "Gargoyle", "Nightblade", "Powersurge", "Rat Bike", "Reever", "Sovereign", "Wolfsbane", "Zombie Chopper", "Zombie Bobber", "Deathbike", "Apocalypse Deathbike", "Future Shock Deathbike", "Nightmare Deathbike", "Besra", "Cuban 800", "Duster", "Mallard", "Rogue", "Seabreeze", "Starling", "Annihilator", "Annihilator Stealth", "Cargobob", "Cargobob Jetsam"],
-        "Willard": ["Eudora", "Faction", "Faction Custom", "Faction Custom Donk"],
-        "Zirconium": ["Journey", "Journey II", "Stratum"],
-        "Pedal and Metal": ["BMX", "Scorcher", "Cruiser", "Whippet Race Bike", "Endurex Race Bike", "Tri-Cycles Race Bike", "Fixter", "Inductor"],
-        "Speedophile": ["Seashark"]
-    };
-
-    // --- METADATA (EXTENDED) ---
-    // (Collapsed for brevity - assume previous data is here)
-    const VEHICLE_INFO = {
-        // ... (Keep existing 26.0 data) ...
-        // NEW ADDITIONS
-        "Luiva": { class: "Super", price: "$2,900,000", seats: 2 },
-        "FMJ MK V": { class: "Super", price: "$2,965,000", seats: 2 },
-        "X-Treme": { class: "Super", price: "$2,885,000", seats: 2 },
-        "Sentinel XS4": { class: "Sedan", price: "$1,600,000", seats: 4 },
-        "GT750": { class: "Sports Classic", price: "$1,700,000", seats: 2 },
-        "Astrale": { class: "Sports Classic", price: "$1,475,500", seats: 2 },
-        
-        "Reaper": { class: "Super", price: "$1,595,000", seats: 2 },
-        "Impaler LX": { class: "Muscle", price: "$1,460,000", seats: 4 },
-        "Elegy Retro Custom": { class: "Sports", price: "$904,000", seats: 2 },
-        "Dominator ASP": { class: "Muscle", price: "$1,775,000", seats: 2 },
-        "Dominator GTT": { class: "Muscle", price: "$1,220,000", seats: 2 },
-        "Dominator GTX": { class: "Muscle", price: "$725,000", seats: 2 },
-        "8F Drafter": { class: "Sports", price: "$718,000", seats: 2 },
-        "Deluxo": { class: "Sports Classics", price: "$5,750,000", seats: 2 },
-        "Savestra": { class: "Sports Classics", price: "$990,000", seats: 2 },
-        "Comet Safari": { class: "Sports", price: "$710,000", seats: 2 },
-        "Stromberg": { class: "Sports Classics", price: "$2,500,000", seats: 2 },
-        "Thruster": { class: "Military", price: "$3,657,500", seats: 1 },
-        "Khanjali": { class: "Military", price: "$3,850,350", seats: 4 },
-        "Akula": { class: "Helicopter", price: "$3,704,050", seats: 4 },
-        "Chernobog": { class: "Military", price: "$3,311,700", seats: 2 },
-        "Volatol": { class: "Plane", price: "$3,724,000", seats: 4 },
-        "Barrage": { class: "Off-Road", price: "$2,121,350", seats: 4 },
-        "RCV": { class: "Emergency", price: "$3,125,500", seats: 4 },
-        "Avenger": { class: "Plane", price: "$3,450,000", seats: 10 },
-        "Hunter": { class: "Helicopter", price: "$4,123,000", seats: 2 },
-        "Pyro": { class: "Plane", price: "$4,455,500", seats: 2 },
-        "Tula": { class: "Plane", price: "$5,173,700", seats: 5 },
-        "Molotok": { class: "Plane", price: "$4,788,000", seats: 1 },
-        "Bombushka": { class: "Plane", price: "$5,918,500", seats: 6 },
-        "Mogul": { class: "Plane", price: "$3,125,500", seats: 3 },
-        "Howard NX-25": { class: "Plane", price: "$1,296,750", seats: 1 },
-        "Alpha-Z1": { class: "Plane", price: "$2,121,350", seats: 1 },
-        "Havok": { class: "Helicopter", price: "$2,300,900", seats: 1 },
-        "Seabreeze": { class: "Plane", price: "$1,130,500", seats: 2 },
-        "Vigilante": { class: "Super", price: "$3,750,000", seats: 2 },
-        "Pariah": { class: "Sports", price: "$1,420,000", seats: 2 },
-        "Riata": { class: "Off-Road", price: "$380,000", seats: 2 },
-        "Yosemite": { class: "Muscle", price: "$485,000", seats: 2 },
-        "Hermes": { class: "Muscle", price: "$535,000", seats: 2 },
-        "Streiter": { class: "Sports", price: "$500,000", seats: 4 },
-        "Z190": { class: "Sports Classics", price: "$900,000", seats: 2 },
-        "Viseris": { class: "Sports Classics", price: "$875,000", seats: 2 },
-        "GT500": { class: "Sports Classics", price: "$785,000", seats: 2 },
-        "Hustler": { class: "Muscle", price: "$625,000", seats: 2 },
-        "190z": { class: "Sports Classics", price: "$900,000", seats: 2 },
-        "Kamacho": { class: "Off-Road", price: "$345,000", seats: 4 },
-        "Impaler LX Cruiser": { class: "Emergency", price: "$4,755,000", seats: 4 },
-        "Dominator FX": { class: "Muscle", price: "$1,550,000", seats: 2 },
-        "Aleutian": { class: "SUV", price: "$1,835,000", seats: 4 },
-        "Dorado": { class: "SUV", price: "$1,375,000", seats: 4 },
-        "Vigero ZX Convertible": { class: "Muscle", price: "$2,295,000", seats: 2 },
-        "Virtue": { class: "Super", price: "Free/2.9M", seats: 2 },
-        "Euros X32": { class: "Coupes", price: "$1,499,000", seats: 2 },
-        "Niobe": { class: "Sports", price: "$1,880,000", seats: 2 },
-        "Envisage": { class: "Sports", price: "$2,472,000", seats: 2 },
-        "Pipistrello": { class: "Super", price: "$2,950,000", seats: 2 },
-        "Coquette D1": { class: "Sports Classic", price: "$1,500,000", seats: 2 },
-        "Yosemite 1500": { class: "Muscle", price: "$1,205,000", seats: 2 },
-        "Impuler SZ": { class: "Muscle", price: "$1,280,000", seats: 4 },
-        "Terminus": { class: "Off-Road", price: "$1,877,500", seats: 4 },
-        "Gallivanter Baller ST-D": { class: "SUV", price: "$1,715,000", seats: 4 },
-        "Cavalcade XL": { class: "SUV", price: "$1,665,000", seats: 4 },
-        "Chino Custom": { class: "Muscle", price: "$180,000", seats: 2 },
-        "Faction Custom": { class: "Muscle", price: "$335,000", seats: 2 },
-        "Faction Custom Donk": { class: "Muscle", price: "$695,000", seats: 2 },
-        "Moonbeam Custom": { class: "Muscle", price: "$370,000", seats: 4 },
-        "Primo Custom": { class: "Sedan", price: "$400,000", seats: 4 },
-        "Sabre Turbo Custom": { class: "Muscle", price: "$490,000", seats: 2 },
-        "Slamvan Custom": { class: "Muscle", price: "$415,000", seats: 2 },
-        "Tornado Custom": { class: "Sports Classic", price: "$375,000", seats: 2 },
-        "Virgo Classic Custom": { class: "Muscle", price: "$240,000", seats: 2 },
-        "Voodoo Custom": { class: "Muscle", price: "$420,000", seats: 2 },
-        "Specter Custom": { class: "Sports", price: "$252,000", seats: 2 },
-        "Comet Retro Custom": { class: "Sports", price: "$645,000", seats: 2 },
-        "Itali GTB Custom": { class: "Super", price: "$495,000", seats: 2 },
-        "Nero Custom": { class: "Super", price: "$605,000", seats: 2 },
-        "FCR 1000 Custom": { class: "Motorcycle", price: "$196,000", seats: 1 },
-        "Diabolus Custom": { class: "Motorcycle", price: "$245,000", seats: 2 },
-        "Minivan Custom": { class: "Van", price: "$330,000", seats: 4 },
-        "Banshee 900R": { class: "Super", price: "$565,000", seats: 2 },
-        "Sultan RS": { class: "Super", price: "$795,000", seats: 2 },
-        "V-STR": { class: "Sports", price: "$1,285,000", seats: 4 },
-        "Sugoi": { class: "Sports", price: "$1,224,000", seats: 4 },
-        "Kanjo SJ": { class: "Coupe", price: "$1,370,000", seats: 2 },
-        "Postlude": { class: "Coupe", price: "$1,310,000", seats: 2 },
-        "Rhinehart": { class: "Sedan", price: "$1,598,000", seats: 4 },
-        "Corsita": { class: "Sports", price: "$1,795,000", seats: 2 },
-        "Draugur": { class: "Off-Road", price: "$1,870,000", seats: 4 },
-        "Torero XO": { class: "Super", price: "$2,890,000", seats: 2 },
-        "Omnis e-GT": { class: "Sports", price: "$1,795,000", seats: 4 },
-        "SM722": { class: "Sports", price: "$2,115,000", seats: 2 },
-        "10F": { class: "Sports", price: "$1,675,000", seats: 2 },
-        "10F Widebody": { class: "Sports", price: "$575,000", seats: 2 },
-        "Weevil Custom": { class: "Muscle", price: "$980,000", seats: 2 },
-        "Brioso 300 Widebody": { class: "Compact", price: "$585,000", seats: 2 },
-        "Sentinel Classic Widebody": { class: "Sports", price: "$700,000", seats: 2 },
-        "Powersurge": { class: "Motorcycle", price: "$1,605,000", seats: 2 },
-        "Hotring Everon": { class: "Sports", price: "$1,790,000", seats: 2 },
-        "Eudora": { class: "Muscle", price: "$1,250,000", seats: 2 },
-        "Boor": { class: "Off-Road", price: "$1,280,000", seats: 2 },
-        "Panthere": { class: "Sports", price: "$2,170,000", seats: 2 },
-        "Shinobi": { class: "Motorcycle", price: "$2,480,500", seats: 2 },
-        "Granger 3600LX": { class: "SUV", price: "$1,380,000", seats: 4 },
-        "I-Wagen": { class: "SUV", price: "$1,720,000", seats: 4 },
-        "Reever": { class: "Motorcycle", price: "$1,900,000", seats: 1 },
-        "Cinquemila": { class: "Sedan", price: "$1,740,000", seats: 4 },
-        "Astron": { class: "SUV", price: "$1,580,000", seats: 4 },
-        "Deity": { class: "Sedan", price: "$1,845,000", seats: 4 },
-        "Jubilee": { class: "SUV", price: "$1,650,000", seats: 4 },
-        "Champion": { class: "Super", price: "$2,995,000", seats: 2 },
-        "Ignus": { class: "Super", price: "$2,765,000", seats: 2 },
-        "Patriot Mil-Spec": { class: "Off-Road", price: "$1,710,000", seats: 4 },
-        "Buffalo STX": { class: "Muscle", price: "$2,150,000", seats: 4 },
-        "Previon": { class: "Coupe", price: "$1,490,000", seats: 2 },
-        "Cypher": { class: "Sports", price: "$1,550,000", seats: 2 },
-        "Sultan RS Classic": { class: "Sports", price: "$1,789,000", seats: 2 },
-        "Vectre": { class: "Sports", price: "$1,785,000", seats: 2 },
-        "Growler": { class: "Sports", price: "$1,627,000", seats: 2 },
-        "Jester RR": { class: "Sports", price: "$1,970,000", seats: 2 },
-        "ZR350": { class: "Sports", price: "$1,615,000", seats: 2 },
-        "Euros": { class: "Sports", price: "$1,800,000", seats: 2 },
-        "Calico GTF": { class: "Sports", price: "$1,995,000", seats: 2 },
-        "Futo GTX": { class: "Sports", price: "$1,590,000", seats: 2 },
-        "Remus": { class: "Sports", price: "$1,370,000", seats: 2 },
-        "Warrener HKR": { class: "Sedan", price: "$1,260,000", seats: 2 },
-        "RT3000": { class: "Sports", price: "$1,715,000", seats: 2 },
-        "Tailgater S": { class: "Sedan", price: "$1,495,000", seats: 4 },
-        "Comet S2": { class: "Sports", price: "$1,878,000", seats: 2 },
-        "Zentorno": { class: "Super", price: "$725,000", seats: 2 },
-        "Adder": { class: "Super", price: "$1,000,000", seats: 2 },
-        "Entity XF": { class: "Super", price: "$795,000", seats: 2 },
-        "Cheetah": { class: "Super", price: "$650,000", seats: 2 },
-        "Turismo R": { class: "Super", price: "$500,000", seats: 2 },
-        "T20": { class: "Super", price: "$2,200,000", seats: 2 },
-        "Osiris": { class: "Super", price: "$1,950,000", seats: 2 },
-        "Infernus": { class: "Super", price: "$440,000", seats: 2 },
-        "Vacca": { class: "Super", price: "$240,000", seats: 2 },
-        "Bullet": { class: "Super", price: "$155,000", seats: 2 },
-        "Voltic": { class: "Super", price: "$150,000", seats: 2 },
-        "Elegy RH8": { class: "Sports", price: "Free", seats: 2 },
-        "Jester": { class: "Sports", price: "$240,000", seats: 2 },
-        "Massacro": { class: "Sports", price: "$275,000", seats: 2 },
-        "Kuruma (Armored)": { class: "Sports", price: "$698,250", seats: 4 },
-        "Feltzer": { class: "Sports", price: "$145,000", seats: 2 },
-        "9F": { class: "Sports", price: "$120,000", seats: 2 },
-        "Surano": { class: "Sports", price: "$110,000", seats: 2 },
-        "Carbonizzare": { class: "Sports", price: "$195,000", seats: 2 },
-        "Comet": { class: "Sports", price: "$100,000", seats: 2 },
-        "Banshee": { class: "Sports", price: "$105,000", seats: 2 },
-        "Coquette": { class: "Sports", price: "$138,000", seats: 2 },
-        "Rapid GT": { class: "Sports", price: "$132,000", seats: 2 },
-        "Sultan": { class: "Sports", price: "$12,000", seats: 4 },
-        "Futo": { class: "Sports", price: "$9,000", seats: 2 },
-        "Dominator": { class: "Muscle", price: "$35,000", seats: 2 },
-        "Gauntlet": { class: "Muscle", price: "$32,000", seats: 2 },
-        "Sabre Turbo": { class: "Muscle", price: "$15,000", seats: 2 },
-        "Phoenix": { class: "Muscle", price: "Steal", seats: 2 },
-        "Ruiner": { class: "Muscle", price: "$10,000", seats: 2 },
-        "Duke O'Death": { class: "Muscle", price: "$665,000", seats: 2 },
-        "Insurgent": { class: "Off-Road", price: "$897,750", seats: 6 },
-        "Insurgent Pick-Up Custom": { class: "Off-Road", price: "$202,500", seats: 9 },
-        "Sandking XL": { class: "Off-Road", price: "$45,000", seats: 4 },
-        "Bati 801": { class: "Motorcycle", price: "$15,000", seats: 2 },
-        "Akuma": { class: "Motorcycle", price: "$9,000", seats: 2 },
-        "Hakuchou": { class: "Motorcycle", price: "$82,000", seats: 2 },
-        "Oppressor Mk II": { class: "Motorcycle", price: "$8,000,000", seats: 1 },
-        
-        // --- BICYCLES & UTILITY (v26.0) ---
-        "BMX": { class: "Cycle", price: "$800", seats: 1 },
-        "Scorcher": { class: "Cycle", price: "$2,000", seats: 1 },
-        "Cruiser": { class: "Cycle", price: "$800", seats: 1 },
-        "Sadler": { class: "Utility", price: "$35,000", seats: 2 },
-        "Bobcat XL": { class: "Van", price: "$23,000", seats: 2 },
-        "Guardian": { class: "Industrial", price: "$375,000", seats: 2 },
-        "Faggio": { class: "Motorcycle", price: "$5,000", seats: 2 },
-        "Faggio Mod": { class: "Motorcycle", price: "$55,000", seats: 2 },
-        "Faggio Sport": { class: "Motorcycle", price: "$47,500", seats: 2 }
-    };
-
-    const SORTED_MANUFS = Object.keys(CAR_DB).sort();
+    // --- 1. CONFIG & DB ---
     const STORAGE_KEY = 'gta_vehicles_v1';
-    let vehicles = [];
-    let lastSellTime = 0;
-    let lastSoldName = "Unknown";
+    const BASE_URL = "https://raw.githubusercontent.com/insomanywords/MyGTAgarage-images/main/";
+    const DB_URL = BASE_URL + "vehicles.json";
+
+    let masterDB = [];
+    let vehicles = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let lastSell = parseInt(localStorage.getItem('gta_last_sale')) || 0;
+    let lastSoldName = localStorage.getItem('gta_last_sold_name') || "None";
     let editingId = null;
-    let timerInterval = null;
-    let movingVehicleId = null;
+    let timerInt = null;
+    let movingId = null;
 
-    // --- DOM ---
-    const listEl = document.getElementById('vehicle-list');
-    const modal = document.getElementById('vehicleModal');
-    const clModal = document.getElementById('changelogModal');
-    const statModal = document.getElementById('statsModal');
-    const timerModal = document.getElementById('timerModal');
-    const moveModal = document.getElementById('moveModal');
-    const swapAllModal = document.getElementById('swapAllModal');
-    const searchInput = document.getElementById('searchInput');
-    const viewModeEl = document.getElementById('viewMode');
-    const countEl = document.getElementById('count');
-    const manufSelect = document.getElementById('inputManuf');
-    const modelSelect = document.getElementById('inputModelDropdown');
-    const modelCustom = document.getElementById('inputModelCustom');
-    const locSelect = document.getElementById('inputLoc');
-    const locNickname = document.getElementById('inputLocNickname'); 
-    const locCustom = document.getElementById('inputLocCustom');
-    const floorGroup = document.getElementById('floorGroup');
-    const editActions = document.getElementById('editActions');
-    const timerBtn = document.getElementById('timerBtn');
-    
-    const moveTargetGarage = document.getElementById('moveTargetGarage');
-    const swapSection = document.getElementById('swapSection');
-    const swapTargetVehicle = document.getElementById('swapTargetVehicle');
-    const moveCarName = document.getElementById('moveCarName');
-    
-    const swapAllFrom = document.getElementById('swapAllFrom');
-    const swapAllTo = document.getElementById('swapAllTo');
-    
-    const lightbox = document.getElementById('lightbox');
-    const lightboxImg = document.getElementById('lightboxImg');
+    const GARAGE_DATA = [
+        { grp: "Safehouses", items: ["Richman Villa (20)", "The Vinewood Residence (20)", "The Tongva Estate (20)", "Mansion (10)"] },
+        { grp: "Massive", items: ["Vinewood Club Garage (100)", "Eclipse Blvd Garage (50)", "Office Garage 1 (20)", "Office Garage 2 (20)", "Office Garage 3 (20)"] },
+        { grp: "Apartments", items: ["Eclipse Towers, Penthouse 1 (10)", "Eclipse Towers, Penthouse 2 (10)", "Eclipse Towers, Penthouse 3 (10)", "Eclipse Towers, Apt 31 (10)", "Eclipse Towers, Apt 9 (10)", "Eclipse Towers, Apt 5 (10)", "Eclipse Towers, Apt 3 (10)", "Richards Majestic, Apt 51 (10)", "Richards Majestic, Apt 4 (10)", "Tinsel Towers, Apt 42 (10)", "Tinsel Towers, Apt 29 (10)", "4 Integrity Way, Apt 30 (10)", "4 Integrity Way, Apt 35 (10)", "Del Perro Heights, Apt 7 (10)", "Del Perro Heights, Apt 20 (10)", "Weazel Plaza, Apt 101 (10)", "Weazel Plaza, Apt 70 (10)", "Weazel Plaza, Apt 26 (10)", "3 Alta St, Apt 10 (10)", "3 Alta St, Apt 57 (10)"] },
+        { grp: "Business", items: ["Agency (20)", "Nightclub (31)", "Arcade (10)", "Auto Shop (10)", "Salvage Yard (2)", "Bail Enforcement (2)", "Clubhouse (10)"] },
+        { grp: "Special", items: ["Arena Workshop (27)", "Casino Penthouse (10)", "Facility (7)", "Kosatka", "Terrorbyte", "Acid Lab", "Avenger", "MOC"] }
+    ];
 
-    // --- MIGRATION & FIX LOGIC ---
-    function fixGarageNames() {
-        let changed = false;
-        vehicles.forEach(v => {
-            const exactMatch = VALID_GARAGES.find(g => g === v.loc);
-            if (!exactMatch) {
-                const looseMatch = VALID_GARAGES.find(g => g.startsWith(v.loc));
-                if (looseMatch) {
-                    v.loc = looseMatch;
-                    changed = true;
-                }
-            }
-        });
-        if (changed) saveToStorage();
-    }
+    const CAPACITIES = {
+        "Vinewood Club": 100, "Eclipse Blvd": 50, "Office": 20, "Agency": 20, "Nightclub": 31, 
+        "Arena Workshop": 27, "Facility": 7, "Arcade": 10, "Auto Shop": 10, "Richman Villa": 20,
+        "Vinewood Residence": 20, "Tongva Estate": 20, "Salvage Yard": 2, "Bail Enforcement": 2, 
+        "Clubhouse": 10, "DEFAULT": 10
+    };
 
-    function migrateLegacyVehicles() {
-        let changed = false;
-        vehicles.forEach(v => {
-            if (!v) return;
-            if (v.manuf === "Custom" || v.manuf === "Other") {
-                for (const [manuf, models] of Object.entries(CAR_DB)) {
-                    if (models.includes(v.model)) {
-                        v.manuf = manuf; 
-                        changed = true;
-                        break;
-                    }
-                }
-            }
-        });
-        if (changed) saveToStorage();
-    }
+    const FLOOR_MAP = {
+        "Vinewood Club": ["Main Floor"],
+        "Eclipse Blvd": ["Floor 1", "Floor 2", "Floor 3", "Floor 4", "Floor 5"],
+        "Office": ["Floor 1", "Floor 2", "Floor 3"],
+        "Nightclub": ["Service Entrance", "Basement 2", "Basement 3", "Basement 4"],
+        "Arena Workshop": ["Workshop Level", "Basement 1", "Basement 2"]
+    };
 
-    // --- HELPER: GET META ---
-    function getVehicleMeta(modelName, manufacturer) {
-        if (VEHICLE_INFO[modelName]) return VEHICLE_INFO[modelName];
-        if(modelName.includes("Custom") || modelName.includes("Retro")) return { class: "Modified", price: "Varies", seats: "--" };
-        if(modelName.includes("Cruiser") || modelName.includes("Police")) return { class: "Emergency", price: "Varies", seats: "4" };
-        if(manufacturer === "Pegassi" || manufacturer === "Grotti" || manufacturer === "Overflod") return { class: "Super/Sports", price: "High-End", seats: "2" };
-        if(manufacturer === "Vapid" || manufacturer === "Declasse" || manufacturer === "Imponte") return { class: "Muscle/Classic", price: "Mid-Range", seats: "2-4" };
-        if(manufacturer === "HVY" || manufacturer === "Mammoth") return { class: "Military", price: "High-End", seats: "Varies" };
-        return { class: "Unknown", price: "--", seats: "--" };
-    }
-
-    // --- HELPER: CLASS ICON ---
-    function getClassIcon(className) {
-        if(!className) return '🚗';
-        const c = className.toLowerCase();
-        if (c.includes('super')) return '🏎️';
-        if (c.includes('sport')) return '🏎️';
-        if (c.includes('muscle')) return '💪';
-        if (c.includes('suv')) return '🚙';
-        if (c.includes('off')) return '🛻';
-        if (c.includes('bike') || c.includes('motorcycle') || c.includes('cycle')) return '🏍️';
-        if (c.includes('classic')) return '🏺';
-        if (c.includes('compact')) return '🚗';
-        if (c.includes('sedan')) return '🚘';
-        if (c.includes('coupe')) return '🚙';
-        if (c.includes('van') || c.includes('commercial')) return '🚐';
-        if (c.includes('military') || c.includes('tank')) return '🛡️';
-        if (c.includes('plane') || c.includes('jet')) return '✈️';
-        if (c.includes('heli')) return '🚁';
-        if (c.includes('emergency')) return '🚨';
-        if (c.includes('boat')) return '🚤';
-        return '🚗';
-    }
-
-    // --- MAIN LOGIC ---
-
-    function populateDropdowns() {
-        manufSelect.innerHTML = '<option value="" disabled selected>Select...</option>';
-        SORTED_MANUFS.forEach(brand => {
-            const opt = document.createElement('option');
-            opt.value = brand; opt.innerText = brand;
-            manufSelect.appendChild(opt);
-        });
-        manufSelect.innerHTML += '<option value="Other">Other / Unknown</option>';
-
-        const frag = document.createDocumentFragment();
-        GARAGE_OPTIONS.forEach(g => {
-            const group = document.createElement('optgroup');
-            group.label = g.grp;
-            g.items.forEach(item => {
-                const opt = document.createElement('option');
-                opt.value = item;
-                opt.innerText = item;
-                group.appendChild(opt);
-            });
-            frag.appendChild(group);
-        });
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', async () => {
+        render(); 
+        updateTimerLogic();
+        populateSmartDropdowns(); // CRITICAL FIX: Load static dropdowns immediately
         
-        const moveFrag = frag.cloneNode(true);
-        moveTargetGarage.innerHTML = '<option value="" disabled selected>Select...</option>';
-        moveTargetGarage.appendChild(moveFrag);
-        
-        const swapFromFrag = frag.cloneNode(true);
-        swapAllFrom.innerHTML = '<option value="" disabled selected>Select...</option>';
-        swapAllFrom.appendChild(swapFromFrag);
-        
-        const swapToFrag = frag.cloneNode(true);
-        swapAllTo.innerHTML = '<option value="" disabled selected>Select...</option>';
-        swapAllTo.appendChild(swapToFrag);
-
-        const customOpt = document.createElement('option');
-        customOpt.value = "Custom"; customOpt.innerText = "Other / Custom...";
-        frag.appendChild(customOpt);
-        
-        locSelect.innerHTML = '<option value="" disabled selected>Select...</option>';
-        locSelect.appendChild(frag);
-    }
-
-    function updateModelDropdown(selectedModel = null) {
-        const brand = manufSelect.value;
-        modelSelect.innerHTML = '<option value="" disabled selected>Select...</option>';
-        modelCustom.style.display = 'none';
-
-        if (CAR_DB[brand]) {
-            CAR_DB[brand].sort().forEach(model => {
-                const opt = document.createElement('option');
-                opt.value = model; opt.innerText = model;
-                modelSelect.appendChild(opt);
-            });
-        }
-        
-        const customOpt = document.createElement('option');
-        customOpt.value = "Custom"; customOpt.innerText = "Custom / Other...";
-        modelSelect.appendChild(customOpt);
-
-        if (selectedModel) {
-            const exists = Array.from(modelSelect.options).some(o => o.value === selectedModel);
-            if (exists) {
-                modelSelect.value = selectedModel;
-            } else {
-                modelSelect.value = "Custom";
-                modelCustom.style.display = 'block';
-                modelCustom.value = selectedModel;
+        try {
+            const res = await fetch(DB_URL);
+            if(res.ok) {
+                masterDB = await res.json();
+                populateSmartDropdowns(); // Re-populate to add brands when loaded
+                if(vehicles.length > 0 && !vehicles[0].spawn) openModal('migrationModal');
             }
-        }
-    }
+        } catch(e) { console.log("Offline mode active."); }
+    });
 
-    function checkCustomModel() {
-        if (modelSelect.value === 'Custom') {
-            modelCustom.style.display = 'block'; modelCustom.focus();
-        } else {
-            modelCustom.style.display = 'none';
-        }
-    }
+    // --- RENDER LOGIC ---
+    function render() {
+        const list = document.getElementById('vehicle-list'), term = document.getElementById('searchInput').value.toLowerCase(), mode = document.getElementById('viewMode').value;
+        const filtered = vehicles.filter(v => (v.model+v.manuf+v.loc+(v.notes||'')).toLowerCase().includes(term));
+        
+        const countEl = document.getElementById('headerCount');
+        if(countEl) countEl.innerText = vehicles.length;
+        
+        const xBtn = document.getElementById('clearSearch');
+        if(xBtn) xBtn.style.display = term.length > 0 ? 'flex' : 'none';
 
-    function checkCustomLoc() {
-        if (locSelect.value === 'Custom') {
-            locCustom.style.display = 'block'; locCustom.focus();
-            floorGroup.style.display = 'none'; 
-        } else {
-            locCustom.style.display = 'none';
-        }
-    }
+        list.innerHTML = "";
 
-    function handleGarageChange() {
-        const loc = locSelect.value;
-        if (loc === 'Custom') {
-            locCustom.style.display = 'block';
-            floorGroup.style.display = 'none';
-        } else {
-            locCustom.style.display = 'none';
-            const cleanLoc = loc.replace(/\s\(\d+\)$/, "");
-            const meta = GARAGE_META[cleanLoc];
-            
-            if (meta && meta.floors) {
-                floorGroup.style.display = 'block';
-            } else {
-                floorGroup.style.display = 'none';
-                document.getElementById('inputFloor').value = ""; 
-            }
-
-            const existingCar = vehicles.find(v => v.loc === loc && v.locNickname);
-            if (existingCar) {
-                locNickname.value = existingCar.locNickname;
-            } else {
-                locNickname.value = ""; 
-            }
-        }
-    }
-
-    function renderVehicles(data) {
-        const term = searchInput.value.toLowerCase();
-        let filtered = data.filter(v => 
-            (v.model && v.model.toLowerCase().includes(term)) || 
-            (v.manuf && v.manuf.toLowerCase().includes(term)) || 
-            (v.loc && v.loc.toLowerCase().includes(term)) ||
-            (v.locNickname && v.locNickname.toLowerCase().includes(term)) || 
-            (v.floor && v.floor.toLowerCase().includes(term)) ||
-            (v.notes && v.notes.toLowerCase().includes(term))
-        );
-
-        listEl.innerHTML = '';
-        if(countEl) countEl.textContent = data.length;
-
-        if (filtered.length === 0) {
-            listEl.innerHTML = '<div class="empty-state">No vehicles found.</div>';
-            return;
-        }
-
-        const mode = viewModeEl.value;
-
-        if (mode === 'all') {
-            const grid = document.createElement('div');
-            grid.className = 'vehicle-grid';
+        if(mode === 'all') {
+            const grid = document.createElement('div'); grid.className = 'vehicle-grid';
             filtered.forEach(v => grid.appendChild(createCard(v)));
-            listEl.appendChild(grid);
+            list.appendChild(grid);
         } else {
             const groups = {};
-            filtered.forEach(v => {
-                let key = (mode === 'garage') ? v.loc : v.manuf;
-                if (!key) key = "Unknown";
-                if (!groups[key]) groups[key] = [];
-                groups[key].push(v);
-            });
-
-            const sortedKeys = Object.keys(groups).sort();
-            const isSearching = term.length > 0;
-
-            sortedKeys.forEach(key => {
-                const header = document.createElement('div');
-                header.className = 'group-header' + (isSearching ? '' : ' collapsed');
+            filtered.forEach(v => { 
+                let k = "Unknown";
+                const db = masterDB.find(d => d.model === v.model) || {};
                 
-                let metaHtml = '';
-                let nicknameHtml = '';
-
-                if (mode === 'garage') {
-                    const cleanKey = key.replace(/\s\(\d+\)$/, "");
-                    const meta = GARAGE_META[cleanKey] || GARAGE_META["DEFAULT_APT"];
-                    const cap = meta.cap || 10; 
-                    const count = groups[key].length;
-                    const isFull = count > cap;
-                    metaHtml = `<span class="group-meta ${isFull ? 'full' : ''}">${count} / ${cap}</span>`;
-                    
-                    const nickCar = groups[key].find(c => c.locNickname);
-                    if (nickCar) {
-                        nicknameHtml = `<span class="garage-nickname">- "${nickCar.locNickname}"</span>`;
-                    }
-                } else {
-                    metaHtml = `<span class="group-meta">${groups[key].length}</span>`;
+                if (mode === 'garage') k = v.loc;
+                else if (mode === 'manuf') k = v.manuf;
+                else if (mode === 'class') k = (db.class || v.class || 'Unknown').replace(/_/g, ' ');
+                else if (mode === 'drive') k = db.drive || v.drive || 'Unknown';
+                
+                if(!groups[k]) groups[k] = []; 
+                groups[k].push(v); 
+            });
+            
+            Object.keys(groups).sort().forEach(k => {
+                const head = document.createElement('div'); head.className = term ? 'group-header' : 'group-header collapsed';
+                let meta = `${groups[k].length}`; 
+                let pct = 0;
+                
+                if(mode==='garage') { 
+                    const cl = Object.keys(CAPACITIES).find(m=>k.includes(m))||"DEFAULT"; 
+                    const cap=CAPACITIES[cl]; 
+                    meta = `${groups[k].length} / ${cap}`; 
+                    pct = (groups[k].length/cap)*100; 
                 }
-
-                header.innerHTML = `
-                    <div class="header-title-box">
-                        <span class="arrow">▼</span>
-                        <span>${key}${nicknameHtml}</span>
-                    </div>
-                    ${metaHtml}
+                
+                head.innerHTML = `
+                    <div class="group-name-wrap"><span class="arrow">▼</span>${k}</div>
+                    <span class="group-meta">${meta}</span>
+                    <div class="cap-bar" style="width:${Math.min(pct,100)}%; background:${pct>=90?'#ef4444':'var(--accent)'}"></div>
                 `;
                 
-                const grid = document.createElement('div');
-                grid.className = 'vehicle-grid' + (isSearching ? '' : ' hidden');
-                groups[key].forEach(v => grid.appendChild(createCard(v)));
-                
-                header.onclick = function() { toggleGroup(this, grid); };
-                
-                listEl.appendChild(header);
-                listEl.appendChild(grid);
+                const grid = document.createElement('div'); grid.className = term ? 'vehicle-grid' : 'vehicle-grid hidden';
+                groups[k].forEach(v => grid.appendChild(createCard(v)));
+                head.onclick = () => { grid.classList.toggle('hidden'); head.classList.toggle('collapsed'); };
+                list.appendChild(head); list.appendChild(grid);
             });
         }
-    }
-    
-    function toggleGroup(header, grid) {
-        grid.classList.toggle('hidden');
-        header.classList.toggle('collapsed');
-    }
-
-    function getImageUrl(modelName) {
-        // CLEAN NAME LOGIC (Matches Python Script exactly)
-        const safeName = modelName.toLowerCase()
-            .replace(/ /g, "")
-            .replace(/\(/g, "")
-            .replace(/\)/g, "")
-            .replace(/-/g, "")
-            .replace(/'/g, "")
-            .replace(/\./g, "");
-
-        // LINK TO YOUR GITHUB
-        return `https://raw.githubusercontent.com/insomanywords/MyGTAgarage-images/main/vehicles/${safeName}.png`;
     }
 
     function createCard(v) {
-        const meta = getVehicleMeta(v.model, v.manuf); 
-        const icon = getClassIcon(meta.class);
-        const imgUrl = getImageUrl(v.model);
+        const db = masterDB.find(d => d.model === v.model) || {}, spawn = db.spawn || v.spawn || "";
+        const img = spawn ? `${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png` : "";
+        const gtaUrl = spawn ? `https://gtacars.net/gta5/${spawn.toLowerCase().replace(/_/g, '-')}` : null;
         
-        // GTABase Link
-        const gtaBaseUrl = `https://www.gtabase.com/grand-theft-auto-v/vehicles/${v.model.toLowerCase().replace(/ /g, '-').replace(/[\(\)']/g, '')}`;
+        let badges = "";
+        if(v.isWeapon) badges += `<span class="badge w">WEP</span>`;
+        if(v.wheels === 'F1') badges += `<span class="badge f">F1</span>`;
+        if(v.wheels?.includes('Benny')) badges += `<span class="badge b">BNY</span>`;
+        
+        let pClass = "";
+        if(v.plate === "Yankton") pClass = "y";
+        else if(v.plate === "Liberty City") pClass = "l";
+        else if(v.plate === "Panic") pClass = "p";
+        else if(v.plate === "Pounders") pClass = "pd";
+        else if(v.plate === "Las Venturas") pClass = "v";
+        else if(v.plate === "E-Cola") pClass = "e";
+        else if(v.plate === "Sprunk") pClass = "s";
+        
+        if(pClass) badges += `<span class="badge ${pClass}">${v.plate.toUpperCase()}</span>`;
+        else if(v.plate && v.plate !== 'Standard') badges += `<span class="badge">${v.plate}</span>`;
 
-        const wheels = v.wheels || 'Stock';
-        const plate = v.plate || 'Standard';
-        const manuf = v.manuf || 'Unknown';
-        const model = v.model || 'Unnamed';
-        const loc = v.loc || 'Unknown';
-        const floor = v.floor ? ` • ${v.floor}` : '';
-        const slot = v.slot ? `<span style="font-size:0.8rem; color:var(--text-dim); margin-left:5px;">[Slot ${v.slot}]</span>` : '';
-        const isWeapon = v.isWeapon || false;
+        const div = document.createElement('div'); div.className = "card";
+        
+        let linkHtml = "";
+        if (spawn) {
+            linkHtml = `<a href="${gtaUrl}" target="_blank" class="action-btn gtacars-link" title="GTACars.net"><i class="fas fa-external-link-alt"></i></a>`;
+        }
 
-        let cardClass = '';
-        if (isWeapon) cardClass = 'has-weapon';
-        else if (wheels === 'F1') cardClass = 'has-f1';
-        else if (wheels.includes('Benny')) cardClass = 'has-benny';
-        else if (plate !== 'Standard') cardClass = 'has-plate';
+        // Fix: Format class name (remove underscores)
+        const displayClass = (db.class || v.class || '-').replace(/_/g, ' ');
 
-        let badgesHtml = '';
-        if (isWeapon) badgesHtml += `<span class="badge weapon">WEAPONIZED</span>`;
-        if (wheels === 'F1') badgesHtml += `<span class="badge f1">F1</span>`;
-        else if (wheels.includes('Benny')) badgesHtml += `<span class="badge benny">BENNY'S</span>`;
-        if (plate !== 'Standard') badgesHtml += `<span class="badge plate">${plate}</span>`;
-        if (badgesHtml === '' && !isWeapon) badgesHtml = `<span class="badge stock">STOCK</span>`;
-
-        const card = document.createElement('div');
-        card.className = `vehicle-card ${cardClass}`;
-        card.innerHTML = `
-            <div class="vehicle-thumb-container" onclick="openLightbox('${imgUrl}')">
-                <img class="vehicle-thumb" src="${imgUrl}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                <div class="vehicle-icon-fallback" style="display:none;">${icon}</div>
-            </div>
-            
-            <div class="card-content">
-                <div class="card-header">
-                    <div>
-                        <div class="vehicle-manuf">${manuf}</div>
-                        <div class="vehicle-name">${model}</div>
+        div.innerHTML = `
+            <div class="card-img-box" onclick="openLb('${img}')"><img class="card-img" src="${img}" onerror="handleImgError(this, '${spawn}')"><div class="card-fallback" style="display:none"><i class="fas fa-car"></i></div><div class="card-badges">${badges}</div></div>
+            <div class="card-info">
+                <div class="card-top">
+                    <div class="card-manuf">${v.manuf}</div>
+                    <div class="card-model">${v.model}</div>
+                </div>
+                <div class="card-chips">
+                    <span class="chip"><i class="fas fa-tag"></i> ${displayClass}</span>
+                    <span class="chip"><i class="fas fa-cog"></i> ${db.drive||v.drive||'-'}</span>
+                    <span class="chip"><i class="fas fa-user"></i> ${db.seats||v.seats||'2'}</span>
+                </div>
+                <div class="card-loc">
+                    <i class="fas fa-warehouse"></i>
+                    <div class="loc-text">
+                        <span>${v.loc}</span>
+                        ${v.floor ? `<span class="loc-floor">${v.floor}</span>` : ''}
                     </div>
-                    ${slot}
-                </div>
-                
-                <div class="vehicle-info-row">
-                    <span class="info-pill">${meta.class}</span>
-                    <span class="info-pill">${meta.price}</span>
-                    <a href="${gtaBaseUrl}" target="_blank" class="wiki-link">GTABase ↗</a>
-                </div>
-
-                <div class="badges-container">${badgesHtml}</div>
-                <div class="vehicle-loc">
-                    <span>📍 ${loc} <span style="color: var(--accent); font-weight:bold;">${floor}</span></span>
-                </div>
-                ${v.notes ? `<div class="vehicle-notes">📝 ${v.notes}</div>` : ''}
-                <div class="card-actions">
-                    <button class="icon-btn" onclick="editVehicle(${v.id})">✏️</button>
                 </div>
             </div>
-        `;
-        return card;
-    }
-    
-    // LIGHTBOX LOGIC
-    function openLightbox(src) {
-        lightboxImg.src = src;
-        lightbox.style.display = 'flex';
-    }
-    window.closeLightbox = function() { lightbox.style.display = 'none'; }
-
-    function saveToStorage() {
-        try { 
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles));
-            localStorage.setItem('gta_last_sale', lastSellTime);
-            localStorage.setItem('gta_last_sold_name', lastSoldName);
-        } catch(e){}
-        renderVehicles(vehicles);
-        updateTimerHeader();
+            <div class="card-actions-top">
+                ${linkHtml}
+                <button class="action-btn" onclick="editVehicle(${v.id})"><i class="fas fa-pencil-alt"></i></button>
+            </div>`;
+        return div;
     }
 
-    function initApp() {
-        try {
-            populateDropdowns();
-            const sale = localStorage.getItem('gta_last_sale');
-            if (sale) lastSellTime = parseInt(sale);
-            
-            const soldName = localStorage.getItem('gta_last_sold_name');
-            if (soldName) lastSoldName = soldName;
-
-            let saved = localStorage.getItem(STORAGE_KEY);
-            if (!saved) {
-                const legacy = localStorage.getItem('gta_vehicles');
-                if (legacy) { saved = legacy; localStorage.setItem(STORAGE_KEY, legacy); }
-            }
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed)) {
-                    vehicles = parsed.filter(v => v !== null); 
-                } else {
-                    vehicles = [];
-                }
-            }
-        } catch (e) { 
-            console.error(e); 
-            vehicles = []; 
-        }
+    // --- LOGIC ---
+    function editVehicle(id) {
+        editingId = id; const v = vehicles.find(c=>c.id===id); if(!v) return;
+        document.getElementById('modalTitle').innerText = "Edit Vehicle";
+        document.getElementById('editActions').style.display = 'flex';
+        document.getElementById('inManuf').value = v.manuf;
+        updateModelDD(v.model); 
+        document.getElementById('inModel').value = v.model;
         
-        fixGarageNames();
-        migrateLegacyVehicles(); 
-        renderVehicles(vehicles);
-        updateTimerHeader();
-        setInterval(updateTimerHeader, 60000); 
-    }
-    
-    // --- TIMER LOGIC ---
-    function updateTimerHeader() {
-        const now = Date.now();
-        const diff = now - lastSellTime;
-        if (diff < COOLDOWN_MS) {
-            const remaining = COOLDOWN_MS - diff;
-            const hours = Math.floor(remaining / (1000 * 60 * 60));
-            const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-            timerBtn.innerHTML = `⏳ ${hours}h ${minutes}m`;
-            timerBtn.classList.add('active');
-        } else {
-            timerBtn.innerHTML = `💲`;
-            timerBtn.classList.remove('active');
-        }
+        const locSel = document.getElementById('inLoc');
+        let matchedVal = ""; Array.from(locSel.list.options).forEach(opt => { if (opt.value.replace(/\s\(\d+\)$/, "") === v.loc.replace(/\s\(\d+\)$/, "")) matchedVal = opt.value; });
+        if(matchedVal) locSel.value = matchedVal; else { locSel.value = v.loc; }
+        
+        document.getElementById('inFloor').value = v.floor||"";
+        document.getElementById('inSlot').value = v.slot||"";
+        document.getElementById('inWep').checked = v.isWeapon;
+        document.getElementById('inWheels').value = v.wheels||"Stock";
+        document.getElementById('inPlate').value = v.plate||"Standard";
+        document.getElementById('inNotes').value = v.notes||"";
+        handleLocChange(); openModal('vehicleModal');
     }
 
-    window.openTimerModal = function() {
-        timerModal.style.display = 'flex';
-        updateTimerModal();
-        if(timerInterval) clearInterval(timerInterval);
-        timerInterval = setInterval(updateTimerModal, 1000);
-    }
-
-    window.closeTimerModal = function() {
-        timerModal.style.display = 'none';
-        if(timerInterval) clearInterval(timerInterval);
-    }
-
-    window.updateTimerModal = function() {
-        const now = Date.now();
-        const diff = now - lastSellTime;
-        const bigDisplay = document.getElementById('timerBigDisplay');
-        const targetDisplay = document.getElementById('targetTimeDisplay');
-        const soldNameDisplay = document.getElementById('lastSoldName');
-        const timeZone = document.getElementById('timeZoneSelect').value;
-
-        soldNameDisplay.innerText = lastSoldName || "Unknown/Legacy";
-
-        if (diff < COOLDOWN_MS) {
-            const remaining = COOLDOWN_MS - diff;
-            const hours = Math.floor(remaining / (1000 * 60 * 60));
-            const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
-            bigDisplay.innerText = `${hours}h ${minutes}m ${seconds}s`;
-            bigDisplay.classList.remove('ready');
-            
-            const targetDate = new Date(lastSellTime + COOLDOWN_MS);
-            let timeString;
-            if (timeZone === 'Local') {
-                timeString = targetDate.toLocaleTimeString();
-            } else {
-                try {
-                    timeString = targetDate.toLocaleTimeString('en-US', { timeZone: timeZone });
-                } catch(e) { timeString = "Invalid TZ"; }
-            }
-            targetDisplay.value = timeString;
-        } else {
-            bigDisplay.innerText = "READY TO SELL";
-            bigDisplay.classList.add('ready');
-            targetDisplay.value = "Now";
-        }
-    }
-
-    window.sellVehicle = function(id) {
-        if(confirm("Sell this vehicle? It will be removed from your garage and the 18h timer will start.")) {
-            const v = vehicles.find(c => c.id === id);
-            lastSoldName = v ? `${v.manuf} ${v.model}` : "Unknown";
-            vehicles = vehicles.filter(c => c.id !== id);
-            lastSellTime = Date.now();
-            saveToStorage();
-            closeModal();
-        }
-    }
-
-    window.checkTimer = function(isClick) { if(isClick) openTimerModal(); }
-
-    // --- MOVE LOGIC ---
-    window.startMove = function(id) {
-        movingVehicleId = id;
-        const car = vehicles.find(v => v.id === id);
-        if(!car) return;
-        document.getElementById('moveCarName').innerText = `Moving: ${car.model}`;
-        moveTargetGarage.value = "";
-        swapSection.style.display = 'none';
-        moveModal.style.display = 'flex';
-    };
-
-    window.checkMoveCapacity = function() {
-        const target = moveTargetGarage.value;
-        if (!target) return;
-        const count = vehicles.filter(v => v.loc === target).length;
-        const cleanLoc = target.replace(/\s\(\d+\)$/, "");
-        const meta = GARAGE_META[cleanLoc] || GARAGE_META["DEFAULT_APT"];
-        const cap = meta.cap || 10;
-
-        if (count >= cap) {
-            swapSection.style.display = 'block';
-            const swapSelect = document.getElementById('swapTargetVehicle');
-            swapSelect.innerHTML = '<option value="" disabled selected>Select Car...</option>';
-            const carsInTarget = vehicles.filter(v => v.loc === target);
-            carsInTarget.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c.id;
-                opt.innerText = `${c.manuf} ${c.model} ${c.slot ? '(Slot '+c.slot+')' : ''}`;
-                swapSelect.appendChild(opt);
-            });
-        } else {
-            swapSection.style.display = 'none';
-        }
-    };
-
-    window.performMove = function() {
-        const target = moveTargetGarage.value;
-        if (!target) return alert("Select a garage.");
-        const carA_idx = vehicles.findIndex(v => v.id === movingVehicleId);
-        if (carA_idx === -1) return;
-        const carA = vehicles[carA_idx];
-        const oldLoc = carA.loc;
-        const isFull = swapSection.style.display === 'block';
+    function saveVehicle() {
+        const manuf = document.getElementById('inManuf').value;
+        let model = document.getElementById('inModel').value;
+        let loc = document.getElementById('inLoc').value;
         
-        if (isFull) {
-            const swapId = parseInt(document.getElementById('swapTargetVehicle').value);
-            if (!swapId) return alert("Garage is full. You must select a car to swap.");
-            const carB_idx = vehicles.findIndex(v => v.id === swapId);
-            const carB = vehicles[carB_idx];
-            vehicles[carA_idx].loc = target;
-            vehicles[carB_idx].loc = oldLoc;
-            const tempFloor = carA.floor;
-            const tempSlot = carA.slot;
-            vehicles[carA_idx].floor = carB.floor;
-            vehicles[carA_idx].slot = carB.slot;
-            vehicles[carB_idx].floor = tempFloor;
-            vehicles[carB_idx].slot = tempSlot;
-            alert(`Swapped ${carA.model} with ${carB.model}!`);
-        } else {
-            vehicles[carA_idx].loc = target;
-            vehicles[carA_idx].floor = "";
-            vehicles[carA_idx].slot = "";
-            alert(`Moved ${carA.model} to ${target}.`);
-        }
-        saveToStorage();
-        closeMoveModal();
-        closeModal();
-    };
-
-    window.closeMoveModal = function() { moveModal.style.display = 'none'; };
-    
-    // --- SWAP ALL LOGIC ---
-    window.openSwapAllModal = function() {
-        swapAllModal.style.display = 'flex';
-        swapAllFrom.value = "";
-        swapAllTo.value = "";
-    };
-    
-    window.closeSwapAllModal = function() {
-        swapAllModal.style.display = 'none';
-    };
-    
-    window.performSwapAll = function() {
-        const fromGarage = swapAllFrom.value;
-        const toGarage = swapAllTo.value;
-        if(!fromGarage || !toGarage) return alert("Select both garages.");
-        if(fromGarage === toGarage) return alert("Cannot swap same garage.");
+        if(!manuf || !model || !loc) return alert("Required: Make, Model, Garage");
         
-        const carsInA = vehicles.filter(v => v.loc === fromGarage);
-        const carsInB = vehicles.filter(v => v.loc === toGarage);
-        
-        const metaA = GARAGE_META[fromGarage.replace(/\s\(\d+\)$/, "")] || GARAGE_META["DEFAULT_APT"];
-        const metaB = GARAGE_META[toGarage.replace(/\s\(\d+\)$/, "")] || GARAGE_META["DEFAULT_APT"];
-        
-        const capA = metaA.cap || 10;
-        const capB = metaB.cap || 10;
-        
-        if (carsInB.length > capA) {
-            return alert(`Cannot swap! Target garage has ${carsInB.length} cars, but source garage only holds ${capA}.`);
-        }
-        if (carsInA.length > capB) {
-            return alert(`Cannot swap! Source garage has ${carsInA.length} cars, but target garage only holds ${capB}.`);
-        }
-        
-        if(confirm(`Swap contents of ${fromGarage} with ${toGarage}?`)) {
-            carsInA.forEach(v => { v.loc = toGarage; });
-            carsInB.forEach(v => { v.loc = fromGarage; });
-            saveToStorage();
-            closeSwapAllModal();
-            alert("Swap Complete!");
-        }
-    };
+        // Smart Floor Match
+        let typedFloor = document.getElementById('inFloor').value;
+        const dl = document.getElementById('floorDatalist');
+        if (dl) { Array.from(dl.options).forEach(opt => { if (opt.value.toLowerCase() === typedFloor.toLowerCase()) typedFloor = opt.value; }); }
 
-    // --- ACTIONS ---
-    window.openModal = function(vehicle = null) {
-        modal.style.display = 'flex';
-        
-        if (vehicle) {
-            editingId = vehicle.id;
-            document.getElementById('modalTitle').innerText = 'Edit Vehicle';
-            editActions.style.display = 'block';
-            
-            manufSelect.value = vehicle.manuf || "";
-            updateModelDropdown(vehicle.model);
-
-            const exists = Array.from(locSelect.options).some(o => o.value === vehicle.loc);
-            if (exists) {
-                locSelect.value = vehicle.loc;
-                locCustom.style.display = 'none';
-            } else {
-                locSelect.value = "Custom";
-                locCustom.style.display = 'block';
-                locCustom.value = vehicle.loc;
-            }
-            handleGarageChange(); 
-
-            if (vehicle.locNickname) locNickname.value = vehicle.locNickname;
-
-            document.getElementById('inputFloor').value = vehicle.floor || "";
-            document.getElementById('inputSlot').value = vehicle.slot || "";
-            document.getElementById('inputWheels').value = vehicle.wheels || "Stock";
-            document.getElementById('inputPlate').value = vehicle.plate || "Standard";
-            document.getElementById('inputNotes').value = vehicle.notes || "";
-            document.getElementById('inputWeaponized').checked = vehicle.isWeapon || false;
-
-        } else {
-            editingId = null;
-            document.getElementById('modalTitle').innerText = 'Add Vehicle';
-            editActions.style.display = 'none';
-            clearForm();
-            handleGarageChange();
-        }
-    };
-
-    window.closeModal = function() { modal.style.display = 'none'; clearForm(); };
-    window.openChangelog = function() { clModal.style.display = 'flex'; };
-    window.closeChangelog = function() { clModal.style.display = 'none'; };
-    
-    window.openStats = function() {
-        statModal.style.display = 'flex';
-        document.getElementById('statTotal').innerText = vehicles.length;
-        
-        let wCount = 0, f1Count = 0, bennyCount = 0;
-        const brandCounts = {};
-        let totalCap = 0;
-        
-        vehicles.forEach(v => {
-            if(v.isWeapon) wCount++;
-            if(v.wheels === 'F1') f1Count++;
-            if(v.wheels.includes('Benny')) bennyCount++;
-            const brand = v.manuf || "Unknown";
-            brandCounts[brand] = (brandCounts[brand] || 0) + 1;
-        });
-
-        const topBrands = Object.entries(brandCounts).sort((a,b) => b[1] - a[1]).slice(0, 5);
-        const topListEl = document.getElementById('topManufs');
-        topListEl.innerHTML = '';
-        topBrands.forEach(([brand, count]) => {
-            topListEl.innerHTML += `<li><span>${brand}</span><span>${count}</span></li>`;
-        });
-
-        document.getElementById('statWeapon').innerText = wCount;
-        document.getElementById('statF1').innerText = f1Count;
-        document.getElementById('statBenny').innerText = bennyCount;
-
-        const usedGarages = new Set(vehicles.map(v => v.loc));
-        usedGarages.forEach(loc => {
-            const cleanLoc = loc ? loc.replace(/\s\(\d+\)$/, "") : "";
-            const meta = GARAGE_META[cleanLoc] || GARAGE_META["DEFAULT_APT"];
-            totalCap += meta.cap || 10;
-        });
-        
-        const usagePct = totalCap > 0 ? Math.round((vehicles.length / totalCap) * 100) : 0;
-        document.getElementById('usageText').innerText = `${vehicles.length} / ${totalCap} (Approx)`;
-        document.getElementById('usageBar').style.width = `${Math.min(usagePct, 100)}%`;
-    };
-    
-    window.closeStats = function() { statModal.style.display = 'none'; };
-
-    function clearForm() {
-        manufSelect.value = "";
-        modelSelect.innerHTML = '<option value="" disabled selected>--</option>';
-        modelCustom.style.display = 'none'; modelCustom.value = "";
-        locSelect.value = "";
-        locCustom.style.display = 'none'; locCustom.value = "";
-        locNickname.value = "";
-        document.getElementById('inputFloor').value = "";
-        document.getElementById('inputSlot').value = "";
-        document.getElementById('inputWheels').value = "Stock";
-        document.getElementById('inputPlate').value = "Standard";
-        document.getElementById('inputNotes').value = "";
-        document.getElementById('inputWeaponized').checked = false;
-        floorGroup.style.display = 'none';
-    }
-
-    window.saveVehicle = function() {
-        const manuf = manufSelect.value;
-        let model = modelSelect.value;
-        if (model === "Custom") model = modelCustom.value; 
-        
-        let loc = locSelect.value;
-        if (loc === "Custom") loc = locCustom.value;
-
-        const floor = document.getElementById('inputFloor').value;
-        const slot = document.getElementById('inputSlot').value;
-        const wheels = document.getElementById('inputWheels').value;
-        const plate = document.getElementById('inputPlate').value;
-        const notes = document.getElementById('inputNotes').value;
-        const isWeapon = document.getElementById('inputWeaponized').checked;
-        const nick = locNickname.value;
-
-        if (!manuf || !model || !loc) {
-            alert('Please fill Make, Model & Garage.');
-            return;
-        }
-
-        const isDuplicate = vehicles.some(v => 
-            v.model === model && 
-            v.loc === loc && 
-            v.id !== editingId 
-        );
-
-        if (isDuplicate) {
-            if(!confirm(`⚠️ You already have a ${model} in ${loc}. Add anyway?`)) {
-                return; 
-            }
-        }
-
-        if (editingId) {
-            const index = vehicles.findIndex(v => v.id === editingId);
-            if (index !== -1) {
-                vehicles[index] = { ...vehicles[index], manuf, model, loc, floor, slot, wheels, plate, notes, isWeapon, locNickname: nick };
-            }
-        } else {
-            const newVehicle = {
-                id: Date.now(),
-                manuf, model, loc, floor, slot, wheels, plate, notes, isWeapon, locNickname: nick
-            };
-            vehicles.push(newVehicle);
-        }
-
-        saveToStorage();
-        closeModal();
-    };
-
-    window.deleteVehicle = function(id) {
-        if(confirm('Delete this vehicle?')) {
-            vehicles = vehicles.filter(v => v.id !== id);
-            saveToStorage();
-            closeModal();
-        }
-    };
-
-    window.editVehicle = function(id) {
-        const v = vehicles.find(v => v.id === id);
-        if(v) openModal(v);
-    };
-
-    window.downloadBackup = function() {
-        if(vehicles.length === 0) return alert("Nothing to backup.");
-        const date = new Date().toISOString().slice(0, 10);
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(vehicles));
-        const anchor = document.createElement('a');
-        anchor.href = dataStr;
-        anchor.download = `gta_garage_${date}.json`;
-        anchor.click();
-    };
-
-    window.restoreBackup = function(input) {
-        const file = input.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const imported = JSON.parse(e.target.result);
-                if (Array.isArray(imported)) {
-                    if(confirm(`Restore ${imported.length} vehicles?`)) {
-                        vehicles = imported;
-                        saveToStorage();
-                    }
-                } else alert("Invalid file.");
-            } catch (err) { alert("Error reading file."); }
+        const db = masterDB.find(d => d.model === model) || {};
+        const car = {
+            id: editingId || Date.now(), manuf, model, loc,
+            floor: typedFloor,
+            slot: document.getElementById('inSlot').value,
+            isWeapon: document.getElementById('inWep').checked,
+            wheels: document.getElementById('inWheels').value,
+            plate: document.getElementById('inPlate').value,
+            notes: document.getElementById('inNotes').value,
+            spawn: db.spawn||"", class: db.class||"", drive: db.drive||"", seats: db.seats||"",
+            locNickname: ""
         };
-        reader.readAsText(file);
-        input.value = '';
-    };
+        if(editingId) vehicles[vehicles.findIndex(v => v.id === editingId)] = car;
+        else vehicles.push(car);
+        saveGarage(); closeModal('vehicleModal');
+    }
 
-    window.factoryReset = function() {
-        if(confirm("⚠️ This will WIPE ALL DATA. Are you sure?")) {
-            localStorage.removeItem(STORAGE_KEY);
-            localStorage.removeItem('gta_last_sale');
-            localStorage.removeItem('gta_last_sold_name');
-            location.reload();
+    function saveGarage() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles));
+        localStorage.setItem('gta_last_sale', lastSell);
+        localStorage.setItem('gta_last_sold_name', lastSoldName);
+        render(); updateTimerLogic();
+    }
+
+    function openStats() {
+        openModal('statsModal');
+        document.getElementById('stTotal').innerText = vehicles.length;
+        document.getElementById('stWep').innerText = vehicles.filter(v=>v.isWeapon).length || 0;
+        document.getElementById('stF1').innerText = vehicles.filter(v=>v.wheels==='F1').length || 0;
+        document.getElementById('stBenny').innerText = vehicles.filter(v=>v.wheels?.includes('Benny')).length || 0;
+        
+        const bCounts = {}; vehicles.forEach(v => { const b = v.manuf || 'Unk'; bCounts[b] = (bCounts[b]||0)+1; });
+        document.getElementById('stBrands').innerHTML = Object.entries(bCounts).sort((x,y)=>y[1]-x[1]).slice(0,5).map(x=>`<li>${x[0]}: ${x[1]}</li>`).join('');
+        
+        let tCap = 0;
+        [...new Set(vehicles.map(v=>v.loc))].forEach(l => {
+            const cl = Object.keys(CAPACITIES).find(m => l.includes(m)) || "DEFAULT";
+            tCap += CAPACITIES[cl];
+        });
+        document.getElementById('usageTxt').innerText = `${vehicles.length} / ${tCap}`;
+        document.getElementById('stEmptySlots').innerText = Math.max(0, tCap - vehicles.length);
+        document.getElementById('usageBar').style.width = Math.min((vehicles.length/(tCap||1))*100, 100) + "%";
+    }
+
+    function updateTimerLogic() {
+        const diff = Date.now() - lastSell, cd = 18 * 3600000, btn = document.getElementById('timerBtn'), disp = document.getElementById('timerBigDisplay'), next = document.getElementById('dashNext');
+        document.getElementById('dashLast').innerText = lastSoldName;
+        if(diff < cd) {
+            btn.innerHTML = '⏳'; btn.classList.add('active');
+            const rem = cd - diff, h = Math.floor(rem/3600000), m = Math.floor((rem%3600000)/60000), s = Math.floor((rem%60000)/1000);
+            if(disp) { disp.innerText = `${h}h ${m}m ${s}s`; disp.style.color = "var(--timer)"; next.innerText = "Ready at: " + new Date(lastSell + cd).toLocaleTimeString(); }
+        } else {
+            btn.innerHTML = '💲'; btn.classList.remove('active');
+            if(disp) { disp.innerText = "READY"; disp.style.color = "var(--sell)"; next.innerText = "Sale window is open."; }
         }
-    };
+    }
 
-    window.onclick = function(e) { 
-        if(e.target == modal) closeModal(); 
-        if(e.target == clModal) closeChangelog();
-        if(e.target == statModal) closeStats();
-        if(e.target == timerModal) closeTimerModal();
-        if(e.target == moveModal) closeMoveModal();
-        if(e.target == swapAllModal) closeSwapAllModal();
-        if(e.target == lightbox) closeLightbox();
+    // --- UTILS & FEEDBACK ---
+    function showSuccess(title, msg) {
+        document.getElementById('successTitle').innerText = title;
+        document.getElementById('successMsg').innerHTML = msg;
+        openModal('successModal');
+    }
+
+    function clearSearch() { document.getElementById('searchInput').value = ''; render(); }
+    
+    function populateSmartDropdowns() {
+        const manufList = document.getElementById('manufDatalist');
+        const locList = document.getElementById('locDatalist');
+        
+        const uniqueBrands = [...new Set(masterDB.map(c => c.manuf))].sort();
+        manufList.innerHTML = uniqueBrands.map(b => `<option value="${b}">`).join('');
+        
+        // FIXED: Static Garage Data
+        let locOpts = ""; GARAGE_DATA.forEach(g => { g.items.forEach(i => locOpts += `<option value="${i}">`); });
+        locList.innerHTML = locOpts;
+        
+        const moveSel = document.getElementById('moveDest'), swapFrom = document.getElementById('saFrom'), swapTo = document.getElementById('saTo');
+        let optGroups = ""; GARAGE_DATA.forEach(g => { optGroups += `<optgroup label="${g.grp}">` + g.items.map(i => `<option value="${i}">${i}</option>`).join('') + `</optgroup>`; });
+        
+        // FIXED: Ensure these always populate
+        if(moveSel) moveSel.innerHTML = optGroups;
+        if(swapFrom) swapFrom.innerHTML = optGroups;
+        if(swapTo) swapTo.innerHTML = optGroups;
+    }
+
+    function updateModelDD(sel) {
+        const brand = document.getElementById('inManuf').value;
+        const dl = document.getElementById('modelDatalist');
+        dl.innerHTML = "";
+        masterDB.filter(c => c.manuf === brand).forEach(c => dl.innerHTML += `<option value="${c.model}">`);
+    }
+
+    function handleLocChange() {
+        const v = document.getElementById('inLoc').value;
+        const clean = Object.keys(CAPACITIES).find(m => v.includes(m)) || "DEFAULT";
+        const dl = document.getElementById('floorDatalist'); dl.innerHTML = "";
+        const key = Object.keys(FLOOR_MAP).find(k => v.includes(k));
+        if (key) FLOOR_MAP[key].forEach(f => dl.innerHTML += `<option value="${f}">`);
+        document.getElementById('floorRow').style.display = (key || CAPACITIES[clean] >= 20) ? 'flex' : 'none';
+        document.getElementById('inLocCustom').style.display = (v === 'Custom') ? 'block' : 'none';
+    }
+
+    function sellVehicle() { if(confirm("Sell?")) { lastSell=Date.now(); lastSoldName=vehicles.find(c=>c.id===editingId).model; vehicles=vehicles.filter(v=>v.id!==editingId); saveGarage(); closeModal('vehicleModal'); } }
+    function deleteVehicle() { if(confirm("Delete?")) { vehicles=vehicles.filter(v=>v.id!==editingId); saveGarage(); closeModal('vehicleModal'); } }
+    function startMove() { movingId = editingId; document.getElementById('moveCarName').innerText = vehicles.find(v=>v.id===editingId).model; openModal('moveModal'); closeModal('vehicleModal'); }
+    function checkMoveCap() { const d = document.getElementById('moveDest').value, cl = Object.keys(CAPACITIES).find(m => d.includes(m)) || "DEFAULT"; if(vehicles.filter(v=>v.loc===d).length >= CAPACITIES[cl]) { document.getElementById('moveSwapUI').style.display='block'; document.getElementById('moveSwapTarget').innerHTML = vehicles.filter(v=>v.loc===d).map(v=>`<option value="${v.id}">${v.model}</option>`).join(''); } else document.getElementById('moveSwapUI').style.display='none'; }
+    
+    function commitMove() { 
+        if(!confirm("Confirm Move?")) return;
+        const d = document.getElementById('moveDest').value, carA = vehicles.find(v=>v.id===movingId);
+        let msg = `Moved <strong>${carA.model}</strong> to ${d}.`;
+        if(document.getElementById('moveSwapUI').style.display!=='none') { 
+            const carB = vehicles.find(v=>v.id==document.getElementById('moveSwapTarget').value); 
+            const tmp = carA.loc; carA.loc = d; carB.loc = tmp; 
+            msg = `Swapped <strong>${carA.model}</strong> with <strong>${carB.model}</strong>.`;
+        } else carA.loc = d; 
+        saveGarage(); closeMoveModal(); showSuccess("Vehicle Moved", msg);
+    }
+
+    function performSwapAll() {
+        const f = document.getElementById('saFrom').value, t = document.getElementById('saTo').value;
+        if(!f || !t || f === t) return alert("Select different garages");
+        if(confirm(`Swap contents?`)) {
+            let countA = 0, countB = 0;
+            vehicles.forEach(v => { if(v.loc === f) { v.loc = "SW_TMP"; countA++; } });
+            vehicles.forEach(v => { if(v.loc === t) { v.loc = f; countB++; } });
+            vehicles.forEach(v => { if(v.loc === "SW_TMP") v.loc = t; });
+            saveGarage(); closeModal('swapAllModal');
+            showSuccess("Garage Swap Complete", `Moved ${countA} vehicles to ${t}<br>Moved ${countB} vehicles to ${f}`);
+        }
+    }
+
+    function runMigration() { 
+        if(!confirm("Start Migration?")) return;
+        let c=0, f=0; const log = document.getElementById('migLog'); 
+        vehicles = vehicles.map(v => { 
+            const m = masterDB.find(db => db.model.toLowerCase() === v.model.toLowerCase()); 
+            if(m && !v.spawn) { c++; return {...v, spawn: m.spawn, class: m.class, drive: m.drive, seats: m.seats}; } 
+            if(!m) f++;
+            return v; 
+        }); 
+        saveGarage(); 
+        if(f > 0) log.innerHTML += `<div style='color:#e74c3c'>${f} vehicles failed to match.</div>`;
+        log.innerHTML += `<br>Updated ${c} cars successfully.`; 
     }
     
-    // Ensure app starts after DOM load
-    document.addEventListener('DOMContentLoaded', initApp);
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function closeMoveModal() { closeModal('moveModal'); }
+    
+    function openAddModal() { 
+        editingId = null; 
+        document.getElementById('modalTitle').innerText = "Add Vehicle";
+        document.getElementById('editActions').style.display = 'none';
+        
+        // Clear all fields
+        document.getElementById('inManuf').value = "";
+        document.getElementById('inModel').value = "";
+        document.getElementById('inLoc').value = "";
+        document.getElementById('inFloor').value = "";
+        document.getElementById('inSlot').value = "";
+        document.getElementById('inWep').checked = false;
+        document.getElementById('inWheels').value = "Stock";
+        document.getElementById('inPlate').value = "Standard";
+        document.getElementById('inNotes').value = "";
+        document.getElementById('inModelCustom').style.display = 'none';
+        document.getElementById('inLocCustom').style.display = 'none';
+        
+        handleLocChange();
+        openModal('vehicleModal'); 
+    }
+    
+    function openTimerModal() { openModal('timerModal'); updateTimerLogic(); if(timerInt) clearInterval(timerInt); timerInt=setInterval(updateTimerLogic,1000); }
+    function closeTimerModal() { closeModal('timerModal'); if(timerInt) clearInterval(timerInt); }
+    function openSwapAllModal() { openModal('swapAllModal'); }
+    function openLb(s) { document.getElementById('lbImg').src=s; openModal('lightbox'); }
+    function downloadBackup() { const b=new Blob([JSON.stringify(vehicles)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`gta_garage.json`; a.click(); }
+    function restoreBackup(i) { const f=i.files[0]; if(!f) return; const r=new FileReader(); r.onload=e=>{ vehicles=JSON.parse(e.target.result); saveGarage(); location.reload(); }; r.readAsText(f); }
+    function factoryReset() { if(confirm("Wipe all data?")) { localStorage.clear(); location.reload(); } }
+    function handleImgError(i, s) { if(!i.retry) { i.retry=1; i.src=`${BASE_URL}vehicles/${s.charAt(0).toUpperCase()+s.slice(1).toLowerCase()}.png`; } else { i.style.display='none'; i.nextElementSibling.style.display='block'; } }
+    window.onclick = e => { if(e.target.className === 'modal') e.target.style.display = 'none'; }
+    function checkCustomModel() { document.getElementById('inModelCustom').style.display = document.getElementById('inModel').value==='Custom'?'block':'none'; }
 </script>
 
 </body>
