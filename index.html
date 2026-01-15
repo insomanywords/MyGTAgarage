@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v35.3</title>
+    <title>My GTA Garage v35.5</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -242,7 +242,7 @@
 <div id="vehicle-list"></div>
 
 <footer>
-    <span>v35.3</span> | 
+    <span>v35.5</span> | 
     <a onclick="openModal('changelogModal')">Changelog</a> | 
     <a onclick="factoryReset()" style="color: #ef4444">Reset</a>
 </footer>
@@ -379,7 +379,7 @@
 <div id="swapAllModal" class="modal"><div class="modal-box"><div class="modal-title">Swap Entire Garage</div><div class="form-group"><span class="label">From</span><select id="saFrom" style="width:100%"></select></div><div style="text-align:center; padding:10px;"><i class="fas fa-arrow-down" style="color:var(--accent); font-size:1.5rem;"></i></div><div class="form-group"><span class="label">To</span><select id="saTo" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('swapAllModal')">Cancel</button><button class="btn-pri" onclick="performSwapAll()">Confirm Swap</button></div></div></div>
 <div id="moveModal" class="modal"><div class="modal-box"><div class="modal-title">Move Vehicle</div><p id="moveCarName" style="color:var(--accent); font-weight:bold; margin-bottom:20px; font-size:1.1rem;"></p><div class="form-group"><span class="label">Destination</span><select id="moveDest" style="width:100%" onchange="checkMoveCap()"></select></div><div id="moveSwapUI" style="display:none; background:rgba(245,158,11,0.1); padding:15px; border-radius:10px; border:1px solid var(--f1); margin-bottom:15px;"><span class="label" style="color:var(--f1)">Garage Full! Select car to swap with:</span><select id="moveSwapTarget" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('moveModal')">Cancel</button><button class="btn-pri" onclick="commitMove()">Confirm Move</button></div></div></div>
 <div id="migrationModal" class="modal"><div class="modal-box"><div class="modal-title" style="color:var(--accent)">Data Migration</div><p style="color:#ccc; font-size:0.9rem;">Syncing vehicle data with cloud database (Images & Drive stats).</p><div id="migLog" style="height:120px; overflow:auto; background:#000; padding:10px; font-family:monospace; color:var(--sell); border-radius:8px;"></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('migrationModal')">Cancel</button><button class="btn-pri" onclick="runMigration()">Run Update</button></div></div></div>
-<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v35.3 (Current)</strong><br>• Floors now closed by default.<br>• Sticky Scroll Fix.<br>• Full Screen Mobile Scroll.<br>• Native Dropdowns.</p><p><strong>v35.0-35.2</strong><br>• Floor Grouping, Nicknames, Duplicate Warnings.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
+<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v35.5 (Current)</strong><br>• Research-based Floor Capacities (Office 6/7/7, Club 20, Arena 9).<br>• Corrected Floor Logic.</p><p><strong>v35.0-35.4</strong><br>• Sticky Scroll, Collapsible Floors, Nicknames.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
 <div id="lightbox" onclick="this.style.display='none'"><img id="lbImg"></div>
 
 <script>
@@ -414,19 +414,34 @@
     };
 
     const FLOOR_MAP = {
-        "Vinewood Club": ["Main Floor"],
+        "Vinewood Club": ["Floor 1", "Floor 2", "Floor 3", "Floor 4", "Floor 5"],
         "Eclipse Blvd": ["Floor 1", "Floor 2", "Floor 3", "Floor 4", "Floor 5"],
-        "Office": ["Floor 1", "Floor 2", "Floor 3"],
+        "Office": ["Garage A", "Garage B", "Garage C"],
         "Nightclub": ["Service Entrance", "Basement 2", "Basement 3", "Basement 4"],
-        "Arena Workshop": ["Workshop Level", "Basement 1", "Basement 2"]
+        "Arena Workshop": ["Workshop Level", "Basement 1", "Basement 2"],
+        "Richman Villa": ["Basement 1", "Basement 2"],
+        "Vinewood Residence": ["Basement 1", "Basement 2"],
+        "Tongva Estate": ["Basement 1", "Basement 2"]
     };
 
-    // Helper: Determine per-floor capacity
+    // Helper: Determine per-floor capacity (RESEARCHED v35.5)
     function getFloorCap(loc, floor) {
+        // Office Logic
+        if (loc.includes("Office")) {
+            if (floor === "Garage A") return 6;
+            if (floor === "Garage B") return 7;
+            if (floor === "Garage C") return 7;
+        }
+        // Vinewood Club Logic
+        if (loc.includes("Vinewood Club")) return 20;
+        // Arena Logic
+        if (loc.includes("Arena")) return 9;
+        
+        // Existing Logic
         if (loc.includes("Nightclub") && floor === "Service Entrance") return 1;
         if (loc.includes("Salvage") || loc.includes("Bail")) return 2;
         if (loc.includes("Facility")) return 7;
-        return 10; // Default for apartments/office levels
+        return 10; // Default for apartments
     }
 
     // --- INITIALIZATION ---
@@ -785,7 +800,6 @@
         document.getElementById('modalTitle').innerText = "Add Vehicle";
         document.getElementById('editActions').style.display = 'none';
         
-        // Clear all fields
         document.getElementById('inManuf').value = "";
         document.getElementById('inModel').innerHTML = ""; // Reset models
         document.getElementById('inLoc').value = "";
