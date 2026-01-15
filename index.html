@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v34.9.3</title>
+    <title>My GTA Garage v34.9.5</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -28,23 +28,30 @@
         
         body {
             font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text);
-            margin: 0; padding: 0; display: flex; flex-direction: column; 
-            height: 100dvh; /* FIXED: Dynamic Height for Android */
-            overflow: hidden;
+            margin: 0; padding: 0; 
+            min-height: 100vh;
+            overflow-y: auto; 
+            display: block; 
+        }
+
+        /* STICKY WRAPPER (FIX v34.9.5) */
+        .sticky-top-wrapper {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            width: 100%;
         }
 
         /* HEADER */
         header {
             background-color: #000; padding: 12px 16px; border-bottom: 2px solid var(--accent);
-            display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; z-index: 50; gap: 10px;
+            display: flex; justify-content: space-between; align-items: center; 
+            gap: 10px;
+            /* Sticky removed here, moved to wrapper */
         }
         
         .header-info { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-        
-        /* Desktop Title */
         h1 { margin: 0; font-size: 1.1rem; text-transform: uppercase; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
-        /* Mobile Logo (Hidden by default) */
         .header-logo-img { width: 32px; height: 32px; display: none; }
 
         .total-badge { 
@@ -55,16 +62,13 @@
 
         .header-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
-        /* Header Responsive Logic */
-        @media (max-width: 450px) { 
-            h1 { display: none; } 
-            .header-logo-img { display: block; }
-        }
+        @media (max-width: 450px) { h1 { display: none; } .header-logo-img { display: block; } }
 
         /* CONTROLS */
         .controls {
             padding: 10px; background-color: var(--head); border-bottom: 1px solid var(--border);
-            display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;
+            display: flex; flex-direction: column; gap: 10px;
+            /* Sticky removed here, moved to wrapper */
         }
         
         .search-wrapper { position: relative; width: 100%; }
@@ -84,8 +88,7 @@
 
         input, select {
             padding: 10px 12px; border-radius: var(--radius); border: 1px solid #333;
-            background: #252525; color: white; font-size: 16px; outline: none; transition: border-color 0.2s; height: 44px;
-            width: 100%;
+            background: #252525; color: white; font-size: 16px; outline: none; transition: border-color 0.2s; height: 44px; width: 100%;
         }
         input:focus, select:focus { border-color: var(--accent); }
 
@@ -96,7 +99,11 @@
         .timer-btn.active { border-color: var(--timer); color: var(--timer); }
 
         /* LIST */
-        #vehicle-list { flex-grow: 1; overflow-y: auto; padding: 10px; scroll-behavior: smooth; padding-bottom: 80px; }
+        #vehicle-list { 
+            padding: 10px; 
+            padding-bottom: 80px; /* Space for fixed footer */
+            overflow: visible; 
+        }
         .vehicle-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 8px; }
         @media (min-width: 600px) { .vehicle-grid { grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); } }
         .vehicle-grid.hidden { display: none !important; }
@@ -104,11 +111,8 @@
         /* GROUPS */
         .group-header {
             background: #252525; padding: 12px 15px; border-radius: var(--radius); margin-top: 15px;
-            font-weight: 700; color: var(--accent); 
-            display: flex; flex-wrap: wrap; 
-            justify-content: space-between; align-items: center;
-            cursor: pointer; border: 1px solid #333; position: relative; overflow: hidden;
-            gap: 10px;
+            font-weight: 700; color: var(--accent); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+            cursor: pointer; border: 1px solid #333; position: relative; overflow: hidden; gap: 10px;
         }
         .group-name-wrap { display: flex; align-items: center; flex: 1; min-width: 50%; }
         .group-header.collapsed .arrow { transform: rotate(-90deg); }
@@ -131,7 +135,6 @@
         .badge.f { background: var(--f1); border-color: var(--f1); color: #000; }
         .badge.b { background: var(--benny); border-color: var(--benny); }
         
-        /* Colored Plates */
         .badge.y { background: var(--pl-yankton); color: #000; border-color: var(--pl-yankton); }
         .badge.l { background: var(--pl-liberty); border-color: var(--pl-liberty); }
         .badge.p { background: var(--pl-panic); border-color: var(--pl-panic); }
@@ -144,7 +147,6 @@
         .card-top { margin-bottom: 4px; padding-right: 75px; } 
         .card-manuf { font-size: 0.65rem; color: var(--accent); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
         .card-model { font-size: 1.05rem; font-weight: 700; color: #fff; line-height: 1.2; white-space: normal; word-wrap: break-word; }
-        
         .card-chips { display: flex; gap: 5px; margin-bottom: 6px; flex-wrap: wrap; }
         .chip { background: #252525; color: #ccc; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; display: flex; align-items: center; gap: 4px; border: 1px solid #333; }
         
@@ -152,6 +154,8 @@
         .card-loc i { color: var(--accent); font-size: 0.7rem; align-self: flex-start; margin-top: 2px; }
         .loc-text { white-space: normal; line-height: 1.3; display: flex; flex-direction: column; }
         .loc-floor { font-size: 0.65rem; color: #777; margin-top: 1px; }
+
+        .card-notes { font-size: 0.75rem; color: #999; font-style: italic; margin-top: 6px; border-top: 1px solid #333; padding-top: 4px; white-space: normal; }
 
         .card-actions-top { position: absolute; top: 0; right: 0; display: flex; height: 45px; align-items: center; padding-right: 5px; z-index: 5; }
         .action-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: #444; font-size: 0.9rem; cursor: pointer; transition: 0.2s; border: none; background: transparent; }
@@ -162,19 +166,15 @@
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; align-items: center; justify-content: center; padding: 15px; }
         .modal-box { background: #1e1e1e; width: 100%; max-width: 500px; max-height: 95vh; overflow-y: auto; border-radius: 12px; padding: 20px; border: 1px solid #333; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
         .modal-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 20px; color: #fff; border-bottom: 1px solid #333; padding-bottom: 12px; }
-        
         .modal-row { display: flex; gap: 12px; margin-bottom: 15px; flex-direction: column; }
         @media(min-width: 500px) { .modal-row { flex-direction: row; } }
         .modal-row > div { flex: 1; }
-        
         .form-section { background: #252525; padding: 15px; border-radius: 10px; border: 1px solid #333; margin-bottom: 15px; }
         .form-group { margin-bottom: 15px; width: 100%; }
         .label { display: block; color: var(--text-dim); font-size: 0.75rem; margin-bottom: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
         .modal-actions { display: flex; gap: 10px; margin-top: 25px; }
         .modal-actions button { flex: 1; }
-
         .wep-toggle { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #333; border-radius: 8px; cursor: pointer; border: 1px solid #444; margin-bottom: 15px; transition: 0.2s; }
-        .wep-toggle:hover { background: #3a3a3a; }
         .wep-toggle input { width: 20px; height: 20px; accent-color: var(--wep); }
 
         /* DASHBOARD */
@@ -187,7 +187,11 @@
         .usage-container { background: #111; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 5px; }
         .usage-bar { height: 100%; background: var(--accent); width: 0%; transition: 0.5s; }
 
-        footer { background: #111; padding: 15px; text-align: center; font-size: 0.8rem; color: #555; border-top: 1px solid #222; flex-shrink: 0; }
+        footer { 
+            background: #111; padding: 15px; text-align: center; 
+            font-size: 0.8rem; color: #555; border-top: 1px solid #222; 
+            position: fixed; bottom: 0; width: 100%; z-index: 50; 
+        }
         footer a { color: var(--accent); text-decoration: none; margin: 0 10px; font-weight: bold; cursor: pointer; }
         
         #lightbox { display: none; position: fixed; inset: 0; background: #000; z-index: 2000; align-items: center; justify-content: center; }
@@ -196,44 +200,46 @@
 </head>
 <body>
 
-<header>
-    <div class="header-info">
-        <img src="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>" class="header-logo-img">
-        <h1>My GTA Garage</h1>
-        <div class="total-badge"><span class="total-label">Owned: </span><span id="headerCount">0</span></div>
-    </div>
-    <div class="header-actions">
-        <button id="timerBtn" class="timer-btn" onclick="openTimerModal()">💲</button>
-        <button class="btn-sec" style="width:44px" onclick="openStats()">📊</button>
-        <button class="btn-sec" style="width:44px" onclick="downloadBackup()">💾</button>
-        <button class="btn-sec" style="width:44px" onclick="document.getElementById('restoreInput').click()">📂</button>
-        <input type="file" id="restoreInput" style="display:none" onchange="restoreBackup(this)">
-    </div>
-</header>
+<div class="sticky-top-wrapper">
+    <header>
+        <div class="header-info">
+            <img src="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>" class="header-logo-img">
+            <h1>My GTA Garage</h1>
+            <div class="total-badge"><span class="total-label">Owned: </span><span id="headerCount">0</span></div>
+        </div>
+        <div class="header-actions">
+            <button id="timerBtn" class="timer-btn" onclick="openTimerModal()">💲</button>
+            <button class="btn-sec" style="width:44px" onclick="openStats()">📊</button>
+            <button class="btn-sec" style="width:44px" onclick="downloadBackup()">💾</button>
+            <button class="btn-sec" style="width:44px" onclick="document.getElementById('restoreInput').click()">📂</button>
+            <input type="file" id="restoreInput" style="display:none" onchange="restoreBackup(this)">
+        </div>
+    </header>
 
-<div class="controls">
-    <div class="search-wrapper">
-        <i class="fas fa-search"></i>
-        <input type="text" id="searchInput" placeholder="Search collection..." onkeyup="render()">
-        <div class="clear-search" id="clearSearch" onclick="clearSearch()">✕</div>
-    </div>
-    <div class="filter-row">
-        <select id="viewMode" onchange="render()">
-            <option value="garage">Group: Garage</option>
-            <option value="manuf">Group: Brand</option>
-            <option value="class">Group: Class</option>
-            <option value="drive">Group: Drive</option>
-            <option value="all">View All</option>
-        </select>
-        <button class="btn-sec" onclick="openSwapAllModal()"><i class="fas fa-exchange-alt"></i></button>
-        <button class="btn-pri" onclick="openAddModal()">+ Add</button>
+    <div class="controls">
+        <div class="search-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchInput" placeholder="Search collection..." onkeyup="render()">
+            <div class="clear-search" id="clearSearch" onclick="clearSearch()">✕</div>
+        </div>
+        <div class="filter-row">
+            <select id="viewMode" onchange="render()">
+                <option value="garage">Group: Garage</option>
+                <option value="manuf">Group: Brand</option>
+                <option value="class">Group: Class</option>
+                <option value="drive">Group: Drive</option>
+                <option value="all">View All</option>
+            </select>
+            <button class="btn-sec" onclick="openSwapAllModal()"><i class="fas fa-exchange-alt"></i></button>
+            <button class="btn-pri" onclick="openAddModal()">+ Add</button>
+        </div>
     </div>
 </div>
 
 <div id="vehicle-list"></div>
 
 <footer>
-    <span>v34.9.3</span> | 
+    <span>v34.9.5</span> | 
     <a onclick="openModal('changelogModal')">Changelog</a> | 
     <a onclick="factoryReset()" style="color: #ef4444">Reset</a>
 </footer>
@@ -356,7 +362,7 @@
 <div id="swapAllModal" class="modal"><div class="modal-box"><div class="modal-title">Swap Entire Garage</div><div class="form-group"><span class="label">From</span><select id="saFrom" style="width:100%"></select></div><div style="text-align:center; padding:10px;"><i class="fas fa-arrow-down" style="color:var(--accent); font-size:1.5rem;"></i></div><div class="form-group"><span class="label">To</span><select id="saTo" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('swapAllModal')">Cancel</button><button class="btn-pri" onclick="performSwapAll()">Confirm Swap</button></div></div></div>
 <div id="moveModal" class="modal"><div class="modal-box"><div class="modal-title">Move Vehicle</div><p id="moveCarName" style="color:var(--accent); font-weight:bold; margin-bottom:20px; font-size:1.1rem;"></p><div class="form-group"><span class="label">Destination</span><select id="moveDest" style="width:100%" onchange="checkMoveCap()"></select></div><div id="moveSwapUI" style="display:none; background:rgba(245,158,11,0.1); padding:15px; border-radius:10px; border:1px solid var(--f1); margin-bottom:15px;"><span class="label" style="color:var(--f1)">Garage Full! Select car to swap with:</span><select id="moveSwapTarget" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('moveModal')">Cancel</button><button class="btn-pri" onclick="commitMove()">Confirm Move</button></div></div></div>
 <div id="migrationModal" class="modal"><div class="modal-box"><div class="modal-title" style="color:var(--accent)">Data Migration</div><p style="color:#ccc; font-size:0.9rem;">Syncing vehicle data with cloud database (Images & Drive stats).</p><div id="migLog" style="height:120px; overflow:auto; background:#000; padding:10px; font-family:monospace; color:var(--sell); border-radius:8px;"></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('migrationModal')">Cancel</button><button class="btn-pri" onclick="runMigration()">Run Update</button></div></div></div>
-<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v34.9.3 (Current)</strong><br>• Android Keyboard Optimization (Viewport).<br>• Header Logo for Mobile.<br>• Reverted to Native Dropdowns for stability.<br>• Migration Failure Log.</p><p><strong>v34.9.1</strong><br>• Fixed Class Names.<br>• Added Group by Class/Drive.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
+<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v34.9.5 (Current)</strong><br>• Sticky Scroll Fix: One unified container.<br>• Full Screen Mobile Scroll.<br>• Mobile Header Logo.</p><p><strong>v34.9.x</strong><br>• UI Optimizations, Native Dropdowns.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
 <div id="lightbox" onclick="this.style.display='none'"><img id="lbImg"></div>
 
 <script>
@@ -406,7 +412,7 @@
             const res = await fetch(DB_URL);
             if(res.ok) {
                 masterDB = await res.json();
-                populateDropdowns(); // Re-populate to add Cloud Brands
+                populateDropdowns(); 
                 if(vehicles.length > 0 && !vehicles[0].spawn) openModal('migrationModal');
             }
         } catch(e) { console.log("Offline mode active."); }
@@ -501,6 +507,12 @@
 
         const displayClass = (db.class || v.class || '-').replace(/_/g, ' ');
 
+        // ADDED NOTES SECTION
+        let notesHtml = "";
+        if (v.notes && v.notes.trim() !== "") {
+            notesHtml = `<div class="card-notes">${v.notes}</div>`;
+        }
+
         div.innerHTML = `
             <div class="card-img-box" onclick="openLb('${img}')"><img class="card-img" src="${img}" onerror="handleImgError(this, '${spawn}')"><div class="card-fallback" style="display:none"><i class="fas fa-car"></i></div><div class="card-badges">${badges}</div></div>
             <div class="card-info">
@@ -520,6 +532,7 @@
                         ${v.floor ? `<span class="loc-floor">${v.floor}</span>` : ''}
                     </div>
                 </div>
+                ${notesHtml}
             </div>
             <div class="card-actions-top">
                 ${linkHtml}
