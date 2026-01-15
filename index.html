@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v35.5</title>
+    <title>My GTA Garage v36.7</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -17,6 +17,7 @@
             --bg: #121212; --card: #1e1e1e; --head: #181818;
             --text: #ffffff; --text-dim: #a0a0a0; --accent: #9b59b6;
             --wep: #ef4444; --f1: #f59e0b; --benny: #3b82f6; --sell: #22c55e; --timer: #f97316;
+            --fav: #e91e63;
             --border: #333; --radius: 8px;
             
             /* Plates */
@@ -32,6 +33,7 @@
             min-height: 100vh;
             overflow-y: auto; 
             display: block; 
+            overscroll-behavior-y: none;
         }
 
         /* STICKY WRAPPER */
@@ -127,8 +129,9 @@
             background: var(--card); border-radius: 12px; overflow: hidden;
             display: flex; min-height: 115px; height: auto;
             border: 1px solid #2a2a2a; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            cursor: pointer; 
         }
-        .card-img-box { width: 130px; background: #000; flex-shrink: 0; position: relative; display: flex; align-items: center; justify-content: center; cursor: pointer; border-right: 1px solid #222; align-self: stretch; }
+        .card-img-box { width: 130px; background: #000; flex-shrink: 0; position: relative; display: flex; align-items: center; justify-content: center; cursor: zoom-in; border-right: 1px solid #222; align-self: stretch; }
         .card-img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
         
         .card-badges { position: absolute; bottom: 4px; left: 4px; display: flex; gap: 3px; flex-wrap: wrap; z-index: 2; }
@@ -136,6 +139,7 @@
         .badge.w { background: var(--wep); border-color: var(--wep); }
         .badge.f { background: var(--f1); border-color: var(--f1); color: #000; }
         .badge.b { background: var(--benny); border-color: var(--benny); }
+        .badge.fav { background: var(--fav); border-color: var(--fav); color: #fff; padding: 2px 6px; } 
         
         .badge.y { background: var(--pl-yankton); color: #000; border-color: var(--pl-yankton); }
         .badge.l { background: var(--pl-liberty); border-color: var(--pl-liberty); }
@@ -164,6 +168,16 @@
         .action-btn:hover { color: #fff; background: rgba(255,255,255,0.05); border-radius: 4px; }
         .gtacars-link:hover { color: var(--benny); }
 
+        /* DETAIL CARD */
+        .detail-img-box { width: 100%; height: 250px; background: #000; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 8px; margin-bottom: 15px; border: 1px solid #333; }
+        .detail-img { width: 100%; height: 100%; object-fit: contain; }
+        .detail-title { font-size: 1.8rem; font-weight: 800; color: #fff; line-height: 1.2; margin-bottom: 5px; }
+        .detail-manuf { color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 0.9rem; margin-bottom: 15px; }
+        .detail-row { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .detail-chip { background: #252525; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; color: #ddd; border: 1px solid #333; display: flex; align-items: center; gap: 6px; }
+        .detail-loc { background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #333; margin-bottom: 15px; }
+        .detail-notes { background: rgba(233, 30, 99, 0.1); border-left: 3px solid var(--fav); padding: 15px; border-radius: 4px; color: #ddd; font-style: italic; line-height: 1.5; margin-bottom: 15px; }
+
         /* MODALS */
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; align-items: center; justify-content: center; padding: 15px; }
         .modal-box { background: #1e1e1e; width: 100%; max-width: 500px; max-height: 95vh; overflow-y: auto; border-radius: 12px; padding: 20px; border: 1px solid #333; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
@@ -179,6 +193,9 @@
         .wep-toggle { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #333; border-radius: 8px; cursor: pointer; border: 1px solid #444; margin-bottom: 15px; transition: 0.2s; }
         .wep-toggle input { width: 20px; height: 20px; accent-color: var(--wep); }
         .nick-btn { background: #2c2c2c; color: var(--f1); border: 1px solid #444; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; margin-left: auto; }
+
+        /* Z-INDEX FIX v36.5: Alerts over Vehicle Modal */
+        #alertModal, #confirmModal { z-index: 1100; }
 
         /* DASHBOARD */
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
@@ -231,6 +248,7 @@
                 <option value="manuf">Group: Brand</option>
                 <option value="class">Group: Class</option>
                 <option value="drive">Group: Drive</option>
+                <option value="fav">Favorites Only</option>
                 <option value="all">View All</option>
             </select>
             <button class="btn-sec" onclick="openSwapAllModal()"><i class="fas fa-exchange-alt"></i></button>
@@ -242,10 +260,38 @@
 <div id="vehicle-list"></div>
 
 <footer>
-    <span>v35.5</span> | 
+    <span>v36.7</span> | 
     <a onclick="openModal('changelogModal')">Changelog</a> | 
     <a onclick="factoryReset()" style="color: #ef4444">Reset</a>
 </footer>
+
+<div id="alertModal" class="modal">
+    <div class="modal-box" style="text-align:center;">
+        <div style="font-size:2rem; margin-bottom:10px;">⚠️</div>
+        <h2 id="alertTitle" style="color:#fff; margin:0 0 10px 0;">Alert</h2>
+        <p id="alertMsg" style="color:#ccc; font-size:0.95rem; line-height:1.5; margin-bottom:20px;"></p>
+        <button class="btn-pri" style="width:100%" onclick="closeModal('alertModal')">OK</button>
+    </div>
+</div>
+
+<div id="confirmModal" class="modal">
+    <div class="modal-box" style="text-align:center;">
+        <div style="font-size:2rem; margin-bottom:10px;">❓</div>
+        <h2 id="confTitle" style="color:#fff; margin:0 0 10px 0;">Confirm</h2>
+        <p id="confMsg" style="color:#ccc; font-size:0.95rem; line-height:1.5; margin-bottom:20px;"></p>
+        <div class="modal-actions">
+            <button class="btn-sec" onclick="closeModal('confirmModal')">Cancel</button>
+            <button class="btn-pri" id="confYesBtn">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<div id="detailModal" class="modal">
+    <div class="modal-box">
+        <div id="detailContent"></div>
+        <button class="btn-sec" style="width:100%; margin-top:20px;" onclick="closeModal('detailModal')">Close</button>
+    </div>
+</div>
 
 <div id="vehicleModal" class="modal">
     <div class="modal-box">
@@ -281,10 +327,17 @@
         </div>
 
         <div class="form-section">
-            <label class="wep-toggle">
-                <span style="font-weight:700; color:#fff;">Weaponized Vehicle</span>
-                <input type="checkbox" id="inWep">
-            </label>
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <label class="wep-toggle" style="flex:1">
+                    <span style="font-weight:700; color:#fff;">Favorite</span>
+                    <input type="checkbox" id="inFav">
+                </label>
+                <label class="wep-toggle" style="flex:1">
+                    <span style="font-weight:700; color:#fff;">Weaponized</span>
+                    <input type="checkbox" id="inWep">
+                </label>
+            </div>
+            
             <div class="modal-row" style="margin-bottom:0;">
                 <div><span class="label">Wheels</span><select id="inWheels"><option value="Stock">Stock</option><option value="F1">F1 Wheels</option><option value="Benny">Benny's</option></select></div>
                 <div><span class="label">Plate</span><select id="inPlate">
@@ -379,7 +432,7 @@
 <div id="swapAllModal" class="modal"><div class="modal-box"><div class="modal-title">Swap Entire Garage</div><div class="form-group"><span class="label">From</span><select id="saFrom" style="width:100%"></select></div><div style="text-align:center; padding:10px;"><i class="fas fa-arrow-down" style="color:var(--accent); font-size:1.5rem;"></i></div><div class="form-group"><span class="label">To</span><select id="saTo" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('swapAllModal')">Cancel</button><button class="btn-pri" onclick="performSwapAll()">Confirm Swap</button></div></div></div>
 <div id="moveModal" class="modal"><div class="modal-box"><div class="modal-title">Move Vehicle</div><p id="moveCarName" style="color:var(--accent); font-weight:bold; margin-bottom:20px; font-size:1.1rem;"></p><div class="form-group"><span class="label">Destination</span><select id="moveDest" style="width:100%" onchange="checkMoveCap()"></select></div><div id="moveSwapUI" style="display:none; background:rgba(245,158,11,0.1); padding:15px; border-radius:10px; border:1px solid var(--f1); margin-bottom:15px;"><span class="label" style="color:var(--f1)">Garage Full! Select car to swap with:</span><select id="moveSwapTarget" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('moveModal')">Cancel</button><button class="btn-pri" onclick="commitMove()">Confirm Move</button></div></div></div>
 <div id="migrationModal" class="modal"><div class="modal-box"><div class="modal-title" style="color:var(--accent)">Data Migration</div><p style="color:#ccc; font-size:0.9rem;">Syncing vehicle data with cloud database (Images & Drive stats).</p><div id="migLog" style="height:120px; overflow:auto; background:#000; padding:10px; font-family:monospace; color:var(--sell); border-radius:8px;"></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('migrationModal')">Cancel</button><button class="btn-pri" onclick="runMigration()">Run Update</button></div></div></div>
-<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v35.5 (Current)</strong><br>• Research-based Floor Capacities (Office 6/7/7, Club 20, Arena 9).<br>• Corrected Floor Logic.</p><p><strong>v35.0-35.4</strong><br>• Sticky Scroll, Collapsible Floors, Nicknames.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
+<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v36.7 (Current)</strong><br>• Move & Sell Buttons on Detail Card.<br>• Removed icon from toggle.<br>• Consistent Modals & Alerts.</p><p><strong>v36.5</strong><br>• Z-Index Fix.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
 <div id="lightbox" onclick="this.style.display='none'"><img id="lbImg"></div>
 
 <script>
@@ -397,6 +450,49 @@
     let editingId = null;
     let timerInt = null;
     let movingId = null;
+
+    // --- HELPER FUNCTIONS FOR MODALS (v36.4) ---
+    function openAlert(title, msg) {
+        document.getElementById('alertTitle').innerText = title;
+        document.getElementById('alertMsg').innerHTML = msg;
+        openModal('alertModal');
+    }
+
+    function openConfirm(title, msg, onYes) {
+        document.getElementById('confTitle').innerText = title;
+        document.getElementById('confMsg').innerHTML = msg;
+        const yesBtn = document.getElementById('confYesBtn');
+        // Clone button to remove old listeners
+        const newBtn = yesBtn.cloneNode(true);
+        yesBtn.parentNode.replaceChild(newBtn, yesBtn);
+        newBtn.onclick = () => {
+            onYes();
+            closeModal('confirmModal');
+        };
+        openModal('confirmModal');
+    }
+
+    // --- MIGRATION CONFIG (Smart Matching) ---
+    const MIGRATION_RULES = [
+        { key: "Vinewood Club", target: "Vinewood Club Garage (100)" },
+        { key: "Eclipse Blvd", target: "Eclipse Blvd Garage (50)" },
+        { key: "Richman", target: "Richman Villa (20)" },
+        { key: "Vinewood Residence", target: "The Vinewood Residence (20)" },
+        { key: "Tongva", target: "The Tongva Estate (20)" },
+        { key: "Office Garage 1", target: "Office Garage 1 (20)" },
+        { key: "Office Garage 2", target: "Office Garage 2 (20)" },
+        { key: "Office Garage 3", target: "Office Garage 3 (20)" },
+        { key: "Agency", target: "Agency (20)" },
+        { key: "Nightclub", target: "Nightclub (31)" },
+        { key: "Arcade", target: "Arcade (10)" },
+        { key: "Auto Shop", target: "Auto Shop (10)" },
+        { key: "Salvage", target: "Salvage Yard (2)" },
+        { key: "Bail", target: "Bail Enforcement (2)" },
+        { key: "Clubhouse", target: "Clubhouse (10)" },
+        { key: "Arena", target: "Arena Workshop (27)" },
+        { key: "Casino", target: "Casino Penthouse (10)" },
+        { key: "Facility", target: "Facility (7)" }
+    ];
 
     const GARAGE_DATA = [
         { grp: "Safehouses", items: ["Richman Villa (20)", "The Vinewood Residence (20)", "The Tongva Estate (20)"] },
@@ -416,7 +512,8 @@
     const FLOOR_MAP = {
         "Vinewood Club": ["Floor 1", "Floor 2", "Floor 3", "Floor 4", "Floor 5"],
         "Eclipse Blvd": ["Floor 1", "Floor 2", "Floor 3", "Floor 4", "Floor 5"],
-        "Office": ["Garage A", "Garage B", "Garage C"],
+        "Office": ["A", "B", "C"],
+        "Agency": ["Floor 1", "Floor 2", "Floor 3"],
         "Nightclub": ["Service Entrance", "Basement 2", "Basement 3", "Basement 4"],
         "Arena Workshop": ["Workshop Level", "Basement 1", "Basement 2"],
         "Richman Villa": ["Basement 1", "Basement 2"],
@@ -424,28 +521,49 @@
         "Tongva Estate": ["Basement 1", "Basement 2"]
     };
 
-    // Helper: Determine per-floor capacity (RESEARCHED v35.5)
     function getFloorCap(loc, floor) {
-        // Office Logic
         if (loc.includes("Office")) {
-            if (floor === "Garage A") return 6;
-            if (floor === "Garage B") return 7;
-            if (floor === "Garage C") return 7;
+            if (floor === "A") return 6;
+            if (floor === "B") return 7;
+            if (floor === "C") return 7;
         }
-        // Vinewood Club Logic
+        if (loc.includes("Agency")) {
+            if (floor === "Floor 1") return 1;
+            if (floor === "Floor 2") return 10;
+            if (floor === "Floor 3") return 9;
+        }
         if (loc.includes("Vinewood Club")) return 20;
-        // Arena Logic
         if (loc.includes("Arena")) return 9;
         
-        // Existing Logic
         if (loc.includes("Nightclub") && floor === "Service Entrance") return 1;
         if (loc.includes("Salvage") || loc.includes("Bail")) return 2;
         if (loc.includes("Facility")) return 7;
-        return 10; // Default for apartments
+        return 10; 
     }
 
     // --- INITIALIZATION ---
     document.addEventListener('DOMContentLoaded', async () => {
+        let migrated = false;
+        vehicles.forEach(v => {
+            for (let r of MIGRATION_RULES) {
+                if (v.loc.includes(r.key) && !v.loc.includes("(")) {
+                    v.loc = r.target;
+                    migrated = true;
+                    break;
+                }
+            }
+            const aptKw = ["Apt", "Penthouse", "St", "Way", "Ave", "Blvd"];
+            if (aptKw.some(kw => v.loc.includes(kw)) && !v.loc.includes("(") && !v.loc.includes("Club") && !v.loc.includes("Office")) {
+                v.loc = v.loc + " (10)";
+                migrated = true;
+            }
+            if (v.loc.includes("Office") && v.floor && v.floor.includes("Garage")) {
+                v.floor = v.floor.replace("Garage ", "");
+                migrated = true;
+            }
+        });
+        if (migrated) saveGarage();
+
         render(); 
         updateTimerLogic();
         populateDropdowns(); 
@@ -462,12 +580,18 @@
     // --- RENDER LOGIC ---
     function render() {
         const list = document.getElementById('vehicle-list'), term = document.getElementById('searchInput').value.toLowerCase(), mode = document.getElementById('viewMode').value;
-        const filtered = vehicles.filter(v => (v.model+v.manuf+v.loc+(v.notes||'')).toLowerCase().includes(term));
+        let filtered = vehicles.filter(v => (v.model+v.manuf+v.loc+(v.notes||'')).toLowerCase().includes(term));
+        
+        // FILTER BY FAVORITE (v36.2)
+        if (mode === 'fav') {
+            filtered = filtered.filter(v => v.isFav);
+        }
+
         document.getElementById('headerCount').innerText = vehicles.length;
         document.getElementById('clearSearch').style.display = term.length > 0 ? 'flex' : 'none';
         list.innerHTML = "";
 
-        if(mode === 'all') {
+        if(mode === 'all' || mode === 'fav') {
             const grid = document.createElement('div'); grid.className = 'vehicle-grid';
             filtered.forEach(v => grid.appendChild(createCard(v)));
             list.appendChild(grid);
@@ -487,11 +611,11 @@
                 let meta = `${groups[k].length}`; 
                 let pct = 0;
                 
-                // Abbreviate Penthouse for display
                 let displayK = k;
                 if(mode==='garage') { 
-                    displayK = k.replace(/Penthouse/g, 'PH');
-                    const cl = Object.keys(CAPACITIES).find(m=>k.includes(m))||"DEFAULT"; 
+                    displayK = k.replace(/Penthouse/g, 'PH').replace(/\s\(\d+\)$/, '');
+                    const cleanName = k.split(" (")[0]; 
+                    const cl = Object.keys(CAPACITIES).find(m => cleanName.includes(m)) || "DEFAULT"; 
                     const cap=CAPACITIES[cl]; 
                     meta = `${groups[k].length} / ${cap}`; 
                     pct = (groups[k].length/cap)*100; 
@@ -501,7 +625,6 @@
                 
                 const grid = document.createElement('div'); grid.className = term ? 'vehicle-grid' : 'vehicle-grid hidden';
                 
-                // Sub-group by floor if in Garage Mode
                 if (mode === 'garage') {
                     const floorGroups = {};
                     groups[k].forEach(v => {
@@ -510,24 +633,21 @@
                         floorGroups[fName].push(v);
                     });
                     
-                    // Sort floors logic
                     Object.keys(floorGroups).sort().forEach(fKey => {
                         const fCap = getFloorCap(k, fKey);
                         const fNickKey = k + (fKey !== "Main Floor" ? "_" + fKey : "");
                         const fNick = floorNicknames[fNickKey] || "";
                         
-                        // Collapsible Floor Header (Grid Safe)
                         const fHead = document.createElement('div');
-                        fHead.className = "floor-header collapsed"; // Default collapsed
+                        fHead.className = "floor-header collapsed"; 
                         fHead.innerHTML = `<span><span class="arrow">▼</span>${fKey} <span class="floor-nick">${fNick ? `"${fNick}"` : ""}</span></span><span class="floor-meta">${floorGroups[fKey].length} / ${fCap}</span>`;
                         
                         const fGrid = document.createElement('div');
-                        fGrid.className = "vehicle-grid floor-grid hidden"; // Default hidden
+                        fGrid.className = "vehicle-grid floor-grid hidden";
                         floorGroups[fKey].forEach(v => fGrid.appendChild(createCard(v)));
                         
-                        // Toggle Logic for Floor
                         fHead.onclick = (e) => {
-                            e.stopPropagation(); // Stop bubbling to garage header
+                            e.stopPropagation(); 
                             fGrid.classList.toggle('hidden');
                             fHead.classList.toggle('collapsed');
                         };
@@ -551,6 +671,7 @@
         const gtaUrl = spawn ? `https://gtacars.net/gta5/${spawn.toLowerCase().replace(/_/g, '-')}` : null;
         
         let badges = "";
+        if(v.isFav) badges += `<span class="badge fav"><i class="fas fa-heart"></i></span>`; // FAV BADGE
         if(v.isWeapon) badges += `<span class="badge w">WEP</span>`;
         if(v.wheels === 'F1') badges += `<span class="badge f">F1</span>`;
         if(v.wheels?.includes('Benny')) badges += `<span class="badge b">BNY</span>`;
@@ -564,15 +685,16 @@
         }
 
         const div = document.createElement('div'); div.className = "card";
+        div.onclick = () => openDetailModal(v.id); 
+        
         const displayClass = (db.class || v.class || '-').replace(/_/g, ' ');
         let notesHtml = (v.notes && v.notes.trim() !== "") ? `<div class="card-notes">${v.notes}</div>` : "";
         
-        // NICKNAME LOGIC
         const floorKey = v.loc + (v.floor ? "_" + v.floor : "");
         const nickname = floorNicknames[floorKey] ? `(${floorNicknames[floorKey]})` : "";
 
         div.innerHTML = `
-            <div class="card-img-box" onclick="openLb('${img}')"><img class="card-img" src="${img}" onerror="handleImgError(this, '${spawn}')"><div class="card-fallback" style="display:none"><i class="fas fa-car"></i></div><div class="card-badges">${badges}</div></div>
+            <div class="card-img-box" onclick="event.stopPropagation(); openLb('${img}')"><img class="card-img" src="${img}" onerror="handleImgError(this, '${spawn}')"><div class="card-fallback" style="display:none"><i class="fas fa-car"></i></div><div class="card-badges">${badges}</div></div>
             <div class="card-info">
                 <div class="card-top">
                     <div class="card-manuf">${v.manuf}</div>
@@ -582,8 +704,52 @@
                 <div class="card-loc"><i class="fas fa-warehouse"></i><div class="loc-text"><span>${v.loc} <span class="loc-nick">${nickname}</span></span>${v.floor ? `<span class="loc-floor">${v.floor}</span>` : ''}</div></div>
                 ${notesHtml}
             </div>
-            <div class="card-actions-top">${spawn ? `<a href="${gtaUrl}" target="_blank" class="action-btn gtacars-link"><i class="fas fa-external-link-alt"></i></a>` : ''}<button class="action-btn" onclick="editVehicle(${v.id})"><i class="fas fa-pencil-alt"></i></button></div>`;
+            <div class="card-actions-top">${spawn ? `<a href="${gtaUrl}" target="_blank" class="action-btn gtacars-link" onclick="event.stopPropagation()"><i class="fas fa-external-link-alt"></i></a>` : ''}<button class="action-btn" onclick="event.stopPropagation(); editVehicle(${v.id})"><i class="fas fa-pencil-alt"></i></button></div>`;
         return div;
+    }
+    
+    // NEW: Open Detail Modal (v36.3)
+    function openDetailModal(id) {
+        const v = vehicles.find(c => c.id === id); if(!v) return;
+        const db = masterDB.find(d => d.model === v.model) || {};
+        const spawn = db.spawn || v.spawn || "";
+        const img = spawn ? `${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png` : "";
+        
+        let badges = "";
+        if(v.isFav) badges += `<span class="badge fav"><i class="fas fa-heart"></i> FAVORITE</span> `;
+        if(v.isWeapon) badges += `<span class="badge w">WEAPONIZED</span> `;
+        if(v.wheels === 'F1') badges += `<span class="badge f">F1 WHEELS</span> `;
+        if(v.wheels?.includes('Benny')) badges += `<span class="badge b">BENNY'S</span> `;
+        if(v.plate && v.plate !== 'Standard') badges += `<span class="badge">${v.plate} PLATE</span>`;
+        
+        const content = `
+            <div class="detail-img-box"><img src="${img}" class="detail-img" onerror="this.style.display='none'"></div>
+            <div class="detail-manuf">${v.manuf}</div>
+            <div class="detail-title">${v.model}</div>
+            <div style="margin-bottom:15px;">${badges}</div>
+            
+            <div class="detail-row">
+                <span class="detail-chip"><i class="fas fa-tag"></i> ${(db.class||v.class||'-').replace(/_/g, ' ')}</span>
+                <span class="detail-chip"><i class="fas fa-cog"></i> ${db.drive||v.drive||'-'}</span>
+                <span class="detail-chip"><i class="fas fa-user"></i> ${db.seats||v.seats||'2'} Seats</span>
+            </div>
+            
+            <div class="detail-loc">
+                <div style="font-size:0.8rem; color:#888; margin-bottom:4px;">LOCATION</div>
+                <div style="font-weight:bold; font-size:1.1rem; color:#fff;">${v.loc}</div>
+                ${v.floor ? `<div style="color:var(--accent); margin-top:2px;">${v.floor} ${v.slot ? `(Slot ${v.slot})` : ''}</div>` : ''}
+            </div>
+            
+            ${v.notes ? `<div class="detail-notes">"${v.notes}"</div>` : ''}
+
+            <div style="display:flex; gap:10px; margin-top:15px; border-top:1px solid #333; padding-top:15px;">
+                <button class="btn-sec" style="flex:1; background:#2980b9; color:#fff; border:none;" onclick="closeModal('detailModal'); editingId=${v.id}; startMove()"><i class="fas fa-exchange-alt"></i> Move</button>
+                <button class="btn-sec" style="flex:1; background:var(--sell); color:#fff; border:none;" onclick="closeModal('detailModal'); editingId=${v.id}; sellVehicle()"><i class="fas fa-dollar-sign"></i> Sell</button>
+            </div>
+        `;
+        
+        document.getElementById('detailContent').innerHTML = content;
+        openModal('detailModal');
     }
 
     // --- LOGIC ---
@@ -599,16 +765,15 @@
         let matchedVal = ""; Array.from(locSel.options).forEach(opt => { if (opt.value.replace(/\s\(\d+\)$/, "") === v.loc.replace(/\s\(\d+\)$/, "")) matchedVal = opt.value; });
         if(matchedVal) locSel.value = matchedVal; else { locSel.value = 'Custom'; document.getElementById('inLocCustom').value = v.loc; }
         
-        // CRITICAL FIX: Build floor list first, THEN set value
         handleLocChange(); 
         
-        // Wait a tick for DOM update or set directly if sync
         setTimeout(() => {
              document.getElementById('inFloor').value = v.floor;
         }, 0);
 
         document.getElementById('inSlot').value = v.slot||"";
         document.getElementById('inWep').checked = v.isWeapon;
+        document.getElementById('inFav').checked = v.isFav || false; // LOAD FAV
         document.getElementById('inWheels').value = v.wheels||"Stock";
         document.getElementById('inPlate').value = v.plate||"Standard";
         document.getElementById('inNotes').value = v.notes||"";
@@ -622,22 +787,40 @@
         let loc = document.getElementById('inLoc').value;
         if(loc === 'Custom') loc = document.getElementById('inLocCustom').value;
         
-        if(!manuf || !model || !loc) return alert("Required: Make, Model, Garage");
+        if(!manuf || !model || !loc) return openAlert("Error", "Required: Make, Model, Garage");
         
         let floor = document.getElementById('inFloor').value;
 
-        // DUPLICATE CHECK (v35.0)
         if (!editingId) {
+            const cleanName = loc.split(" (")[0]; 
+            const cl = Object.keys(CAPACITIES).find(m => cleanName.includes(m)) || "DEFAULT";
+            const maxGarage = CAPACITIES[cl];
+            const currentGarage = vehicles.filter(v => v.loc === loc).length;
+            
+            if (currentGarage >= maxGarage) return openAlert("Garage Full", `${loc} cannot hold more than ${maxGarage} vehicles.`);
+
+            if (floor) {
+                const maxFloor = getFloorCap(loc, floor);
+                const currentFloor = vehicles.filter(v => v.loc === loc && v.floor === floor).length;
+                if (currentFloor >= maxFloor) return openAlert("Floor Full", `${floor} cannot hold more than ${maxFloor} vehicles.`);
+            }
+
             const isDup = vehicles.some(v => v.model === model && v.loc === loc && v.floor === floor);
             if (isDup) {
-                if (!confirm(`Warning: You already have a ${model} in ${loc} ${floor ? '- ' + floor : ''}.\nAdd duplicate?`)) return;
+                return openConfirm("Duplicate Warning", `You already have a ${model} in ${loc} ${floor ? '- ' + floor : ''}.<br>Add duplicate?`, () => {
+                    executeSave(manuf, model, loc, floor);
+                });
             }
         }
+        executeSave(manuf, model, loc, floor);
+    }
 
+    function executeSave(manuf, model, loc, floor) {
         const db = masterDB.find(d => d.model === model) || {};
         const car = {
             id: editingId || Date.now(), manuf, model, loc, floor: floor,
             slot: document.getElementById('inSlot').value,
+            isFav: document.getElementById('inFav').checked, // SAVE FAV
             isWeapon: document.getElementById('inWep').checked,
             wheels: document.getElementById('inWheels').value,
             plate: document.getElementById('inPlate').value,
@@ -661,8 +844,7 @@
     function openNickModal() {
         const loc = document.getElementById('inLoc').value;
         const floor = document.getElementById('inFloor').value;
-        if(!loc || (document.getElementById('floorRow').style.display !== 'none' && !floor)) return alert("Select Garage/Floor first.");
-        
+        if(!loc || (document.getElementById('floorRow').style.display !== 'none' && !floor)) return openAlert("Error", "Select Garage/Floor first.");
         const key = loc + (floor ? "_" + floor : "");
         document.getElementById('nickTargetDisplay').innerText = key.replace('_', ' - ');
         document.getElementById('inNickname').value = floorNicknames[key] || "";
@@ -674,13 +856,9 @@
         const floor = document.getElementById('inFloor').value;
         const key = loc + (floor ? "_" + floor : "");
         const val = document.getElementById('inNickname').value.trim();
-        
-        if(val) floorNicknames[key] = val;
-        else delete floorNicknames[key];
-        
+        if(val) floorNicknames[key] = val; else delete floorNicknames[key];
         localStorage.setItem(NICK_KEY, JSON.stringify(floorNicknames));
-        closeModal('nickModal');
-        render(); 
+        closeModal('nickModal'); render(); 
     }
 
     function openStats() {
@@ -710,7 +888,6 @@
         }
     }
 
-    // --- UTILS & FEEDBACK ---
     function showSuccess(title, msg) { document.getElementById('successTitle').innerText = title; document.getElementById('successMsg').innerHTML = msg; openModal('successModal'); }
     function clearSearch() { document.getElementById('searchInput').value = ''; render(); }
     
@@ -748,47 +925,49 @@
         document.getElementById('inLocCustom').style.display = (v === 'Custom') ? 'block' : 'none';
     }
 
-    function sellVehicle() { if(confirm("Sell?")) { lastSell=Date.now(); lastSoldName=vehicles.find(c=>c.id===editingId).model; vehicles=vehicles.filter(v=>v.id!==editingId); saveGarage(); closeModal('vehicleModal'); } }
-    function deleteVehicle() { if(confirm("Delete?")) { vehicles=vehicles.filter(v=>v.id!==editingId); saveGarage(); closeModal('vehicleModal'); } }
+    function sellVehicle() { openConfirm("Sell Vehicle", "Are you sure you want to sell this vehicle?", () => { lastSell=Date.now(); lastSoldName=vehicles.find(c=>c.id===editingId).model; vehicles=vehicles.filter(v=>v.id!==editingId); saveGarage(); closeModal('vehicleModal'); }); }
+    function deleteVehicle() { openConfirm("Delete Vehicle", "This action cannot be undone. Delete?", () => { vehicles=vehicles.filter(v=>v.id!==editingId); saveGarage(); closeModal('vehicleModal'); }); }
     function startMove() { movingId = editingId; document.getElementById('moveCarName').innerText = vehicles.find(v=>v.id===editingId).model; openModal('moveModal'); closeModal('vehicleModal'); }
     function checkMoveCap() { const d = document.getElementById('moveDest').value, cl = Object.keys(CAPACITIES).find(m => d.includes(m)) || "DEFAULT"; if(vehicles.filter(v=>v.loc===d).length >= CAPACITIES[cl]) { document.getElementById('moveSwapUI').style.display='block'; document.getElementById('moveSwapTarget').innerHTML = vehicles.filter(v=>v.loc===d).map(v=>`<option value="${v.id}">${v.model}</option>`).join(''); } else document.getElementById('moveSwapUI').style.display='none'; }
     
     function commitMove() { 
-        if(!confirm("Confirm Move?")) return;
-        const d = document.getElementById('moveDest').value, carA = vehicles.find(v=>v.id===movingId);
-        let msg = `Moved <strong>${carA.model}</strong> to ${d}.`;
-        if(document.getElementById('moveSwapUI').style.display!=='none') { 
-            const carB = vehicles.find(v=>v.id==document.getElementById('moveSwapTarget').value); 
-            const tmp = carA.loc; carA.loc = d; carB.loc = tmp; 
-            msg = `Swapped <strong>${carA.model}</strong> with <strong>${carB.model}</strong>.`;
-        } else carA.loc = d; 
-        saveGarage(); closeMoveModal(); showSuccess("Vehicle Moved", msg);
+        openConfirm("Confirm Move", "Move vehicle to new location?", () => {
+            const d = document.getElementById('moveDest').value, carA = vehicles.find(v=>v.id===movingId);
+            let msg = `Moved <strong>${carA.model}</strong> to ${d}.`;
+            if(document.getElementById('moveSwapUI').style.display!=='none') { 
+                const carB = vehicles.find(v=>v.id==document.getElementById('moveSwapTarget').value); 
+                const tmp = carA.loc; carA.loc = d; carB.loc = tmp; 
+                msg = `Swapped <strong>${carA.model}</strong> with <strong>${carB.model}</strong>.`;
+            } else carA.loc = d; 
+            saveGarage(); closeModal('moveModal'); showSuccess("Vehicle Moved", msg);
+        });
     }
 
     function performSwapAll() {
         const f = document.getElementById('saFrom').value, t = document.getElementById('saTo').value;
-        if(!f || !t || f === t) return alert("Select different garages");
-        if(confirm(`Swap contents?`)) {
+        if(!f || !t || f === t) return openAlert("Error", "Select different garages");
+        openConfirm("Swap Garage Contents", `Swap all vehicles between ${f} and ${t}?`, () => {
             let countA = 0, countB = 0;
             vehicles.forEach(v => { if(v.loc === f) { v.loc = "SW_TMP"; countA++; } });
             vehicles.forEach(v => { if(v.loc === t) { v.loc = f; countB++; } });
             vehicles.forEach(v => { if(v.loc === "SW_TMP") v.loc = t; });
             saveGarage(); closeModal('swapAllModal');
             showSuccess("Garage Swap Complete", `Moved ${countA} vehicles to ${t}<br>Moved ${countB} vehicles to ${f}`);
-        }
+        });
     }
 
     function runMigration() { 
-        if(!confirm("Start Migration?")) return;
-        let c=0, f=0; const log = document.getElementById('migLog'); 
-        vehicles = vehicles.map(v => { 
-            const m = masterDB.find(db => db.model.toLowerCase() === v.model.toLowerCase()); 
-            if(m && !v.spawn) { c++; return {...v, spawn: m.spawn, class: m.class, drive: m.drive, seats: m.seats}; } 
-            if(!m) { f++; log.innerHTML += `<div style='color:#e74c3c'>Failed: ${v.model}</div>`; }
-            return v; 
-        }); 
-        saveGarage(); 
-        log.innerHTML += `<br>Updated ${c} cars successfully.`; 
+        openConfirm("Start Migration", "Sync vehicle data with cloud database?", () => {
+            let c=0, f=0; const log = document.getElementById('migLog'); 
+            vehicles = vehicles.map(v => { 
+                const m = masterDB.find(db => db.model.toLowerCase() === v.model.toLowerCase()); 
+                if(m && !v.spawn) { c++; return {...v, spawn: m.spawn, class: m.class, drive: m.drive, seats: m.seats}; } 
+                if(!m) { f++; log.innerHTML += `<div style='color:#e74c3c'>Failed: ${v.model}</div>`; }
+                return v; 
+            }); 
+            saveGarage(); 
+            log.innerHTML += `<br>Updated ${c} cars successfully.`; 
+        });
     }
     
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
@@ -806,6 +985,7 @@
         document.getElementById('inFloor').innerHTML = "";
         document.getElementById('inSlot').value = "";
         document.getElementById('inWep').checked = false;
+        document.getElementById('inFav').checked = false; 
         document.getElementById('inWheels').value = "Stock";
         document.getElementById('inPlate').value = "Standard";
         document.getElementById('inNotes').value = "";
@@ -821,8 +1001,16 @@
     function openSwapAllModal() { openModal('swapAllModal'); }
     function openLb(s) { document.getElementById('lbImg').src=s; openModal('lightbox'); }
     function downloadBackup() { const b=new Blob([JSON.stringify(vehicles)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`gta_garage.json`; a.click(); }
-    function restoreBackup(i) { const f=i.files[0]; if(!f) return; const r=new FileReader(); r.onload=e=>{ vehicles=JSON.parse(e.target.result); saveGarage(); location.reload(); }; r.readAsText(f); }
-    function factoryReset() { if(confirm("Wipe all data?")) { localStorage.clear(); location.reload(); } }
+    function restoreBackup(i) { const f=i.files[0]; if(!f) return; 
+        const r=new FileReader(); 
+        r.onload=e=>{ vehicles=JSON.parse(e.target.result); saveGarage(); location.reload(); }; 
+        r.readAsText(f); 
+    }
+    function factoryReset() { 
+        openConfirm("Factory Reset", "This will wipe all local data. Continue?", () => {
+            localStorage.clear(); location.reload(); 
+        });
+    }
     function handleImgError(i, s) { if(!i.retry) { i.retry=1; i.src=`${BASE_URL}vehicles/${s.charAt(0).toUpperCase()+s.slice(1).toLowerCase()}.png`; } else { i.style.display='none'; i.nextElementSibling.style.display='block'; } }
     window.onclick = e => { if(e.target.className === 'modal') e.target.style.display = 'none'; }
     function checkCustomModel() { document.getElementById('inModelCustom').style.display = document.getElementById('inModel').value==='Custom'?'block':'none'; }
