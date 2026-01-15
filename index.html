@@ -2,18 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v34.9.2</title>
+    <title>My GTA Garage v34.9.3</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
 
     <style>
-        /* --- CORE THEME --- */
         :root {
             --bg: #121212; --card: #1e1e1e; --head: #181818;
             --text: #ffffff; --text-dim: #a0a0a0; --accent: #9b59b6;
@@ -26,9 +25,12 @@
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
         body {
             font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text);
-            margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+            margin: 0; padding: 0; display: flex; flex-direction: column; 
+            height: 100dvh; /* FIXED: Dynamic Height for Android */
+            overflow: hidden;
         }
 
         /* HEADER */
@@ -38,8 +40,13 @@
         }
         
         .header-info { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+        
+        /* Desktop Title */
         h1 { margin: 0; font-size: 1.1rem; text-transform: uppercase; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
+        /* Mobile Logo (Hidden by default) */
+        .header-logo-img { width: 32px; height: 32px; display: none; }
+
         .total-badge { 
             background: #333; padding: 4px 8px; border-radius: 4px; 
             font-size: 0.8rem; font-weight: bold; color: #fff; border: 1px solid var(--border); 
@@ -48,7 +55,11 @@
 
         .header-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
-        @media (max-width: 380px) { h1 { display: none; } }
+        /* Header Responsive Logic */
+        @media (max-width: 450px) { 
+            h1 { display: none; } 
+            .header-logo-img { display: block; }
+        }
 
         /* CONTROLS */
         .controls {
@@ -56,13 +67,11 @@
             display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;
         }
         
-        /* Search */
         .search-wrapper { position: relative; width: 100%; }
         .search-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-dim); pointer-events: none; }
         .search-wrapper input { padding-left: 38px !important; padding-right: 35px !important; width: 100%; height: 44px; }
         .clear-search { position: absolute; right: 0; top: 0; height: 100%; width: 40px; display: none; align-items: center; justify-content: center; color: var(--text-dim); cursor: pointer; }
 
-        /* Filter Row */
         .filter-row { display: flex; gap: 8px; width: 100%; }
         #viewMode { flex-grow: 1; width: auto; min-width: 0; }
         .filter-row button { flex-shrink: 0; width: auto; white-space: nowrap; }
@@ -76,15 +85,9 @@
         input, select {
             padding: 10px 12px; border-radius: var(--radius); border: 1px solid #333;
             background: #252525; color: white; font-size: 16px; outline: none; transition: border-color 0.2s; height: 44px;
+            width: 100%;
         }
         input:focus, select:focus { border-color: var(--accent); }
-
-        /* DATALIST CHEVRON FIX - Makes inputs look like dropdowns */
-        input[list]::-webkit-calendar-picker-indicator {
-            color: #888; opacity: 0.6; font-size: 1.2rem; cursor: pointer;
-            transition: 0.2s;
-        }
-        input[list]:hover::-webkit-calendar-picker-indicator { opacity: 1; color: var(--accent); }
 
         button { border: none; padding: 0 16px; border-radius: var(--radius); font-weight: 600; cursor: pointer; height: 44px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
         .btn-pri { background: var(--accent); color: #fff; }
@@ -127,6 +130,8 @@
         .badge.w { background: var(--wep); border-color: var(--wep); }
         .badge.f { background: var(--f1); border-color: var(--f1); color: #000; }
         .badge.b { background: var(--benny); border-color: var(--benny); }
+        
+        /* Colored Plates */
         .badge.y { background: var(--pl-yankton); color: #000; border-color: var(--pl-yankton); }
         .badge.l { background: var(--pl-liberty); border-color: var(--pl-liberty); }
         .badge.p { background: var(--pl-panic); border-color: var(--pl-panic); }
@@ -139,8 +144,10 @@
         .card-top { margin-bottom: 4px; padding-right: 75px; } 
         .card-manuf { font-size: 0.65rem; color: var(--accent); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
         .card-model { font-size: 1.05rem; font-weight: 700; color: #fff; line-height: 1.2; white-space: normal; word-wrap: break-word; }
+        
         .card-chips { display: flex; gap: 5px; margin-bottom: 6px; flex-wrap: wrap; }
         .chip { background: #252525; color: #ccc; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; display: flex; align-items: center; gap: 4px; border: 1px solid #333; }
+        
         .card-loc { font-size: 0.75rem; color: var(--text-dim); border-top: 1px solid #2a2a2a; padding-top: 6px; margin-top: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .card-loc i { color: var(--accent); font-size: 0.7rem; align-self: flex-start; margin-top: 2px; }
         .loc-text { white-space: normal; line-height: 1.3; display: flex; flex-direction: column; }
@@ -191,6 +198,7 @@
 
 <header>
     <div class="header-info">
+        <img src="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>" class="header-logo-img">
         <h1>My GTA Garage</h1>
         <div class="total-badge"><span class="total-label">Owned: </span><span id="headerCount">0</span></div>
     </div>
@@ -225,7 +233,7 @@
 <div id="vehicle-list"></div>
 
 <footer>
-    <span>v34.9.2</span> | 
+    <span>v34.9.3</span> | 
     <a onclick="openModal('changelogModal')">Changelog</a> | 
     <a onclick="factoryReset()" style="color: #ef4444">Reset</a>
 </footer>
@@ -237,31 +245,27 @@
         <div class="modal-row">
             <div>
                 <span class="label">Make</span>
-                <input type="text" id="inManuf" list="manufDatalist" placeholder="Select Make" onchange="updateModelDD()" enterkeyhint="done">
-                <datalist id="manufDatalist"></datalist>
+                <select id="inManuf" onchange="updateModelDD()"></select>
             </div>
             <div>
                 <span class="label">Model</span>
-                <input type="text" id="inModel" list="modelDatalist" placeholder="Select Model" enterkeyhint="done">
-                <datalist id="modelDatalist"></datalist>
+                <select id="inModel" onchange="checkCustomModel()"></select>
             </div>
         </div>
-        <input type="text" id="inModelCustom" class="form-group" style="display:none; width:100%; margin-top:-10px;" placeholder="Enter custom model" enterkeyhint="done">
+        <input type="text" id="inModelCustom" class="form-group" style="display:none; width:100%; margin-top:-10px;" placeholder="Enter custom model">
 
         <div class="form-group">
             <span class="label">Garage</span>
-            <input type="text" id="inLoc" list="locDatalist" onchange="handleLocChange()" placeholder="Select Garage" enterkeyhint="done">
-            <datalist id="locDatalist"></datalist>
+            <select id="inLoc" onchange="handleLocChange()"></select>
         </div>
-        <input type="text" id="inLocCustom" class="form-group" style="display:none; width:100%; margin-top:-10px;" placeholder="Enter custom garage" enterkeyhint="done">
+        <input type="text" id="inLocCustom" class="form-group" style="display:none; width:100%; margin-top:-10px;" placeholder="Enter custom garage">
 
         <div id="floorRow" style="display:none;" class="modal-row">
             <div style="flex:2">
                 <span class="label">Floor</span>
-                <input type="text" id="inFloor" list="floorDatalist" placeholder="Lvl" enterkeyhint="done">
-                <datalist id="floorDatalist"></datalist>
+                <select id="inFloor"></select>
             </div>
-            <div style="flex:1"><span class="label">Slot</span><input type="number" id="inSlot" placeholder="#" enterkeyhint="done"></div>
+            <div style="flex:1"><span class="label">Slot</span><input type="number" id="inSlot" placeholder="#"></div>
         </div>
 
         <div class="form-section">
@@ -280,7 +284,7 @@
             </div>
         </div>
 
-        <div class="form-group"><span class="label">Notes</span><input type="text" id="inNotes" style="width:100%" placeholder="Paint, livery, upgrades..." enterkeyhint="done"></div>
+        <div class="form-group"><span class="label">Notes</span><input type="text" id="inNotes" style="width:100%" placeholder="Paint, livery, upgrades..."></div>
 
         <div class="modal-actions">
             <button class="btn-sec" onclick="closeModal('vehicleModal')">Cancel</button>
@@ -352,7 +356,7 @@
 <div id="swapAllModal" class="modal"><div class="modal-box"><div class="modal-title">Swap Entire Garage</div><div class="form-group"><span class="label">From</span><select id="saFrom" style="width:100%"></select></div><div style="text-align:center; padding:10px;"><i class="fas fa-arrow-down" style="color:var(--accent); font-size:1.5rem;"></i></div><div class="form-group"><span class="label">To</span><select id="saTo" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('swapAllModal')">Cancel</button><button class="btn-pri" onclick="performSwapAll()">Confirm Swap</button></div></div></div>
 <div id="moveModal" class="modal"><div class="modal-box"><div class="modal-title">Move Vehicle</div><p id="moveCarName" style="color:var(--accent); font-weight:bold; margin-bottom:20px; font-size:1.1rem;"></p><div class="form-group"><span class="label">Destination</span><select id="moveDest" style="width:100%" onchange="checkMoveCap()"></select></div><div id="moveSwapUI" style="display:none; background:rgba(245,158,11,0.1); padding:15px; border-radius:10px; border:1px solid var(--f1); margin-bottom:15px;"><span class="label" style="color:var(--f1)">Garage Full! Select car to swap with:</span><select id="moveSwapTarget" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('moveModal')">Cancel</button><button class="btn-pri" onclick="commitMove()">Confirm Move</button></div></div></div>
 <div id="migrationModal" class="modal"><div class="modal-box"><div class="modal-title" style="color:var(--accent)">Data Migration</div><p style="color:#ccc; font-size:0.9rem;">Syncing vehicle data with cloud database (Images & Drive stats).</p><div id="migLog" style="height:120px; overflow:auto; background:#000; padding:10px; font-family:monospace; color:var(--sell); border-radius:8px;"></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('migrationModal')">Cancel</button><button class="btn-pri" onclick="runMigration()">Run Update</button></div></div></div>
-<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v34.9.2 (Current)</strong><br>• Android Keyboard Fix (Viewport).<br>• Datalist visual improvements (Chevrons).<br>• Migration Failure Log.<br>• New Grouping (Class/Drive).<br>• Clean Class Names.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
+<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v34.9.3 (Current)</strong><br>• Android Keyboard Optimization (Viewport).<br>• Header Logo for Mobile.<br>• Reverted to Native Dropdowns for stability.<br>• Migration Failure Log.</p><p><strong>v34.9.1</strong><br>• Fixed Class Names.<br>• Added Group by Class/Drive.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
 <div id="lightbox" onclick="this.style.display='none'"><img id="lbImg"></div>
 
 <script>
@@ -396,12 +400,13 @@
     document.addEventListener('DOMContentLoaded', async () => {
         render(); 
         updateTimerLogic();
-        populateSmartDropdowns(); 
+        populateDropdowns(); 
+        
         try {
             const res = await fetch(DB_URL);
             if(res.ok) {
                 masterDB = await res.json();
-                populateSmartDropdowns();
+                populateDropdowns(); // Re-populate to add Cloud Brands
                 if(vehicles.length > 0 && !vehicles[0].spawn) openModal('migrationModal');
             }
         } catch(e) { console.log("Offline mode active."); }
@@ -533,8 +538,8 @@
         document.getElementById('inModel').value = v.model;
         
         const locSel = document.getElementById('inLoc');
-        let matchedVal = ""; Array.from(locSel.list.options).forEach(opt => { if (opt.value.replace(/\s\(\d+\)$/, "") === v.loc.replace(/\s\(\d+\)$/, "")) matchedVal = opt.value; });
-        if(matchedVal) locSel.value = matchedVal; else { locSel.value = v.loc; }
+        let matchedVal = ""; Array.from(locSel.options).forEach(opt => { if (opt.value.replace(/\s\(\d+\)$/, "") === v.loc.replace(/\s\(\d+\)$/, "")) matchedVal = opt.value; });
+        if(matchedVal) locSel.value = matchedVal; else { locSel.value = 'Custom'; document.getElementById('inLocCustom').value = v.loc; }
         
         document.getElementById('inFloor').value = v.floor||"";
         document.getElementById('inSlot').value = v.slot||"";
@@ -548,19 +553,18 @@
     function saveVehicle() {
         const manuf = document.getElementById('inManuf').value;
         let model = document.getElementById('inModel').value;
+        if(model === 'Custom') model = document.getElementById('inModelCustom').value;
         let loc = document.getElementById('inLoc').value;
+        if(loc === 'Custom') loc = document.getElementById('inLocCustom').value;
         
         if(!manuf || !model || !loc) return alert("Required: Make, Model, Garage");
         
-        // Smart Floor Match
-        let typedFloor = document.getElementById('inFloor').value;
-        const dl = document.getElementById('floorDatalist');
-        if (dl) { Array.from(dl.options).forEach(opt => { if (opt.value.toLowerCase() === typedFloor.toLowerCase()) typedFloor = opt.value; }); }
+        let floor = document.getElementById('inFloor').value;
 
         const db = masterDB.find(d => d.model === model) || {};
         const car = {
             id: editingId || Date.now(), manuf, model, loc,
-            floor: typedFloor,
+            floor: floor,
             slot: document.getElementById('inSlot').value,
             isWeapon: document.getElementById('inWep').checked,
             wheels: document.getElementById('inWheels').value,
@@ -623,38 +627,56 @@
 
     function clearSearch() { document.getElementById('searchInput').value = ''; render(); }
     
-    function populateSmartDropdowns() {
-        const manufList = document.getElementById('manufDatalist');
-        const locList = document.getElementById('locDatalist');
+    // REVERTED TO STANDARD SELECTS
+    function populateDropdowns() {
+        const manufList = document.getElementById('inManuf');
+        const locList = document.getElementById('inLoc');
         
         const uniqueBrands = [...new Set(masterDB.map(c => c.manuf))].sort();
-        manufList.innerHTML = uniqueBrands.map(b => `<option value="${b}">`).join('');
+        manufList.innerHTML = `<option value="">Select Make</option>` + uniqueBrands.map(b => `<option value="${b}">${b}</option>`).join('') + `<option value="Custom">Custom...</option>`;
         
-        let locOpts = ""; GARAGE_DATA.forEach(g => { g.items.forEach(i => locOpts += `<option value="${i}">`); });
+        let locOpts = `<option value="">Select Garage</option>`; 
+        GARAGE_DATA.forEach(g => { 
+            locOpts += `<optgroup label="${g.grp}">` + g.items.map(i => `<option value="${i}">${i}</option>`).join('') + `</optgroup>`; 
+        });
+        locOpts += `<option value="Custom">Custom...</option>`;
         locList.innerHTML = locOpts;
         
         const moveSel = document.getElementById('moveDest'), swapFrom = document.getElementById('saFrom'), swapTo = document.getElementById('saTo');
-        let optGroups = ""; GARAGE_DATA.forEach(g => { optGroups += `<optgroup label="${g.grp}">` + g.items.map(i => `<option value="${i}">${i}</option>`).join('') + `</optgroup>`; });
-        
-        if(moveSel) moveSel.innerHTML = optGroups;
-        if(swapFrom) swapFrom.innerHTML = optGroups;
-        if(swapTo) swapTo.innerHTML = optGroups;
+        moveSel.innerHTML = locOpts; swapFrom.innerHTML = locOpts; swapTo.innerHTML = locOpts;
     }
 
     function updateModelDD(sel) {
         const brand = document.getElementById('inManuf').value;
-        const dl = document.getElementById('modelDatalist');
-        dl.innerHTML = "";
-        masterDB.filter(c => c.manuf === brand).forEach(c => dl.innerHTML += `<option value="${c.model}">`);
+        const dd = document.getElementById('inModel');
+        dd.innerHTML = `<option value="">Select Model</option>`;
+        
+        if (brand === 'Custom') {
+            checkCustomModel();
+        } else {
+            masterDB.filter(c => c.manuf === brand).forEach(c => dd.innerHTML += `<option value="${c.model}">${c.model}</option>`);
+            dd.innerHTML += `<option value="Custom">Custom...</option>`;
+        }
+        if(sel) dd.value = sel;
     }
 
     function handleLocChange() {
         const v = document.getElementById('inLoc').value;
         const clean = Object.keys(CAPACITIES).find(m => v.includes(m)) || "DEFAULT";
-        const dl = document.getElementById('floorDatalist'); dl.innerHTML = "";
+        const dl = document.getElementById('inFloor'); 
+        dl.innerHTML = "";
+        
         const key = Object.keys(FLOOR_MAP).find(k => v.includes(k));
-        if (key) FLOOR_MAP[key].forEach(f => dl.innerHTML += `<option value="${f}">`);
-        document.getElementById('floorRow').style.display = (key || CAPACITIES[clean] >= 20) ? 'flex' : 'none';
+        if (key) {
+            FLOOR_MAP[key].forEach(f => dl.innerHTML += `<option value="${f}">${f}</option>`);
+            document.getElementById('floorRow').style.display = 'flex';
+        } else if (CAPACITIES[clean] >= 20) {
+            // Manual entry for large garages without maps
+            dl.innerHTML = `<option value="Floor 1">Floor 1</option><option value="Floor 2">Floor 2</option><option value="Floor 3">Floor 3</option>`;
+            document.getElementById('floorRow').style.display = 'flex';
+        } else {
+            document.getElementById('floorRow').style.display = 'none';
+        }
         document.getElementById('inLocCustom').style.display = (v === 'Custom') ? 'block' : 'none';
     }
 
@@ -710,11 +732,10 @@
         document.getElementById('modalTitle').innerText = "Add Vehicle";
         document.getElementById('editActions').style.display = 'none';
         
-        // Clear all fields
         document.getElementById('inManuf').value = "";
-        document.getElementById('inModel').value = "";
+        document.getElementById('inModel').innerHTML = ""; // Reset models
         document.getElementById('inLoc').value = "";
-        document.getElementById('inFloor').value = "";
+        document.getElementById('inFloor').innerHTML = "";
         document.getElementById('inSlot').value = "";
         document.getElementById('inWep').checked = false;
         document.getElementById('inWheels').value = "Stock";
