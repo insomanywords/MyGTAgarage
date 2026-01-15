@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v34.9.1</title>
+    <title>My GTA Garage v34.9.2</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -56,11 +56,13 @@
             display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;
         }
         
+        /* Search */
         .search-wrapper { position: relative; width: 100%; }
         .search-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-dim); pointer-events: none; }
         .search-wrapper input { padding-left: 38px !important; padding-right: 35px !important; width: 100%; height: 44px; }
         .clear-search { position: absolute; right: 0; top: 0; height: 100%; width: 40px; display: none; align-items: center; justify-content: center; color: var(--text-dim); cursor: pointer; }
 
+        /* Filter Row */
         .filter-row { display: flex; gap: 8px; width: 100%; }
         #viewMode { flex-grow: 1; width: auto; min-width: 0; }
         .filter-row button { flex-shrink: 0; width: auto; white-space: nowrap; }
@@ -76,6 +78,13 @@
             background: #252525; color: white; font-size: 16px; outline: none; transition: border-color 0.2s; height: 44px;
         }
         input:focus, select:focus { border-color: var(--accent); }
+
+        /* DATALIST CHEVRON FIX - Makes inputs look like dropdowns */
+        input[list]::-webkit-calendar-picker-indicator {
+            color: #888; opacity: 0.6; font-size: 1.2rem; cursor: pointer;
+            transition: 0.2s;
+        }
+        input[list]:hover::-webkit-calendar-picker-indicator { opacity: 1; color: var(--accent); }
 
         button { border: none; padding: 0 16px; border-radius: var(--radius); font-weight: 600; cursor: pointer; height: 44px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
         .btn-pri { background: var(--accent); color: #fff; }
@@ -216,7 +225,7 @@
 <div id="vehicle-list"></div>
 
 <footer>
-    <span>v34.9.1</span> | 
+    <span>v34.9.2</span> | 
     <a onclick="openModal('changelogModal')">Changelog</a> | 
     <a onclick="factoryReset()" style="color: #ef4444">Reset</a>
 </footer>
@@ -228,31 +237,31 @@
         <div class="modal-row">
             <div>
                 <span class="label">Make</span>
-                <input type="text" id="inManuf" list="manufDatalist" placeholder="Select Make" onchange="updateModelDD()">
+                <input type="text" id="inManuf" list="manufDatalist" placeholder="Select Make" onchange="updateModelDD()" enterkeyhint="done">
                 <datalist id="manufDatalist"></datalist>
             </div>
             <div>
                 <span class="label">Model</span>
-                <input type="text" id="inModel" list="modelDatalist" placeholder="Select Model">
+                <input type="text" id="inModel" list="modelDatalist" placeholder="Select Model" enterkeyhint="done">
                 <datalist id="modelDatalist"></datalist>
             </div>
         </div>
-        <input type="text" id="inModelCustom" class="form-group" style="display:none; width:100%; margin-top:-10px;" placeholder="Enter custom model">
+        <input type="text" id="inModelCustom" class="form-group" style="display:none; width:100%; margin-top:-10px;" placeholder="Enter custom model" enterkeyhint="done">
 
         <div class="form-group">
             <span class="label">Garage</span>
-            <input type="text" id="inLoc" list="locDatalist" onchange="handleLocChange()" placeholder="Select Garage">
+            <input type="text" id="inLoc" list="locDatalist" onchange="handleLocChange()" placeholder="Select Garage" enterkeyhint="done">
             <datalist id="locDatalist"></datalist>
         </div>
-        <input type="text" id="inLocCustom" class="form-group" style="display:none; width:100%; margin-top:-10px;" placeholder="Enter custom garage">
+        <input type="text" id="inLocCustom" class="form-group" style="display:none; width:100%; margin-top:-10px;" placeholder="Enter custom garage" enterkeyhint="done">
 
         <div id="floorRow" style="display:none;" class="modal-row">
             <div style="flex:2">
                 <span class="label">Floor</span>
-                <input type="text" id="inFloor" list="floorDatalist" placeholder="Lvl">
+                <input type="text" id="inFloor" list="floorDatalist" placeholder="Lvl" enterkeyhint="done">
                 <datalist id="floorDatalist"></datalist>
             </div>
-            <div style="flex:1"><span class="label">Slot</span><input type="number" id="inSlot" placeholder="#"></div>
+            <div style="flex:1"><span class="label">Slot</span><input type="number" id="inSlot" placeholder="#" enterkeyhint="done"></div>
         </div>
 
         <div class="form-section">
@@ -271,7 +280,7 @@
             </div>
         </div>
 
-        <div class="form-group"><span class="label">Notes</span><input type="text" id="inNotes" style="width:100%" placeholder="Paint, livery, upgrades..."></div>
+        <div class="form-group"><span class="label">Notes</span><input type="text" id="inNotes" style="width:100%" placeholder="Paint, livery, upgrades..." enterkeyhint="done"></div>
 
         <div class="modal-actions">
             <button class="btn-sec" onclick="closeModal('vehicleModal')">Cancel</button>
@@ -343,7 +352,7 @@
 <div id="swapAllModal" class="modal"><div class="modal-box"><div class="modal-title">Swap Entire Garage</div><div class="form-group"><span class="label">From</span><select id="saFrom" style="width:100%"></select></div><div style="text-align:center; padding:10px;"><i class="fas fa-arrow-down" style="color:var(--accent); font-size:1.5rem;"></i></div><div class="form-group"><span class="label">To</span><select id="saTo" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('swapAllModal')">Cancel</button><button class="btn-pri" onclick="performSwapAll()">Confirm Swap</button></div></div></div>
 <div id="moveModal" class="modal"><div class="modal-box"><div class="modal-title">Move Vehicle</div><p id="moveCarName" style="color:var(--accent); font-weight:bold; margin-bottom:20px; font-size:1.1rem;"></p><div class="form-group"><span class="label">Destination</span><select id="moveDest" style="width:100%" onchange="checkMoveCap()"></select></div><div id="moveSwapUI" style="display:none; background:rgba(245,158,11,0.1); padding:15px; border-radius:10px; border:1px solid var(--f1); margin-bottom:15px;"><span class="label" style="color:var(--f1)">Garage Full! Select car to swap with:</span><select id="moveSwapTarget" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('moveModal')">Cancel</button><button class="btn-pri" onclick="commitMove()">Confirm Move</button></div></div></div>
 <div id="migrationModal" class="modal"><div class="modal-box"><div class="modal-title" style="color:var(--accent)">Data Migration</div><p style="color:#ccc; font-size:0.9rem;">Syncing vehicle data with cloud database (Images & Drive stats).</p><div id="migLog" style="height:120px; overflow:auto; background:#000; padding:10px; font-family:monospace; color:var(--sell); border-radius:8px;"></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('migrationModal')">Cancel</button><button class="btn-pri" onclick="runMigration()">Run Update</button></div></div></div>
-<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v34.9.1 (Current)</strong><br>• Added Group by Class & Group by Drive.<br>• Fixed Class Name Display (No Underscores).<br>• Vehicle Card: Location & Floor now stacked.<br>• Fixed Ghost Data in Add Window.<br>• Optimized Mobile Group Headers.<br>• Fixed Stats Dashboard.</p><p><strong>v30-34</strong><br>• UI Polish & Core Logic Fixes.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
+<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v34.9.2 (Current)</strong><br>• Android Keyboard Fix (Viewport).<br>• Datalist visual improvements (Chevrons).<br>• Migration Failure Log.<br>• New Grouping (Class/Drive).<br>• Clean Class Names.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
 <div id="lightbox" onclick="this.style.display='none'"><img id="lbImg"></div>
 
 <script>
@@ -387,13 +396,12 @@
     document.addEventListener('DOMContentLoaded', async () => {
         render(); 
         updateTimerLogic();
-        populateSmartDropdowns(); // CRITICAL FIX: Load static dropdowns immediately
-        
+        populateSmartDropdowns(); 
         try {
             const res = await fetch(DB_URL);
             if(res.ok) {
                 masterDB = await res.json();
-                populateSmartDropdowns(); // Re-populate to add brands when loaded
+                populateSmartDropdowns();
                 if(vehicles.length > 0 && !vehicles[0].spawn) openModal('migrationModal');
             }
         } catch(e) { console.log("Offline mode active."); }
@@ -486,7 +494,6 @@
             linkHtml = `<a href="${gtaUrl}" target="_blank" class="action-btn gtacars-link" title="GTACars.net"><i class="fas fa-external-link-alt"></i></a>`;
         }
 
-        // Fix: Format class name (remove underscores)
         const displayClass = (db.class || v.class || '-').replace(/_/g, ' ');
 
         div.innerHTML = `
@@ -623,14 +630,12 @@
         const uniqueBrands = [...new Set(masterDB.map(c => c.manuf))].sort();
         manufList.innerHTML = uniqueBrands.map(b => `<option value="${b}">`).join('');
         
-        // FIXED: Static Garage Data
         let locOpts = ""; GARAGE_DATA.forEach(g => { g.items.forEach(i => locOpts += `<option value="${i}">`); });
         locList.innerHTML = locOpts;
         
         const moveSel = document.getElementById('moveDest'), swapFrom = document.getElementById('saFrom'), swapTo = document.getElementById('saTo');
         let optGroups = ""; GARAGE_DATA.forEach(g => { optGroups += `<optgroup label="${g.grp}">` + g.items.map(i => `<option value="${i}">${i}</option>`).join('') + `</optgroup>`; });
         
-        // FIXED: Ensure these always populate
         if(moveSel) moveSel.innerHTML = optGroups;
         if(swapFrom) swapFrom.innerHTML = optGroups;
         if(swapTo) swapTo.innerHTML = optGroups;
@@ -689,11 +694,10 @@
         vehicles = vehicles.map(v => { 
             const m = masterDB.find(db => db.model.toLowerCase() === v.model.toLowerCase()); 
             if(m && !v.spawn) { c++; return {...v, spawn: m.spawn, class: m.class, drive: m.drive, seats: m.seats}; } 
-            if(!m) f++;
+            if(!m) { f++; log.innerHTML += `<div style='color:#e74c3c'>Failed: ${v.model}</div>`; }
             return v; 
         }); 
         saveGarage(); 
-        if(f > 0) log.innerHTML += `<div style='color:#e74c3c'>${f} vehicles failed to match.</div>`;
         log.innerHTML += `<br>Updated ${c} cars successfully.`; 
     }
     
