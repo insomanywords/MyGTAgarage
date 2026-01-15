@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v34.9.5</title>
+    <title>My GTA Garage v34.9.6</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -34,20 +34,14 @@
             display: block; 
         }
 
-        /* STICKY WRAPPER (FIX v34.9.5) */
-        .sticky-top-wrapper {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            width: 100%;
-        }
+        /* STICKY WRAPPER */
+        .sticky-top-wrapper { position: sticky; top: 0; z-index: 100; width: 100%; }
 
         /* HEADER */
         header {
             background-color: #000; padding: 12px 16px; border-bottom: 2px solid var(--accent);
             display: flex; justify-content: space-between; align-items: center; 
             gap: 10px;
-            /* Sticky removed here, moved to wrapper */
         }
         
         .header-info { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
@@ -68,7 +62,6 @@
         .controls {
             padding: 10px; background-color: var(--head); border-bottom: 1px solid var(--border);
             display: flex; flex-direction: column; gap: 10px;
-            /* Sticky removed here, moved to wrapper */
         }
         
         .search-wrapper { position: relative; width: 100%; }
@@ -99,11 +92,7 @@
         .timer-btn.active { border-color: var(--timer); color: var(--timer); }
 
         /* LIST */
-        #vehicle-list { 
-            padding: 10px; 
-            padding-bottom: 80px; /* Space for fixed footer */
-            overflow: visible; 
-        }
+        #vehicle-list { padding: 10px; padding-bottom: 80px; overflow: visible; }
         .vehicle-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 8px; }
         @media (min-width: 600px) { .vehicle-grid { grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); } }
         .vehicle-grid.hidden { display: none !important; }
@@ -154,6 +143,7 @@
         .card-loc i { color: var(--accent); font-size: 0.7rem; align-self: flex-start; margin-top: 2px; }
         .loc-text { white-space: normal; line-height: 1.3; display: flex; flex-direction: column; }
         .loc-floor { font-size: 0.65rem; color: #777; margin-top: 1px; }
+        .loc-nick { color: var(--f1); font-weight: bold; margin-left: 4px; } /* Nickname style */
 
         .card-notes { font-size: 0.75rem; color: #999; font-style: italic; margin-top: 6px; border-top: 1px solid #333; padding-top: 4px; white-space: normal; }
 
@@ -176,6 +166,13 @@
         .modal-actions button { flex: 1; }
         .wep-toggle { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #333; border-radius: 8px; cursor: pointer; border: 1px solid #444; margin-bottom: 15px; transition: 0.2s; }
         .wep-toggle input { width: 20px; height: 20px; accent-color: var(--wep); }
+
+        /* Nickname Edit Button */
+        .nick-btn { 
+            background: #2c2c2c; color: var(--f1); border: 1px solid #444; 
+            padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; 
+            cursor: pointer; margin-left: auto; 
+        }
 
         /* DASHBOARD */
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
@@ -239,7 +236,7 @@
 <div id="vehicle-list"></div>
 
 <footer>
-    <span>v34.9.5</span> | 
+    <span>v34.9.6</span> | 
     <a onclick="openModal('changelogModal')">Changelog</a> | 
     <a onclick="factoryReset()" style="color: #ef4444">Reset</a>
 </footer>
@@ -268,7 +265,10 @@
 
         <div id="floorRow" style="display:none;" class="modal-row">
             <div style="flex:2">
-                <span class="label">Floor</span>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="label">Floor</span>
+                    <button type="button" class="nick-btn" onclick="openNickModal()">Edit Nickname</button>
+                </div>
                 <select id="inFloor"></select>
             </div>
             <div style="flex:1"><span class="label">Slot</span><input type="number" id="inSlot" placeholder="#"></div>
@@ -305,6 +305,19 @@
     </div>
 </div>
 
+<div id="nickModal" class="modal">
+    <div class="modal-box">
+        <div class="modal-title">Floor Nickname</div>
+        <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;">Assign a nickname to this floor (e.g., "Muscle Cars").</p>
+        <div id="nickTargetDisplay" style="margin-bottom:15px; color:var(--accent); font-weight:bold;"></div>
+        <input type="text" id="inNickname" placeholder="Enter nickname..." style="margin-bottom:15px;">
+        <div class="modal-actions">
+            <button class="btn-sec" onclick="closeModal('nickModal')">Cancel</button>
+            <button class="btn-primary" onclick="saveNickname()">Save Nickname</button>
+        </div>
+    </div>
+</div>
+
 <div id="statsModal" class="modal">
     <div class="modal-box">
         <div class="modal-title">Garage Stats</div>
@@ -314,7 +327,6 @@
             <div class="stat-card"><span id="stF1" class="stat-val" style="color:var(--f1)">0</span><span class="stat-label">F1</span></div>
             <div class="stat-card"><span id="stBenny" class="stat-val" style="color:var(--benny)">0</span><span class="stat-label">Benny</span></div>
         </div>
-        
         <div class="form-section">
             <div style="display:flex; justify-content:space-between; font-weight:800; margin-bottom:5px;">
                 <span class="label">Global Capacity</span>
@@ -325,7 +337,6 @@
                 <span id="stEmptySlots" style="color:var(--sell); font-weight:bold;">0</span> empty slots available
             </div>
         </div>
-        
         <div class="form-section">
             <span class="label">Top 5 Brands</span>
             <ul id="stBrands" style="color:#ccc; padding-left:20px; line-height:1.6; margin:0; font-size:0.9rem;"></ul>
@@ -362,17 +373,19 @@
 <div id="swapAllModal" class="modal"><div class="modal-box"><div class="modal-title">Swap Entire Garage</div><div class="form-group"><span class="label">From</span><select id="saFrom" style="width:100%"></select></div><div style="text-align:center; padding:10px;"><i class="fas fa-arrow-down" style="color:var(--accent); font-size:1.5rem;"></i></div><div class="form-group"><span class="label">To</span><select id="saTo" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('swapAllModal')">Cancel</button><button class="btn-pri" onclick="performSwapAll()">Confirm Swap</button></div></div></div>
 <div id="moveModal" class="modal"><div class="modal-box"><div class="modal-title">Move Vehicle</div><p id="moveCarName" style="color:var(--accent); font-weight:bold; margin-bottom:20px; font-size:1.1rem;"></p><div class="form-group"><span class="label">Destination</span><select id="moveDest" style="width:100%" onchange="checkMoveCap()"></select></div><div id="moveSwapUI" style="display:none; background:rgba(245,158,11,0.1); padding:15px; border-radius:10px; border:1px solid var(--f1); margin-bottom:15px;"><span class="label" style="color:var(--f1)">Garage Full! Select car to swap with:</span><select id="moveSwapTarget" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('moveModal')">Cancel</button><button class="btn-pri" onclick="commitMove()">Confirm Move</button></div></div></div>
 <div id="migrationModal" class="modal"><div class="modal-box"><div class="modal-title" style="color:var(--accent)">Data Migration</div><p style="color:#ccc; font-size:0.9rem;">Syncing vehicle data with cloud database (Images & Drive stats).</p><div id="migLog" style="height:120px; overflow:auto; background:#000; padding:10px; font-family:monospace; color:var(--sell); border-radius:8px;"></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('migrationModal')">Cancel</button><button class="btn-pri" onclick="runMigration()">Run Update</button></div></div></div>
-<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v34.9.5 (Current)</strong><br>• Sticky Scroll Fix: One unified container.<br>• Full Screen Mobile Scroll.<br>• Mobile Header Logo.</p><p><strong>v34.9.x</strong><br>• UI Optimizations, Native Dropdowns.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
+<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v34.9.6 (Current)</strong><br>• Floor Nickname System.<br>• Fixed Edit Window Floor Bug.<br>• Removed Mansion.<br>• Notes & Mobile Optimizations.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
 <div id="lightbox" onclick="this.style.display='none'"><img id="lbImg"></div>
 
 <script>
     // --- 1. CONFIG & DB ---
     const STORAGE_KEY = 'gta_vehicles_v1';
+    const NICK_KEY = 'gta_nicknames_v1';
     const BASE_URL = "https://raw.githubusercontent.com/insomanywords/MyGTAgarage-images/main/";
     const DB_URL = BASE_URL + "vehicles.json";
 
     let masterDB = [];
     let vehicles = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let floorNicknames = JSON.parse(localStorage.getItem(NICK_KEY)) || {};
     let lastSell = parseInt(localStorage.getItem('gta_last_sale')) || 0;
     let lastSoldName = localStorage.getItem('gta_last_sold_name') || "None";
     let editingId = null;
@@ -380,7 +393,7 @@
     let movingId = null;
 
     const GARAGE_DATA = [
-        { grp: "Safehouses", items: ["Richman Villa (20)", "The Vinewood Residence (20)", "The Tongva Estate (20)", "Mansion (10)"] },
+        { grp: "Safehouses", items: ["Richman Villa (20)", "The Vinewood Residence (20)", "The Tongva Estate (20)"] },
         { grp: "Massive", items: ["Vinewood Club Garage (100)", "Eclipse Blvd Garage (50)", "Office Garage 1 (20)", "Office Garage 2 (20)", "Office Garage 3 (20)"] },
         { grp: "Apartments", items: ["Eclipse Towers, Penthouse 1 (10)", "Eclipse Towers, Penthouse 2 (10)", "Eclipse Towers, Penthouse 3 (10)", "Eclipse Towers, Apt 31 (10)", "Eclipse Towers, Apt 9 (10)", "Eclipse Towers, Apt 5 (10)", "Eclipse Towers, Apt 3 (10)", "Richards Majestic, Apt 51 (10)", "Richards Majestic, Apt 4 (10)", "Tinsel Towers, Apt 42 (10)", "Tinsel Towers, Apt 29 (10)", "4 Integrity Way, Apt 30 (10)", "4 Integrity Way, Apt 35 (10)", "Del Perro Heights, Apt 7 (10)", "Del Perro Heights, Apt 20 (10)", "Weazel Plaza, Apt 101 (10)", "Weazel Plaza, Apt 70 (10)", "Weazel Plaza, Apt 26 (10)", "3 Alta St, Apt 10 (10)", "3 Alta St, Apt 57 (10)"] },
         { grp: "Business", items: ["Agency (20)", "Nightclub (31)", "Arcade (10)", "Auto Shop (10)", "Salvage Yard (2)", "Bail Enforcement (2)", "Clubhouse (10)"] },
@@ -407,7 +420,6 @@
         render(); 
         updateTimerLogic();
         populateDropdowns(); 
-        
         try {
             const res = await fetch(DB_URL);
             if(res.ok) {
@@ -422,13 +434,8 @@
     function render() {
         const list = document.getElementById('vehicle-list'), term = document.getElementById('searchInput').value.toLowerCase(), mode = document.getElementById('viewMode').value;
         const filtered = vehicles.filter(v => (v.model+v.manuf+v.loc+(v.notes||'')).toLowerCase().includes(term));
-        
-        const countEl = document.getElementById('headerCount');
-        if(countEl) countEl.innerText = vehicles.length;
-        
-        const xBtn = document.getElementById('clearSearch');
-        if(xBtn) xBtn.style.display = term.length > 0 ? 'flex' : 'none';
-
+        document.getElementById('headerCount').innerText = vehicles.length;
+        document.getElementById('clearSearch').style.display = term.length > 0 ? 'flex' : 'none';
         list.innerHTML = "";
 
         if(mode === 'all') {
@@ -440,34 +447,18 @@
             filtered.forEach(v => { 
                 let k = "Unknown";
                 const db = masterDB.find(d => d.model === v.model) || {};
-                
                 if (mode === 'garage') k = v.loc;
                 else if (mode === 'manuf') k = v.manuf;
                 else if (mode === 'class') k = (db.class || v.class || 'Unknown').replace(/_/g, ' ');
                 else if (mode === 'drive') k = db.drive || v.drive || 'Unknown';
-                
-                if(!groups[k]) groups[k] = []; 
-                groups[k].push(v); 
+                if(!groups[k]) groups[k] = []; groups[k].push(v); 
             });
-            
             Object.keys(groups).sort().forEach(k => {
                 const head = document.createElement('div'); head.className = term ? 'group-header' : 'group-header collapsed';
                 let meta = `${groups[k].length}`; 
                 let pct = 0;
-                
-                if(mode==='garage') { 
-                    const cl = Object.keys(CAPACITIES).find(m=>k.includes(m))||"DEFAULT"; 
-                    const cap=CAPACITIES[cl]; 
-                    meta = `${groups[k].length} / ${cap}`; 
-                    pct = (groups[k].length/cap)*100; 
-                }
-                
-                head.innerHTML = `
-                    <div class="group-name-wrap"><span class="arrow">▼</span>${k}</div>
-                    <span class="group-meta">${meta}</span>
-                    <div class="cap-bar" style="width:${Math.min(pct,100)}%; background:${pct>=90?'#ef4444':'var(--accent)'}"></div>
-                `;
-                
+                if(mode==='garage') { const cl = Object.keys(CAPACITIES).find(m=>k.includes(m))||"DEFAULT"; const cap=CAPACITIES[cl]; meta = `${groups[k].length} / ${cap}`; pct = (groups[k].length/cap)*100; }
+                head.innerHTML = `<div class="group-name-wrap"><span class="arrow">▼</span>${k}</div><span class="group-meta">${meta}</span><div class="cap-bar" style="width:${Math.min(pct,100)}%; background:${pct>=90?'#ef4444':'var(--accent)'}"></div>`;
                 const grid = document.createElement('div'); grid.className = term ? 'vehicle-grid' : 'vehicle-grid hidden';
                 groups[k].forEach(v => grid.appendChild(createCard(v)));
                 head.onclick = () => { grid.classList.toggle('hidden'); head.classList.toggle('collapsed'); };
@@ -485,33 +476,22 @@
         if(v.isWeapon) badges += `<span class="badge w">WEP</span>`;
         if(v.wheels === 'F1') badges += `<span class="badge f">F1</span>`;
         if(v.wheels?.includes('Benny')) badges += `<span class="badge b">BNY</span>`;
-        
-        let pClass = "";
-        if(v.plate === "Yankton") pClass = "y";
-        else if(v.plate === "Liberty City") pClass = "l";
-        else if(v.plate === "Panic") pClass = "p";
-        else if(v.plate === "Pounders") pClass = "pd";
-        else if(v.plate === "Las Venturas") pClass = "v";
-        else if(v.plate === "E-Cola") pClass = "e";
-        else if(v.plate === "Sprunk") pClass = "s";
-        
-        if(pClass) badges += `<span class="badge ${pClass}">${v.plate.toUpperCase()}</span>`;
-        else if(v.plate && v.plate !== 'Standard') badges += `<span class="badge">${v.plate}</span>`;
+        if(v.plate && v.plate !== 'Standard') {
+            let pClass = "";
+            if(v.plate === "Yankton") pClass = "y"; else if(v.plate === "Liberty City") pClass = "l";
+            else if(v.plate === "Panic") pClass = "p"; else if(v.plate === "Pounders") pClass = "pd";
+            else if(v.plate === "Las Venturas") pClass = "v"; else if(v.plate === "E-Cola") pClass = "e";
+            else if(v.plate === "Sprunk") pClass = "s";
+            badges += `<span class="badge ${pClass}">${v.plate.toUpperCase()}</span>`;
+        }
 
         const div = document.createElement('div'); div.className = "card";
-        
-        let linkHtml = "";
-        if (spawn) {
-            linkHtml = `<a href="${gtaUrl}" target="_blank" class="action-btn gtacars-link" title="GTACars.net"><i class="fas fa-external-link-alt"></i></a>`;
-        }
-
         const displayClass = (db.class || v.class || '-').replace(/_/g, ' ');
-
-        // ADDED NOTES SECTION
-        let notesHtml = "";
-        if (v.notes && v.notes.trim() !== "") {
-            notesHtml = `<div class="card-notes">${v.notes}</div>`;
-        }
+        let notesHtml = (v.notes && v.notes.trim() !== "") ? `<div class="card-notes">${v.notes}</div>` : "";
+        
+        // NICKNAME LOGIC
+        const floorKey = v.loc + (v.floor ? "_" + v.floor : "");
+        const nickname = floorNicknames[floorKey] ? `(${floorNicknames[floorKey]})` : "";
 
         div.innerHTML = `
             <div class="card-img-box" onclick="openLb('${img}')"><img class="card-img" src="${img}" onerror="handleImgError(this, '${spawn}')"><div class="card-fallback" style="display:none"><i class="fas fa-car"></i></div><div class="card-badges">${badges}</div></div>
@@ -520,24 +500,11 @@
                     <div class="card-manuf">${v.manuf}</div>
                     <div class="card-model">${v.model}</div>
                 </div>
-                <div class="card-chips">
-                    <span class="chip"><i class="fas fa-tag"></i> ${displayClass}</span>
-                    <span class="chip"><i class="fas fa-cog"></i> ${db.drive||v.drive||'-'}</span>
-                    <span class="chip"><i class="fas fa-user"></i> ${db.seats||v.seats||'2'}</span>
-                </div>
-                <div class="card-loc">
-                    <i class="fas fa-warehouse"></i>
-                    <div class="loc-text">
-                        <span>${v.loc}</span>
-                        ${v.floor ? `<span class="loc-floor">${v.floor}</span>` : ''}
-                    </div>
-                </div>
+                <div class="card-chips"><span class="chip"><i class="fas fa-tag"></i> ${displayClass}</span><span class="chip"><i class="fas fa-cog"></i> ${db.drive||v.drive||'-'}</span><span class="chip"><i class="fas fa-user"></i> ${db.seats||v.seats||'2'}</span></div>
+                <div class="card-loc"><i class="fas fa-warehouse"></i><div class="loc-text"><span>${v.loc} <span class="loc-nick">${nickname}</span></span>${v.floor ? `<span class="loc-floor">${v.floor}</span>` : ''}</div></div>
                 ${notesHtml}
             </div>
-            <div class="card-actions-top">
-                ${linkHtml}
-                <button class="action-btn" onclick="editVehicle(${v.id})"><i class="fas fa-pencil-alt"></i></button>
-            </div>`;
+            <div class="card-actions-top">${spawn ? `<a href="${gtaUrl}" target="_blank" class="action-btn gtacars-link"><i class="fas fa-external-link-alt"></i></a>` : ''}<button class="action-btn" onclick="editVehicle(${v.id})"><i class="fas fa-pencil-alt"></i></button></div>`;
         return div;
     }
 
@@ -554,13 +521,20 @@
         let matchedVal = ""; Array.from(locSel.options).forEach(opt => { if (opt.value.replace(/\s\(\d+\)$/, "") === v.loc.replace(/\s\(\d+\)$/, "")) matchedVal = opt.value; });
         if(matchedVal) locSel.value = matchedVal; else { locSel.value = 'Custom'; document.getElementById('inLocCustom').value = v.loc; }
         
-        document.getElementById('inFloor').value = v.floor||"";
+        // CRITICAL FIX: Build floor list first, THEN set value
+        handleLocChange(); 
+        
+        // Wait a tick for DOM update or set directly if sync
+        setTimeout(() => {
+             document.getElementById('inFloor').value = v.floor;
+        }, 0);
+
         document.getElementById('inSlot').value = v.slot||"";
         document.getElementById('inWep').checked = v.isWeapon;
         document.getElementById('inWheels').value = v.wheels||"Stock";
         document.getElementById('inPlate').value = v.plate||"Standard";
         document.getElementById('inNotes').value = v.notes||"";
-        handleLocChange(); openModal('vehicleModal');
+        openModal('vehicleModal');
     }
 
     function saveVehicle() {
@@ -573,11 +547,9 @@
         if(!manuf || !model || !loc) return alert("Required: Make, Model, Garage");
         
         let floor = document.getElementById('inFloor').value;
-
         const db = masterDB.find(d => d.model === model) || {};
         const car = {
-            id: editingId || Date.now(), manuf, model, loc,
-            floor: floor,
+            id: editingId || Date.now(), manuf, model, loc, floor: floor,
             slot: document.getElementById('inSlot').value,
             isWeapon: document.getElementById('inWep').checked,
             wheels: document.getElementById('inWheels').value,
@@ -598,21 +570,41 @@
         render(); updateTimerLogic();
     }
 
+    // --- NICKNAME LOGIC ---
+    function openNickModal() {
+        const loc = document.getElementById('inLoc').value;
+        const floor = document.getElementById('inFloor').value;
+        if(!loc || (document.getElementById('floorRow').style.display !== 'none' && !floor)) return alert("Select Garage/Floor first.");
+        
+        const key = loc + (floor ? "_" + floor : "");
+        document.getElementById('nickTargetDisplay').innerText = key.replace('_', ' - ');
+        document.getElementById('inNickname').value = floorNicknames[key] || "";
+        openModal('nickModal');
+    }
+
+    function saveNickname() {
+        const loc = document.getElementById('inLoc').value;
+        const floor = document.getElementById('inFloor').value;
+        const key = loc + (floor ? "_" + floor : "");
+        const val = document.getElementById('inNickname').value.trim();
+        
+        if(val) floorNicknames[key] = val;
+        else delete floorNicknames[key];
+        
+        localStorage.setItem(NICK_KEY, JSON.stringify(floorNicknames));
+        closeModal('nickModal');
+        render(); // Refresh list to show new nickname
+    }
+
     function openStats() {
         openModal('statsModal');
         document.getElementById('stTotal').innerText = vehicles.length;
         document.getElementById('stWep').innerText = vehicles.filter(v=>v.isWeapon).length || 0;
         document.getElementById('stF1').innerText = vehicles.filter(v=>v.wheels==='F1').length || 0;
         document.getElementById('stBenny').innerText = vehicles.filter(v=>v.wheels?.includes('Benny')).length || 0;
-        
         const bCounts = {}; vehicles.forEach(v => { const b = v.manuf || 'Unk'; bCounts[b] = (bCounts[b]||0)+1; });
         document.getElementById('stBrands').innerHTML = Object.entries(bCounts).sort((x,y)=>y[1]-x[1]).slice(0,5).map(x=>`<li>${x[0]}: ${x[1]}</li>`).join('');
-        
-        let tCap = 0;
-        [...new Set(vehicles.map(v=>v.loc))].forEach(l => {
-            const cl = Object.keys(CAPACITIES).find(m => l.includes(m)) || "DEFAULT";
-            tCap += CAPACITIES[cl];
-        });
+        let tCap = 0; [...new Set(vehicles.map(v=>v.loc))].forEach(l => { const cl = Object.keys(CAPACITIES).find(m => l.includes(m)) || "DEFAULT"; tCap += CAPACITIES[cl]; });
         document.getElementById('usageTxt').innerText = `${vehicles.length} / ${tCap}`;
         document.getElementById('stEmptySlots').innerText = Math.max(0, tCap - vehicles.length);
         document.getElementById('usageBar').style.width = Math.min((vehicles.length/(tCap||1))*100, 100) + "%";
@@ -632,29 +624,17 @@
     }
 
     // --- UTILS & FEEDBACK ---
-    function showSuccess(title, msg) {
-        document.getElementById('successTitle').innerText = title;
-        document.getElementById('successMsg').innerHTML = msg;
-        openModal('successModal');
-    }
-
+    function showSuccess(title, msg) { document.getElementById('successTitle').innerText = title; document.getElementById('successMsg').innerHTML = msg; openModal('successModal'); }
     function clearSearch() { document.getElementById('searchInput').value = ''; render(); }
     
-    // REVERTED TO STANDARD SELECTS
     function populateDropdowns() {
         const manufList = document.getElementById('inManuf');
         const locList = document.getElementById('inLoc');
-        
         const uniqueBrands = [...new Set(masterDB.map(c => c.manuf))].sort();
         manufList.innerHTML = `<option value="">Select Make</option>` + uniqueBrands.map(b => `<option value="${b}">${b}</option>`).join('') + `<option value="Custom">Custom...</option>`;
-        
-        let locOpts = `<option value="">Select Garage</option>`; 
-        GARAGE_DATA.forEach(g => { 
-            locOpts += `<optgroup label="${g.grp}">` + g.items.map(i => `<option value="${i}">${i}</option>`).join('') + `</optgroup>`; 
-        });
+        let locOpts = `<option value="">Select Garage</option>`; GARAGE_DATA.forEach(g => { locOpts += `<optgroup label="${g.grp}">` + g.items.map(i => `<option value="${i}">${i}</option>`).join('') + `</optgroup>`; });
         locOpts += `<option value="Custom">Custom...</option>`;
         locList.innerHTML = locOpts;
-        
         const moveSel = document.getElementById('moveDest'), swapFrom = document.getElementById('saFrom'), swapTo = document.getElementById('saTo');
         moveSel.innerHTML = locOpts; swapFrom.innerHTML = locOpts; swapTo.innerHTML = locOpts;
     }
@@ -663,10 +643,7 @@
         const brand = document.getElementById('inManuf').value;
         const dd = document.getElementById('inModel');
         dd.innerHTML = `<option value="">Select Model</option>`;
-        
-        if (brand === 'Custom') {
-            checkCustomModel();
-        } else {
+        if (brand === 'Custom') { checkCustomModel(); } else {
             masterDB.filter(c => c.manuf === brand).forEach(c => dd.innerHTML += `<option value="${c.model}">${c.model}</option>`);
             dd.innerHTML += `<option value="Custom">Custom...</option>`;
         }
@@ -676,20 +653,11 @@
     function handleLocChange() {
         const v = document.getElementById('inLoc').value;
         const clean = Object.keys(CAPACITIES).find(m => v.includes(m)) || "DEFAULT";
-        const dl = document.getElementById('inFloor'); 
-        dl.innerHTML = "";
-        
+        const dl = document.getElementById('inFloor'); dl.innerHTML = "";
         const key = Object.keys(FLOOR_MAP).find(k => v.includes(k));
-        if (key) {
-            FLOOR_MAP[key].forEach(f => dl.innerHTML += `<option value="${f}">${f}</option>`);
-            document.getElementById('floorRow').style.display = 'flex';
-        } else if (CAPACITIES[clean] >= 20) {
-            // Manual entry for large garages without maps
-            dl.innerHTML = `<option value="Floor 1">Floor 1</option><option value="Floor 2">Floor 2</option><option value="Floor 3">Floor 3</option>`;
-            document.getElementById('floorRow').style.display = 'flex';
-        } else {
-            document.getElementById('floorRow').style.display = 'none';
-        }
+        if (key) { FLOOR_MAP[key].forEach(f => dl.innerHTML += `<option value="${f}">${f}</option>`); document.getElementById('floorRow').style.display = 'flex'; } 
+        else if (CAPACITIES[clean] >= 20) { dl.innerHTML = `<option value="Floor 1">Floor 1</option><option value="Floor 2">Floor 2</option><option value="Floor 3">Floor 3</option>`; document.getElementById('floorRow').style.display = 'flex'; } 
+        else { document.getElementById('floorRow').style.display = 'none'; }
         document.getElementById('inLocCustom').style.display = (v === 'Custom') ? 'block' : 'none';
     }
 
