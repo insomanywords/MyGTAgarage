@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v36.7</title>
+    <title>My GTA Garage v36.8</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -260,7 +260,7 @@
 <div id="vehicle-list"></div>
 
 <footer>
-    <span>v36.7</span> | 
+    <span>v36.8</span> | 
     <a onclick="openModal('changelogModal')">Changelog</a> | 
     <a onclick="factoryReset()" style="color: #ef4444">Reset</a>
 </footer>
@@ -432,7 +432,7 @@
 <div id="swapAllModal" class="modal"><div class="modal-box"><div class="modal-title">Swap Entire Garage</div><div class="form-group"><span class="label">From</span><select id="saFrom" style="width:100%"></select></div><div style="text-align:center; padding:10px;"><i class="fas fa-arrow-down" style="color:var(--accent); font-size:1.5rem;"></i></div><div class="form-group"><span class="label">To</span><select id="saTo" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('swapAllModal')">Cancel</button><button class="btn-pri" onclick="performSwapAll()">Confirm Swap</button></div></div></div>
 <div id="moveModal" class="modal"><div class="modal-box"><div class="modal-title">Move Vehicle</div><p id="moveCarName" style="color:var(--accent); font-weight:bold; margin-bottom:20px; font-size:1.1rem;"></p><div class="form-group"><span class="label">Destination</span><select id="moveDest" style="width:100%" onchange="checkMoveCap()"></select></div><div id="moveSwapUI" style="display:none; background:rgba(245,158,11,0.1); padding:15px; border-radius:10px; border:1px solid var(--f1); margin-bottom:15px;"><span class="label" style="color:var(--f1)">Garage Full! Select car to swap with:</span><select id="moveSwapTarget" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('moveModal')">Cancel</button><button class="btn-pri" onclick="commitMove()">Confirm Move</button></div></div></div>
 <div id="migrationModal" class="modal"><div class="modal-box"><div class="modal-title" style="color:var(--accent)">Data Migration</div><p style="color:#ccc; font-size:0.9rem;">Syncing vehicle data with cloud database (Images & Drive stats).</p><div id="migLog" style="height:120px; overflow:auto; background:#000; padding:10px; font-family:monospace; color:var(--sell); border-radius:8px;"></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('migrationModal')">Cancel</button><button class="btn-pri" onclick="runMigration()">Run Update</button></div></div></div>
-<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v36.7 (Current)</strong><br>• Move & Sell Buttons on Detail Card.<br>• Removed icon from toggle.<br>• Consistent Modals & Alerts.</p><p><strong>v36.5</strong><br>• Z-Index Fix.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
+<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v36.8 (Current)</strong><br>• Added Garment Factory (10 slots).<br>• Corrected slot capacities for all properties.<br>• Enhanced migration tools.</p><p><strong>v36.7</strong><br>• Move/Sell buttons on Detail Card.<br>• Z-Index Fix.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
 <div id="lightbox" onclick="this.style.display='none'"><img id="lbImg"></div>
 
 <script>
@@ -491,14 +491,15 @@
         { key: "Clubhouse", target: "Clubhouse (10)" },
         { key: "Arena", target: "Arena Workshop (27)" },
         { key: "Casino", target: "Casino Penthouse (10)" },
-        { key: "Facility", target: "Facility (7)" }
+        { key: "Facility", target: "Facility (7)" },
+        { key: "Garment", target: "Garment Factory (10)" } // v36.8
     ];
 
     const GARAGE_DATA = [
         { grp: "Safehouses", items: ["Richman Villa (20)", "The Vinewood Residence (20)", "The Tongva Estate (20)"] },
         { grp: "Massive", items: ["Vinewood Club Garage (100)", "Eclipse Blvd Garage (50)", "Office Garage 1 (20)", "Office Garage 2 (20)", "Office Garage 3 (20)"] },
         { grp: "Apartments", items: ["Eclipse Towers, Penthouse 1 (10)", "Eclipse Towers, Penthouse 2 (10)", "Eclipse Towers, Penthouse 3 (10)", "Eclipse Towers, Apt 31 (10)", "Eclipse Towers, Apt 9 (10)", "Eclipse Towers, Apt 5 (10)", "Eclipse Towers, Apt 3 (10)", "Richards Majestic, Apt 51 (10)", "Richards Majestic, Apt 4 (10)", "Tinsel Towers, Apt 42 (10)", "Tinsel Towers, Apt 29 (10)", "4 Integrity Way, Apt 30 (10)", "4 Integrity Way, Apt 35 (10)", "Del Perro Heights, Apt 7 (10)", "Del Perro Heights, Apt 20 (10)", "Weazel Plaza, Apt 101 (10)", "Weazel Plaza, Apt 70 (10)", "Weazel Plaza, Apt 26 (10)", "3 Alta St, Apt 10 (10)", "3 Alta St, Apt 57 (10)"] },
-        { grp: "Business", items: ["Agency (20)", "Nightclub (31)", "Arcade (10)", "Auto Shop (10)", "Salvage Yard (2)", "Bail Enforcement (2)", "Clubhouse (10)"] },
+        { grp: "Business", items: ["Agency (20)", "Nightclub (31)", "Arcade (10)", "Auto Shop (10)", "Salvage Yard (2)", "Bail Enforcement (2)", "Clubhouse (10)", "Garment Factory (10)"] },
         { grp: "Special", items: ["Arena Workshop (27)", "Casino Penthouse (10)", "Facility (7)", "Kosatka", "Terrorbyte", "Acid Lab", "Avenger", "MOC"] }
     ];
 
@@ -506,7 +507,7 @@
         "Vinewood Club": 100, "Eclipse Blvd": 50, "Office": 20, "Agency": 20, "Nightclub": 31, 
         "Arena Workshop": 27, "Facility": 7, "Arcade": 10, "Auto Shop": 10, "Richman Villa": 20,
         "Vinewood Residence": 20, "Tongva Estate": 20, "Salvage Yard": 2, "Bail Enforcement": 2, 
-        "Clubhouse": 10, "DEFAULT": 10
+        "Clubhouse": 10, "Garment Factory": 10, "DEFAULT": 10
     };
 
     const FLOOR_MAP = {
