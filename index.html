@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v36.9</title>
+    <title>My GTA Garage v37.0</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -260,7 +260,7 @@
 <div id="vehicle-list"></div>
 
 <footer>
-    <span>v36.9</span> | 
+    <span>v37.0</span> | 
     <a onclick="openModal('aboutModal')">About</a> | 
     <a onclick="openModal('changelogModal')">Changelog</a> | 
     <a onclick="factoryReset()" style="color: #ef4444">Reset</a>
@@ -460,7 +460,7 @@
 <div id="swapAllModal" class="modal"><div class="modal-box"><div class="modal-title">Swap Entire Garage</div><div class="form-group"><span class="label">From</span><select id="saFrom" style="width:100%"></select></div><div style="text-align:center; padding:10px;"><i class="fas fa-arrow-down" style="color:var(--accent); font-size:1.5rem;"></i></div><div class="form-group"><span class="label">To</span><select id="saTo" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('swapAllModal')">Cancel</button><button class="btn-pri" onclick="performSwapAll()">Confirm Swap</button></div></div></div>
 <div id="moveModal" class="modal"><div class="modal-box"><div class="modal-title">Move Vehicle</div><p id="moveCarName" style="color:var(--accent); font-weight:bold; margin-bottom:20px; font-size:1.1rem;"></p><div class="form-group"><span class="label">Destination</span><select id="moveDest" style="width:100%" onchange="checkMoveCap()"></select></div><div id="moveSwapUI" style="display:none; background:rgba(245,158,11,0.1); padding:15px; border-radius:10px; border:1px solid var(--f1); margin-bottom:15px;"><span class="label" style="color:var(--f1)">Garage Full! Select car to swap with:</span><select id="moveSwapTarget" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('moveModal')">Cancel</button><button class="btn-pri" onclick="commitMove()">Confirm Move</button></div></div></div>
 <div id="migrationModal" class="modal"><div class="modal-box"><div class="modal-title" style="color:var(--accent)">Data Migration</div><p style="color:#ccc; font-size:0.9rem;">Syncing vehicle data with cloud database (Images & Drive stats).</p><div id="migLog" style="height:120px; overflow:auto; background:#000; padding:10px; font-family:monospace; color:var(--sell); border-radius:8px;"></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('migrationModal')">Cancel</button><button class="btn-pri" onclick="runMigration()">Run Update</button></div></div></div>
-<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v36.9 (Current)</strong><br>• Added 'About' modal in footer.<br>• Detailed feature & usage guide.</p><p><strong>v36.8</strong><br>• Added Garment Factory (10).<br>• Capacity corrections.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
+<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v37.0 (Current)</strong><br>• Smart Move Logic: Auto-finds empty floors.<br>• Fixed Swap Logic: Swaps Floor & Slot correctly.<br>• Success messages show exact floor location.</p><p><strong>v36.9</strong><br>• About Modal.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
 <div id="lightbox" onclick="this.style.display='none'"><img id="lbImg"></div>
 
 <script>
@@ -963,11 +963,46 @@
         openConfirm("Confirm Move", "Move vehicle to new location?", () => {
             const d = document.getElementById('moveDest').value, carA = vehicles.find(v=>v.id===movingId);
             let msg = `Moved <strong>${carA.model}</strong> to ${d}.`;
-            if(document.getElementById('moveSwapUI').style.display!=='none') { 
-                const carB = vehicles.find(v=>v.id==document.getElementById('moveSwapTarget').value); 
-                const tmp = carA.loc; carA.loc = d; carB.loc = tmp; 
-                msg = `Swapped <strong>${carA.model}</strong> with <strong>${carB.model}</strong>.`;
-            } else carA.loc = d; 
+            
+            if(document.getElementById('moveSwapUI').style.display !== 'none') { 
+                const carB = vehicles.find(v=>v.id == document.getElementById('moveSwapTarget').value); 
+                
+                // Swap Locations
+                const tempLoc = carA.loc; carA.loc = carB.loc; carB.loc = tempLoc;
+                // Swap Floors
+                const tempFloor = carA.floor; carA.floor = carB.floor; carB.floor = tempFloor;
+                // Swap Slots
+                const tempSlot = carA.slot; carA.slot = carB.slot; carB.slot = tempSlot;
+
+                msg = `Swapped <strong>${carA.model}</strong> with <strong>${carB.model}</strong> in ${d}.`;
+            } else {
+                // MOVE LOGIC (v37.0 Fix)
+                carA.loc = d;
+
+                // Find valid floor
+                let cleanDest = d.split(" (")[0]; 
+                let mapKey = Object.keys(FLOOR_MAP).find(k => d.includes(k));
+                let newFloor = "";
+
+                if (mapKey) {
+                    const floors = FLOOR_MAP[mapKey];
+                    // Find first floor with space
+                    for (let f of floors) {
+                        const cap = getFloorCap(d, f);
+                        const count = vehicles.filter(v => v.loc === d && v.floor === f).length;
+                        if (count < cap) {
+                            newFloor = f;
+                            break;
+                        }
+                    }
+                }
+
+                carA.floor = newFloor;
+                carA.slot = ""; // Reset slot as it moved
+
+                msg = `Moved <strong>${carA.model}</strong> to ${d}${newFloor ? ` - ${newFloor}` : ''}.`;
+            }
+            
             saveGarage(); closeModal('moveModal'); showSuccess("Vehicle Moved", msg);
         });
     }
