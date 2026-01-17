@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v37.8</title>
+    <title>My GTA Garage v37.10</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -194,7 +194,7 @@
         .wep-toggle input { width: 20px; height: 20px; accent-color: var(--wep); }
         .nick-btn { background: #2c2c2c; color: var(--f1); border: 1px solid #444; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; margin-left: auto; }
 
-        /* Z-INDEX FIX v36.5: Alerts over Vehicle Modal */
+        /* Z-INDEX FIX */
         #alertModal, #confirmModal { z-index: 1100; }
 
         /* DASHBOARD */
@@ -207,7 +207,7 @@
         .usage-container { background: #111; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 5px; }
         .usage-bar { height: 100%; background: var(--accent); width: 0%; transition: 0.5s; }
         
-        /* NEW: BRAND BARS v37.1 */
+        /* BRAND BARS */
         .brand-bars { display: flex; flex-direction: column; gap: 8px; }
         .brand-row { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; }
         .brand-name { width: 100px; text-align: right; color: #ccc; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -268,7 +268,7 @@
 <div id="vehicle-list"></div>
 
 <footer>
-    <span>v37.8</span> | 
+    <span>v37.10</span> | 
     <a onclick="openModal('aboutModal')">About</a> | 
     <a onclick="openModal('changelogModal')">Changelog</a> | 
     <a onclick="factoryReset()" style="color: #ef4444">Reset</a>
@@ -468,7 +468,7 @@
 <div id="swapAllModal" class="modal"><div class="modal-box"><div class="modal-title">Swap Entire Garage</div><div class="form-group"><span class="label">From</span><select id="saFrom" style="width:100%"></select></div><div style="text-align:center; padding:10px;"><i class="fas fa-arrow-down" style="color:var(--accent); font-size:1.5rem;"></i></div><div class="form-group"><span class="label">To</span><select id="saTo" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('swapAllModal')">Cancel</button><button class="btn-pri" onclick="performSwapAll()">Confirm Swap</button></div></div></div>
 <div id="moveModal" class="modal"><div class="modal-box"><div class="modal-title">Move Vehicle</div><p id="moveCarName" style="color:var(--accent); font-weight:bold; margin-bottom:20px; font-size:1.1rem;"></p><div class="form-group"><span class="label">Destination</span><select id="moveDest" style="width:100%" onchange="checkMoveCap()"></select></div><div id="moveSwapUI" style="display:none; background:rgba(245,158,11,0.1); padding:15px; border-radius:10px; border:1px solid var(--f1); margin-bottom:15px;"><span class="label" style="color:var(--f1)">Garage Full! Select car to swap with:</span><select id="moveSwapTarget" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('moveModal')">Cancel</button><button class="btn-pri" onclick="commitMove()">Confirm Move</button></div></div></div>
 <div id="migrationModal" class="modal"><div class="modal-box"><div class="modal-title" style="color:var(--accent)">Data Migration</div><p style="color:#ccc; font-size:0.9rem;">Syncing vehicle data with cloud database (Images & Drive stats).</p><div id="migLog" style="height:120px; overflow:auto; background:#000; padding:10px; font-family:monospace; color:var(--sell); border-radius:8px;"></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('migrationModal')">Cancel</button><button class="btn-pri" onclick="runMigration()">Run Update</button></div></div></div>
-<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v37.8 (Current)</strong><br>• Fixed missing v37.6 features.<br>• Restored Real-time Floor Usage.</p><p><strong>v37.7</strong><br>• Penthouse Fix.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
+<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v37.10 (Current)</strong><br>• Fixed App Crash (Syntax Error).<br>• Restored Sell Timer Display.</p><p><strong>v37.9</strong><br>• Sell Cooldown Block.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
 <div id="lightbox" onclick="this.style.display='none'"><img id="lbImg"></div>
 
 <script>
@@ -487,7 +487,7 @@
     let timerInt = null;
     let movingId = null;
 
-    // --- HELPER FUNCTIONS FOR MODALS (v36.4) ---
+    // --- HELPER FUNCTIONS FOR MODALS ---
     function openAlert(title, msg) {
         document.getElementById('alertTitle').innerText = title;
         document.getElementById('alertMsg').innerHTML = msg;
@@ -510,9 +510,9 @@
 
     // --- MIGRATION CONFIG (Smart Matching) ---
     const MIGRATION_RULES = [
-        { key: "Penthouse Suite 1", target: "Eclipse Towers, Penthouse 1 (10)" }, // v37.3 FIX
-        { key: "Penthouse Suite 2", target: "Eclipse Towers, Penthouse 2 (10)" }, // v37.3 FIX
-        { key: "Penthouse Suite 3", target: "Eclipse Towers, Penthouse 3 (10)" }, // v37.3 FIX
+        { key: "Penthouse Suite 1", target: "Eclipse Towers, Penthouse 1 (10)" }, 
+        { key: "Penthouse Suite 2", target: "Eclipse Towers, Penthouse 2 (10)" }, 
+        { key: "Penthouse Suite 3", target: "Eclipse Towers, Penthouse 3 (10)" }, 
         { key: "Vinewood Club", target: "Vinewood Club Garage (100)" },
         { key: "Eclipse Blvd", target: "Eclipse Blvd Garage (50)" },
         { key: "Richman", target: "Richman Villa (20)" },
@@ -531,7 +531,7 @@
         { key: "Arena", target: "Arena Workshop (27)" },
         { key: "Casino", target: "Casino Penthouse (10)" },
         { key: "Facility", target: "Facility (7)" },
-        { key: "Garment", target: "Garment Factory (10)" } // v36.8
+        { key: "Garment", target: "Garment Factory (10)" } 
     ];
 
     const GARAGE_DATA = [
@@ -585,7 +585,6 @@
     document.addEventListener('DOMContentLoaded', async () => {
         let migrated = false;
         vehicles.forEach(v => {
-            // FIX v37.7: Explicitly fix Penthouse Suite naming FIRST
             if (v.loc.includes("Penthouse Suite")) {
                 if (v.loc.includes("1") || v.loc.includes("Suite 1")) v.loc = "Eclipse Towers, Penthouse 1 (10)";
                 else if (v.loc.includes("2") || v.loc.includes("Suite 2")) v.loc = "Eclipse Towers, Penthouse 2 (10)";
@@ -728,7 +727,7 @@
         
         let badges = "";
         if(v.isFav) badges += `<span class="badge fav"><i class="fas fa-heart"></i></span>`; 
-        if(v.isWeapon) badges += `<span class="badge w">WEP</span>`;
+        if(v.isWeapon) badges += `<span class="badge w">WEAPONIZED</span> `;
         if(v.wheels === 'F1') badges += `<span class="badge f">F1</span>`;
         if(v.wheels?.includes('Benny')) badges += `<span class="badge b">BNY</span>`;
         if(v.plate && v.plate !== 'Standard') {
@@ -818,7 +817,6 @@
         openModal('vehicleModal');
     }
 
-    // UPDATED FOR v37.6: DYNAMIC CAPACITY FILTERING
     function handleLocChange() {
         const v = document.getElementById('inLoc').value;
         const dl = document.getElementById('inFloor');
@@ -835,7 +833,6 @@
         const maxCap = CAPACITIES[cl];
         const currentCount = vehicles.filter(veh => veh.loc === v && veh.id !== editingId).length;
 
-        // Garage Full Check
         if (currentCount >= maxCap) {
             openAlert("Garage Full", `The location <strong>${v}</strong> is full (${currentCount}/${maxCap}).<br>Please select a different garage.`);
             document.getElementById('inLoc').value = ""; 
@@ -852,8 +849,6 @@
             floors.forEach(f => {
                 const fCap = getFloorCap(v, f);
                 const fCount = vehicles.filter(veh => veh.loc === v && veh.floor === f && veh.id !== editingId).length;
-                
-                // Allow if space exists OR if it's the current vehicle's spot
                 const isCurrentSpot = (editingId && vehicles.find(veh => veh.id === editingId && veh.loc === v && veh.floor === f));
                 
                 if (fCount < fCap || isCurrentSpot) {
@@ -862,7 +857,6 @@
                 }
             });
 
-            // If all floors full (but total cap check passed somehow, safe fallback)
             if (visibleFloors === 0) {
                 openAlert("Garage Full", `All floors in <strong>${v}</strong> are full.`);
                 document.getElementById('inLoc').value = "";
@@ -889,7 +883,6 @@
         
         let floor = document.getElementById('inFloor').value;
 
-        // No need to check full capacity here if handleLocChange does it, but good as backup
         if (!editingId) {
             const isDup = vehicles.some(v => v.model === model && v.loc === loc && v.floor === floor);
             if (isDup) {
@@ -926,7 +919,6 @@
         render(); updateTimerLogic();
     }
 
-    // --- NICKNAME LOGIC ---
     function openNickModal() {
         const loc = document.getElementById('inLoc').value;
         const floor = document.getElementById('inFloor').value;
@@ -1007,9 +999,23 @@
         if(sel) dd.value = sel;
     }
 
-    // No need to replicate handleLocChange here as it was defined above in v37.6 logic
-
-    function sellVehicle() { openConfirm("Sell Vehicle", "Are you sure you want to sell this vehicle?", () => { lastSell=Date.now(); lastSoldName=vehicles.find(c=>c.id===editingId).model; vehicles=vehicles.filter(v=>v.id!==editingId); saveGarage(); closeModal('vehicleModal'); }); }
+    function sellVehicle() { 
+        const cd = 18 * 3600000;
+        if (Date.now() - lastSell < cd) {
+            const rem = cd - (Date.now() - lastSell);
+            const h = Math.floor(rem/3600000);
+            const m = Math.floor((rem%3600000)/60000);
+            return openAlert("Sale Cooldown", `You cannot sell another vehicle yet.<br>Time remaining: ${h}h ${m}m.`);
+        }
+        openConfirm("Sell Vehicle", "Are you sure you want to sell this vehicle?", () => { 
+            lastSell = Date.now(); 
+            lastSoldName = vehicles.find(c => c.id === editingId).model; 
+            vehicles = vehicles.filter(v => v.id !== editingId); 
+            saveGarage(); 
+            closeModal('vehicleModal'); 
+        }); 
+    }
+    
     function deleteVehicle() { openConfirm("Delete Vehicle", "This action cannot be undone. Delete?", () => { vehicles=vehicles.filter(v=>v.id!==editingId); saveGarage(); closeModal('vehicleModal'); }); }
     function startMove() { movingId = editingId; document.getElementById('moveCarName').innerText = vehicles.find(v=>v.id===editingId).model; openModal('moveModal'); closeModal('vehicleModal'); }
     function checkMoveCap() { const d = document.getElementById('moveDest').value, cl = Object.keys(CAPACITIES).find(m => d.includes(m)) || "DEFAULT"; if(vehicles.filter(v=>v.loc===d).length >= CAPACITIES[cl]) { document.getElementById('moveSwapUI').style.display='block'; document.getElementById('moveSwapTarget').innerHTML = vehicles.filter(v=>v.loc===d).map(v=>`<option value="${v.id}">${v.model}</option>`).join(''); } else document.getElementById('moveSwapUI').style.display='none'; }
