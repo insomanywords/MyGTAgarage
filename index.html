@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v37.10</title>
+    <title>My GTA Garage v37.13</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -268,7 +268,7 @@
 <div id="vehicle-list"></div>
 
 <footer>
-    <span>v37.10</span> | 
+    <span>v37.13</span> | 
     <a onclick="openModal('aboutModal')">About</a> | 
     <a onclick="openModal('changelogModal')">Changelog</a> | 
     <a onclick="factoryReset()" style="color: #ef4444">Reset</a>
@@ -277,24 +277,37 @@
 <div id="aboutModal" class="modal">
     <div class="modal-box">
         <div class="modal-title">About My GTA Garage</div>
-        <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto;">
+        <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
-            <h4 style="color:#fff; margin-top:15px;">Key Features</h4>
-            <ul style="padding-left:20px; margin-bottom:10px;">
-                <li><strong>Garage Tracking:</strong> Tracks specific slots, floors, and capacities for all properties (Agency, Office, Club, etc.).</li>
-                <li><strong>Favorites System:</strong> Mark your top cars with a <i class="fas fa-heart" style="color:var(--fav)"></i> for easy access.</li>
-                <li><strong>Details & Notes:</strong> Save custom plates, wheel types, and modification notes.</li>
-                <li><strong>Move & Sell:</strong> Built-in tools to simulate moving cars between garages or selling them (with cooldown timers).</li>
-                <li><strong>Data Safety:</strong> Backup and Restore your data to a JSON file.</li>
+            <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">1. Vehicle Management</h4>
+            <ul style="padding-left:20px; margin-bottom:15px;">
+                <li><strong>Add Vehicle:</strong> Click the <strong>+ Add</strong> button. Select Make, Model, and Garage. Capacities are checked automatically.</li>
+                <li><strong>Edit:</strong> Click the <i class="fas fa-pencil-alt"></i> icon on any card to change details like Plate, Wheels, or Notes.</li>
+                <li><strong>Move:</strong> Inside the Edit or Detail screen, click <strong>Move</strong> to transfer a car. The app finds the first empty floor automatically.</li>
+                <li><strong>Sell:</strong> Click <strong>Sell</strong> to simulate a sale. This starts an 18-hour cooldown timer (matches GTA Online).</li>
             </ul>
 
-            <h4 style="color:#fff; margin-top:15px;">How to Use</h4>
-            <ul style="padding-left:20px; margin-bottom:10px;">
-                <li><strong>Add Vehicle:</strong> Click the <strong>+ Add</strong> button. Select Make/Model and Garage.</li>
-                <li><strong>View Details:</strong> Click any card to open a large detail view.</li>
-                <li><strong>Edit/Move:</strong> Use the Edit button on the card or the Move button in the detail view.</li>
-                <li><strong>Filters:</strong> Use the dropdown at the top to group by Garage, Class, or view Favorites only.</li>
+            <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">2. Organization & Search</h4>
+            <ul style="padding-left:20px; margin-bottom:15px;">
+                <li><strong>Grouping:</strong> Use the dropdown to group vehicles by Garage, Manufacturer, Class, or Drivetrain.</li>
+                <li><strong>Search:</strong> Use the top search bar to filter by name, location, or notes in real-time.</li>
+                <li><strong>Favorites:</strong> Toggle the <i class="fas fa-heart" style="color:var(--fav)"></i> icon to mark your best cars. Select "Favorites Only" from the dropdown to see them.</li>
+            </ul>
+
+            <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">3. Garage Tools</h4>
+            <ul style="padding-left:20px; margin-bottom:15px;">
+                <li><strong>Nicknames:</strong> In the Add/Edit window, click "Edit Nickname" to assign custom names to specific garage floors (e.g., "JDM Floor").</li>
+                <li><strong>Swap All:</strong> Click the <i class="fas fa-exchange-alt"></i> button next to the filters to swap the entire contents of two garages instantly.</li>
+                <li><strong>Capacity Check:</strong> The "Add Vehicle" window hides floors that are full and warns you if a garage has no space left.</li>
+            </ul>
+
+            <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">4. Data & Settings</h4>
+            <ul style="padding-left:20px; margin-bottom:15px;">
+                <li><strong>Backup (💾):</strong> Saves your entire garage to a JSON file on your device.</li>
+                <li><strong>Restore (📂):</strong> Loads a previously saved JSON file.</li>
+                <li><strong>Stats (📊):</strong> View a breakdown of your collection, including top brands and total value/capacity.</li>
+                <li><strong>Timer (💲):</strong> Tracks your daily sell limit cooldown status.</li>
             </ul>
         </div>
         <button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('aboutModal')">Got it</button>
@@ -351,13 +364,16 @@
         </div>
         <input type="text" id="inLocCustom" class="form-group" style="display:none; width:100%; margin-top:-10px;" placeholder="Enter custom garage">
 
-        <div id="floorRow" style="display:none;" class="modal-row">
+        <div id="floorRow" class="modal-row" style="display:none;">
             <div style="flex:2">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span class="label">Floor</span>
                     <button type="button" class="nick-btn" onclick="openNickModal()">Edit Nickname</button>
                 </div>
-                <select id="inFloor"></select>
+                <div style="display:flex; align-items:center; height:44px;">
+                    <select id="inFloor" style="width:100%"></select>
+                    <span id="floorStatic" style="display:none; color:#aaa; margin-right:auto; padding-left:5px;">Main Level</span>
+                </div>
             </div>
             <div style="flex:1"><span class="label">Slot</span><input type="number" id="inSlot" placeholder="#"></div>
         </div>
@@ -468,7 +484,7 @@
 <div id="swapAllModal" class="modal"><div class="modal-box"><div class="modal-title">Swap Entire Garage</div><div class="form-group"><span class="label">From</span><select id="saFrom" style="width:100%"></select></div><div style="text-align:center; padding:10px;"><i class="fas fa-arrow-down" style="color:var(--accent); font-size:1.5rem;"></i></div><div class="form-group"><span class="label">To</span><select id="saTo" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('swapAllModal')">Cancel</button><button class="btn-pri" onclick="performSwapAll()">Confirm Swap</button></div></div></div>
 <div id="moveModal" class="modal"><div class="modal-box"><div class="modal-title">Move Vehicle</div><p id="moveCarName" style="color:var(--accent); font-weight:bold; margin-bottom:20px; font-size:1.1rem;"></p><div class="form-group"><span class="label">Destination</span><select id="moveDest" style="width:100%" onchange="checkMoveCap()"></select></div><div id="moveSwapUI" style="display:none; background:rgba(245,158,11,0.1); padding:15px; border-radius:10px; border:1px solid var(--f1); margin-bottom:15px;"><span class="label" style="color:var(--f1)">Garage Full! Select car to swap with:</span><select id="moveSwapTarget" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('moveModal')">Cancel</button><button class="btn-pri" onclick="commitMove()">Confirm Move</button></div></div></div>
 <div id="migrationModal" class="modal"><div class="modal-box"><div class="modal-title" style="color:var(--accent)">Data Migration</div><p style="color:#ccc; font-size:0.9rem;">Syncing vehicle data with cloud database (Images & Drive stats).</p><div id="migLog" style="height:120px; overflow:auto; background:#000; padding:10px; font-family:monospace; color:var(--sell); border-radius:8px;"></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('migrationModal')">Cancel</button><button class="btn-pri" onclick="runMigration()">Run Update</button></div></div></div>
-<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v37.10 (Current)</strong><br>• Fixed App Crash (Syntax Error).<br>• Restored Sell Timer Display.</p><p><strong>v37.9</strong><br>• Sell Cooldown Block.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
+<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v37.13 (Current)</strong><br>• Documentation Upgrade.<br>• Full User Guide in About Modal.</p><p><strong>v37.12</strong><br>• Code Fixes.<br>• Universal Nicknames.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
 <div id="lightbox" onclick="this.style.display='none'"><img id="lbImg"></div>
 
 <script>
@@ -729,7 +745,7 @@
         if(v.isFav) badges += `<span class="badge fav"><i class="fas fa-heart"></i></span>`; 
         if(v.isWeapon) badges += `<span class="badge w">WEAPONIZED</span> `;
         if(v.wheels === 'F1') badges += `<span class="badge f">F1</span>`;
-        if(v.wheels?.includes('Benny')) badges += `<span class="badge b">BNY</span>`;
+        if(v.wheels?.includes('Benny')) badges += `<span class="badge b">BENNY'S</span> `;
         if(v.plate && v.plate !== 'Standard') {
             let pClass = "";
             if(v.plate === "Yankton") pClass = "y"; else if(v.plate === "Liberty City") pClass = "l";
@@ -817,13 +833,17 @@
         openModal('vehicleModal');
     }
 
+    // UPDATED FOR v37.11: SINGLE-LEVEL NICKNAME LOGIC + v37.6 CAPACITY FILTERING
     function handleLocChange() {
         const v = document.getElementById('inLoc').value;
         const dl = document.getElementById('inFloor');
+        const floorStatic = document.getElementById('floorStatic');
+        const floorRow = document.getElementById('floorRow');
+        
         dl.innerHTML = "";
         
         if (!v || v === 'Custom') {
-            document.getElementById('floorRow').style.display = 'none';
+            floorRow.style.display = 'none';
             document.getElementById('inLocCustom').style.display = (v === 'Custom') ? 'block' : 'none';
             return;
         }
@@ -833,16 +853,22 @@
         const maxCap = CAPACITIES[cl];
         const currentCount = vehicles.filter(veh => veh.loc === v && veh.id !== editingId).length;
 
+        // Garage Full Check
         if (currentCount >= maxCap) {
             openAlert("Garage Full", `The location <strong>${v}</strong> is full (${currentCount}/${maxCap}).<br>Please select a different garage.`);
             document.getElementById('inLoc').value = ""; 
-            document.getElementById('floorRow').style.display = 'none';
+            floorRow.style.display = 'none';
             return;
         }
 
         const mapKey = Object.keys(FLOOR_MAP).find(k => v.includes(k));
         
         if (mapKey) {
+            // MULTI-LEVEL LOGIC
+            dl.style.display = 'block';
+            if(floorStatic) floorStatic.style.display = 'none';
+            floorRow.style.display = 'flex';
+            
             const floors = FLOOR_MAP[mapKey];
             let visibleFloors = 0;
 
@@ -860,13 +886,19 @@
             if (visibleFloors === 0) {
                 openAlert("Garage Full", `All floors in <strong>${v}</strong> are full.`);
                 document.getElementById('inLoc').value = "";
-                document.getElementById('floorRow').style.display = 'none';
+                floorRow.style.display = 'none';
                 return;
             }
-
-            document.getElementById('floorRow').style.display = 'flex';
         } else {
-            document.getElementById('floorRow').style.display = 'none';
+            // SINGLE-LEVEL LOGIC (v37.11)
+            dl.style.display = 'none';
+            if(floorStatic) {
+                floorStatic.style.display = 'block';
+                floorStatic.innerText = "Main Level";
+            }
+            floorRow.style.display = 'flex'; // Show row for Nickname button
+            // Add a dummy option for value access
+            dl.innerHTML = '<option value="Main Floor">Main Floor</option>';
         }
         
         document.getElementById('inLocCustom').style.display = 'none';
@@ -919,11 +951,20 @@
         render(); updateTimerLogic();
     }
 
+    // --- NICKNAME LOGIC (Updated v37.11) ---
     function openNickModal() {
         const loc = document.getElementById('inLoc').value;
-        const floor = document.getElementById('inFloor').value;
-        if(!loc || (document.getElementById('floorRow').style.display !== 'none' && !floor)) return openAlert("Error", "Select Garage/Floor first.");
-        const key = loc + (floor ? "_" + floor : "");
+        const floorVal = document.getElementById('inFloor').value;
+        const floorStyle = document.getElementById('inFloor').style.display;
+        
+        if(!loc) return openAlert("Error", "Select a Garage first.");
+        
+        // Use "Main Floor" key if dropdown is hidden (single level garage)
+        const floorKey = (floorStyle === 'none') ? "Main Floor" : floorVal;
+        
+        if(floorStyle !== 'none' && !floorVal) return openAlert("Error", "Select a Floor first.");
+
+        const key = loc + (floorKey && floorKey !== "Main Floor" ? "_" + floorKey : "");
         document.getElementById('nickTargetDisplay').innerText = key.replace('_', ' - ');
         document.getElementById('inNickname').value = floorNicknames[key] || "";
         openModal('nickModal');
@@ -931,8 +972,12 @@
 
     function saveNickname() {
         const loc = document.getElementById('inLoc').value;
-        const floor = document.getElementById('inFloor').value;
-        const key = loc + (floor ? "_" + floor : "");
+        const floorVal = document.getElementById('inFloor').value;
+        const floorStyle = document.getElementById('inFloor').style.display;
+        
+        const floorKey = (floorStyle === 'none') ? "Main Floor" : floorVal;
+        const key = loc + (floorKey && floorKey !== "Main Floor" ? "_" + floorKey : "");
+        
         const val = document.getElementById('inNickname').value.trim();
         if(val) floorNicknames[key] = val; else delete floorNicknames[key];
         localStorage.setItem(NICK_KEY, JSON.stringify(floorNicknames));
@@ -1040,9 +1085,11 @@
                         const count = vehicles.filter(v => v.loc === d && v.floor === f).length;
                         if (count < cap) { newFloor = f; break; }
                     }
+                } else {
+                    newFloor = "Main Floor"; // For single level moves
                 }
                 carA.floor = newFloor; carA.slot = "";
-                msg = `Moved <strong>${carA.model}</strong> to ${d}${newFloor ? ` - ${newFloor}` : ''}.`;
+                msg = `Moved <strong>${carA.model}</strong> to ${d}${newFloor !== "Main Floor" ? ` - ${newFloor}` : ''}.`;
             }
             saveGarage(); closeModal('moveModal'); showSuccess("Vehicle Moved", msg);
         });
