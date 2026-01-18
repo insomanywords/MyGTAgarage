@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v37.13</title>
+    <title>My GTA Garage v37.14</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -268,7 +268,7 @@
 <div id="vehicle-list"></div>
 
 <footer>
-    <span>v37.13</span> | 
+    <span>v37.14</span> | 
     <a onclick="openModal('aboutModal')">About</a> | 
     <a onclick="openModal('changelogModal')">Changelog</a> | 
     <a onclick="factoryReset()" style="color: #ef4444">Reset</a>
@@ -484,7 +484,7 @@
 <div id="swapAllModal" class="modal"><div class="modal-box"><div class="modal-title">Swap Entire Garage</div><div class="form-group"><span class="label">From</span><select id="saFrom" style="width:100%"></select></div><div style="text-align:center; padding:10px;"><i class="fas fa-arrow-down" style="color:var(--accent); font-size:1.5rem;"></i></div><div class="form-group"><span class="label">To</span><select id="saTo" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('swapAllModal')">Cancel</button><button class="btn-pri" onclick="performSwapAll()">Confirm Swap</button></div></div></div>
 <div id="moveModal" class="modal"><div class="modal-box"><div class="modal-title">Move Vehicle</div><p id="moveCarName" style="color:var(--accent); font-weight:bold; margin-bottom:20px; font-size:1.1rem;"></p><div class="form-group"><span class="label">Destination</span><select id="moveDest" style="width:100%" onchange="checkMoveCap()"></select></div><div id="moveSwapUI" style="display:none; background:rgba(245,158,11,0.1); padding:15px; border-radius:10px; border:1px solid var(--f1); margin-bottom:15px;"><span class="label" style="color:var(--f1)">Garage Full! Select car to swap with:</span><select id="moveSwapTarget" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('moveModal')">Cancel</button><button class="btn-pri" onclick="commitMove()">Confirm Move</button></div></div></div>
 <div id="migrationModal" class="modal"><div class="modal-box"><div class="modal-title" style="color:var(--accent)">Data Migration</div><p style="color:#ccc; font-size:0.9rem;">Syncing vehicle data with cloud database (Images & Drive stats).</p><div id="migLog" style="height:120px; overflow:auto; background:#000; padding:10px; font-family:monospace; color:var(--sell); border-radius:8px;"></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('migrationModal')">Cancel</button><button class="btn-pri" onclick="runMigration()">Run Update</button></div></div></div>
-<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v37.13 (Current)</strong><br>• Documentation Upgrade.<br>• Full User Guide in About Modal.</p><p><strong>v37.12</strong><br>• Code Fixes.<br>• Universal Nicknames.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
+<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v37.14 (Current)</strong><br>• Documentation Upgrade.<br>• Full User Guide in About Modal.</p><p><strong>v37.12</strong><br>• Code Fixes.<br>• Universal Nicknames.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
 <div id="lightbox" onclick="this.style.display='none'"><img id="lbImg"></div>
 
 <script>
@@ -683,8 +683,18 @@
                     meta = `${groups[k].length} / ${cap}`; 
                     pct = (groups[k].length/cap)*100; 
                 }
+
+                // NICKNAME LOGIC FOR MAIN HEADER (v37.13)
+                const isMulti = Object.keys(FLOOR_MAP).some(mk => k.includes(mk));
+                const mainNick = floorNicknames[k + "_Main Floor"] || floorNicknames[k]; 
+                const showMainNick = !isMulti && mainNick && mode === 'garage';
                 
-                head.innerHTML = `<div class="group-name-wrap"><span class="arrow">▼</span>${displayK}</div><span class="group-meta">${meta}</span><div class="cap-bar" style="width:${Math.min(pct,100)}%; background:${pct>=90?'#ef4444':'var(--accent)'}"></div>`;
+                head.innerHTML = `
+                    <div class="group-name-wrap">
+                        <span class="arrow">▼</span>${displayK}
+                        ${showMainNick ? `<span class="floor-nick" style="font-size:0.9rem; color:var(--f1); margin-left:10px; font-style:italic;">"${mainNick}"</span>` : ''}
+                    </div>
+                    <span class="group-meta">${meta}</span><div class="cap-bar" style="width:${Math.min(pct,100)}%; background:${pct>=90?'#ef4444':'var(--accent)'}"></div>`;
                 
                 const grid = document.createElement('div'); grid.className = term ? 'vehicle-grid' : 'vehicle-grid hidden';
                 
@@ -701,9 +711,12 @@
                         const fNickKey = k + (fKey !== "Main Floor" ? "_" + fKey : "");
                         const fNick = floorNicknames[fNickKey] || "";
                         
+                        // Only show floor nickname here if it IS multi-level
+                        const showFloorNick = isMulti && fNick;
+                        
                         const fHead = document.createElement('div');
                         fHead.className = "floor-header collapsed"; 
-                        fHead.innerHTML = `<span><span class="arrow">▼</span>${fKey} <span class="floor-nick">${fNick ? `"${fNick}"` : ""}</span></span><span class="floor-meta">${floorGroups[fKey].length} / ${fCap}</span>`;
+                        fHead.innerHTML = `<span><span class="arrow">▼</span>${fKey} ${showFloorNick ? `<span class="floor-nick">"${fNick}"</span>` : ""}</span><span class="floor-meta">${floorGroups[fKey].length} / ${fCap}</span>`;
                         
                         const fGrid = document.createElement('div');
                         fGrid.className = "vehicle-grid floor-grid hidden";
@@ -964,8 +977,10 @@
         
         if(floorStyle !== 'none' && !floorVal) return openAlert("Error", "Select a Floor first.");
 
-        const key = loc + (floorKey && floorKey !== "Main Floor" ? "_" + floorKey : "");
-        document.getElementById('nickTargetDisplay').innerText = key.replace('_', ' - ');
+        // Fix v37.13: Use consistent key logic
+        const key = (floorStyle === 'none') ? (loc + "_Main Floor") : (loc + "_" + floorKey);
+        
+        document.getElementById('nickTargetDisplay').innerText = loc; // Just show Garage Name
         document.getElementById('inNickname').value = floorNicknames[key] || "";
         openModal('nickModal');
     }
@@ -976,7 +991,7 @@
         const floorStyle = document.getElementById('inFloor').style.display;
         
         const floorKey = (floorStyle === 'none') ? "Main Floor" : floorVal;
-        const key = loc + (floorKey && floorKey !== "Main Floor" ? "_" + floorKey : "");
+        const key = loc + "_" + floorKey;
         
         const val = document.getElementById('inNickname').value.trim();
         if(val) floorNicknames[key] = val; else delete floorNicknames[key];
