@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v37.16</title>
+    <title>My GTA Garage v37.21</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -256,6 +256,8 @@
                 <option value="manuf">Group: Brand</option>
                 <option value="class">Group: Class</option>
                 <option value="drive">Group: Drive</option>
+                <option value="wheels">Group: Wheels</option>
+                <option value="plates">Group: Plates</option>
                 <option value="fav">Favorites Only</option>
                 <option value="all">View All</option>
             </select>
@@ -268,49 +270,86 @@
 <div id="vehicle-list"></div>
 
 <footer>
-    <span>v37.16</span> | 
-    <a onclick="openModal('aboutModal')">About</a> | 
-    <a onclick="openModal('changelogModal')">Changelog</a> | 
-    <a onclick="factoryReset()" style="color: #ef4444">Reset</a>
+    <a onclick="openCharModal()" id="footerCharName" style="color: var(--f1);">Character 1</a> | 
+    <a onclick="openSettings()">Settings</a> | 
+    <a onclick="openModal('aboutModal')">About</a>
 </footer>
+
+<div id="settingsModal" class="modal">
+    <div class="modal-box">
+        <div class="modal-title">Settings</div>
+        
+        <div class="form-section">
+            <span class="label">Manage Characters</span>
+            <div id="settingsCharList" style="display:flex; flex-direction:column; gap:8px;"></div>
+            
+            <div style="display:flex; gap:8px; margin-top:15px; padding-top:15px; border-top:1px solid #333;">
+                <input type="text" id="newCharName" placeholder="New Character Name" style="margin-bottom:0;">
+                <button class="btn-pri" onclick="addCharacter()" style="flex-shrink:0;">Add</button>
+            </div>
+        </div>
+        
+        <div class="form-section" style="border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05);">
+            <span class="label" style="color: var(--wep);">Danger Zone</span>
+            <button class="btn-sec" style="width:100%; color: var(--wep); border-color: rgba(239,68,68,0.5);" onclick="factoryReset()">Factory Reset All Data</button>
+        </div>
+        
+        <button class="btn-sec" style="width:100%; margin-top:15px;" onclick="closeModal('settingsModal')">Close</button>
+    </div>
+</div>
+
+<div id="charModal" class="modal">
+    <div class="modal-box">
+        <div class="modal-title">Select Character</div>
+        <div id="charSelectList" style="display:flex; flex-direction:column; gap:8px;"></div>
+        <button class="btn-sec" style="width:100%; margin-top:15px;" onclick="closeModal('charModal')">Cancel</button>
+    </div>
+</div>
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage</div>
+        <div class="modal-title">About My GTA Garage v37.21</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
             <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">1. Vehicle Management</h4>
             <ul style="padding-left:20px; margin-bottom:15px;">
-                <li><strong>Add Vehicle:</strong> Click the <strong>+ Add</strong> button. Select Make, Model, and Garage. Capacities are checked automatically.</li>
-                <li><strong>Edit:</strong> Click the <i class="fas fa-pencil-alt"></i> icon on any card to change details like Plate, Wheels, or Notes.</li>
-                <li><strong>Move:</strong> Inside the Edit or Detail screen, click <strong>Move</strong> to transfer a car. The app finds the first empty floor automatically.</li>
-                <li><strong>Sell:</strong> Click <strong>Sell</strong> to simulate a sale. This starts an 18-hour cooldown timer (matches GTA Online).</li>
+                <li><strong>Add Vehicle:</strong> Click <strong>+ Add</strong>. Select Make, Model, Garage, and Floor. Capacities are checked automatically.</li>
+                <li><strong>Edit:</strong> Click the <i class="fas fa-pencil-alt"></i> icon to change details like Plate, Wheels, Slot, or Notes.</li>
+                <li><strong>Copy/Duplicate:</strong> Open a vehicle's detail view and click <strong>Copy</strong> to rapidly enter duplicate vehicles (leaves slot blank).</li>
+                <li><strong>Move:</strong> Inside the detail view, click <strong>Move</strong> to transfer a car. The app finds the first empty floor automatically.</li>
+                <li><strong>Sell:</strong> Click <strong>Sell</strong> to simulate a sale, triggering an 18-hour cooldown timer.</li>
             </ul>
 
             <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">2. Organization & Search</h4>
             <ul style="padding-left:20px; margin-bottom:15px;">
-                <li><strong>Grouping:</strong> Use the dropdown to group vehicles by Garage, Manufacturer, Class, or Drivetrain.</li>
-                <li><strong>Search:</strong> Use the top search bar to filter by name, location, or notes in real-time.</li>
-                <li><strong>Favorites:</strong> Toggle the <i class="fas fa-heart" style="color:var(--fav)"></i> icon to mark your best cars. Select "Favorites Only" from the dropdown to see them.</li>
+                <li><strong>Grouping:</strong> Use the dropdown to group vehicles by Garage, Brand, Class, Drive, Wheels, or Plates.</li>
+                <li><strong>Sorting:</strong> Vehicles in "Group: Garage" view are automatically sorted by their Slot number, then by order added.</li>
+                <li><strong>Search:</strong> Filter by name, location, or notes in real-time.</li>
+                <li><strong>Favorites:</strong> Toggle the <i class="fas fa-heart" style="color:var(--fav)"></i> icon and select "Favorites Only" to see top cars.</li>
             </ul>
 
             <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">3. Garage Tools</h4>
             <ul style="padding-left:20px; margin-bottom:15px;">
-                <li><strong>Nicknames:</strong> In the Add/Edit window, click "Edit Nickname" to assign custom names to specific garage floors (e.g., "JDM Floor").</li>
-                <li><strong>Swap All:</strong> Click the <i class="fas fa-exchange-alt"></i> button next to the filters to swap the entire contents of two garages instantly.</li>
-                <li><strong>Capacity Check:</strong> The "Add Vehicle" window hides floors that are full and warns you if a garage has no space left.</li>
+                <li><strong>Nicknames:</strong> Click "Edit Nickname" to name specific floors or single-level garages (e.g., "JDM Floor"). These appear on the group headers.</li>
+                <li><strong>Swap All:</strong> Click the <i class="fas fa-exchange-alt"></i> button to swap the entire contents of two garages instantly.</li>
+                <li><strong>Capacity Tracking:</strong> The app hides full floors and warns you if a garage has no space left, showing real-time usage (e.g., 5/10).</li>
             </ul>
 
             <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">4. Data & Settings</h4>
             <ul style="padding-left:20px; margin-bottom:15px;">
-                <li><strong>Backup (💾):</strong> Saves your entire garage to a JSON file on your device.</li>
-                <li><strong>Restore (📂):</strong> Loads a previously saved JSON file.</li>
-                <li><strong>Stats (📊):</strong> View a breakdown of your collection, including top brands and total value/capacity.</li>
-                <li><strong>Timer (💲):</strong> Tracks your daily sell limit cooldown status.</li>
+                <li><strong>Characters:</strong> Manage multiple, completely separate vehicle collections per character via the Settings menu.</li>
+                <li><strong>Backup (💾) & Restore (📂):</strong> Save or load your current character's garage to/from a JSON file.</li>
+                <li><strong>Stats (📊):</strong> View a breakdown of your collection, top brands, and global capacity.</li>
+                <li><strong>Timer (💲):</strong> Tracks your daily sell limit cooldown.</li>
             </ul>
         </div>
-        <button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('aboutModal')">Got it</button>
+        
+        <div style="margin-top: 15px; border-top: 1px solid #333; padding-top: 15px; text-align: center;">
+            <a onclick="closeModal('aboutModal'); openModal('changelogModal')" style="color: var(--accent); cursor: pointer; text-decoration: underline; font-weight: bold;">View Changelog</a>
+        </div>
+        
+        <button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('aboutModal')">Close</button>
     </div>
 </div>
 
@@ -484,24 +523,129 @@
 <div id="swapAllModal" class="modal"><div class="modal-box"><div class="modal-title">Swap Entire Garage</div><div class="form-group"><span class="label">From</span><select id="saFrom" style="width:100%"></select></div><div style="text-align:center; padding:10px;"><i class="fas fa-arrow-down" style="color:var(--accent); font-size:1.5rem;"></i></div><div class="form-group"><span class="label">To</span><select id="saTo" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('swapAllModal')">Cancel</button><button class="btn-pri" onclick="performSwapAll()">Confirm Swap</button></div></div></div>
 <div id="moveModal" class="modal"><div class="modal-box"><div class="modal-title">Move Vehicle</div><p id="moveCarName" style="color:var(--accent); font-weight:bold; margin-bottom:20px; font-size:1.1rem;"></p><div class="form-group"><span class="label">Destination</span><select id="moveDest" style="width:100%" onchange="checkMoveCap()"></select></div><div id="moveSwapUI" style="display:none; background:rgba(245,158,11,0.1); padding:15px; border-radius:10px; border:1px solid var(--f1); margin-bottom:15px;"><span class="label" style="color:var(--f1)">Garage Full! Select car to swap with:</span><select id="moveSwapTarget" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('moveModal')">Cancel</button><button class="btn-pri" onclick="commitMove()">Confirm Move</button></div></div></div>
 <div id="migrationModal" class="modal"><div class="modal-box"><div class="modal-title" style="color:var(--accent)">Data Migration</div><p style="color:#ccc; font-size:0.9rem;">Syncing vehicle data with cloud database (Images & Drive stats).</p><div id="migLog" style="height:120px; overflow:auto; background:#000; padding:10px; font-family:monospace; color:var(--sell); border-radius:8px;"></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('migrationModal')">Cancel</button><button class="btn-pri" onclick="runMigration()">Run Update</button></div></div></div>
-<div id="changelogModal" class="modal"><div class="modal-box"><div class="modal-title">History</div><div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;"><p><strong>v37.16 (Current)</strong><br>• Fixed Missing Code from v37.15.<br>• Restored all utility functions.</p><p><strong>v37.15</strong><br>• Added Apt 40.</p></div><button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button></div></div>
+
+<div id="changelogModal" class="modal">
+    <div class="modal-box">
+        <div class="modal-title">History</div>
+        <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
+            <p><strong>v37.21 (Current)</strong><br>• Complete Changelog History added.<br>• Updated About/User Manual.</p>
+            <p><strong>v37.20</strong><br>• Added slot number sorting logic.</p>
+            <p><strong>v37.19</strong><br>• Added sorting by Wheels and Plates.</p>
+            <p><strong>v37.18</strong><br>• Added Duplicate/Copy vehicle feature.</p>
+            <p><strong>v37.17</strong><br>• Multi-Character Support Added.<br>• Settings & Character Manager UI.</p>
+            <p><strong>v37.16</strong><br>• Codebase synchronization and bug fixes.</p>
+            <p><strong>v37.15</strong><br>• Added missing 'Eclipse Towers, Apt 40 (10)'.</p>
+            <p><strong>v37.13</strong><br>• Single-Level Nicknames added.<br>• Dynamic title bar nickname placement.</p>
+            <p><strong>v37.10</strong><br>• Restored Real-time Floor Usage (e.g. 5/10).</p>
+            <p><strong>v37.9</strong><br>• Sell Cooldown Block enforced.</p>
+            <p><strong>v37.6</strong><br>• Smart Floor Capacity Filtering (Hides Full Floors).</p>
+            <p><strong>v37.5</strong><br>• Eclipse Penthouse Suite Migration Fixes.</p>
+            <p><strong>v37.0</strong><br>• Smart Move Logic (Finds first empty floor).</p>
+            <p><strong>v36.5</strong><br>• Z-Index UI fixes for Modals.</p>
+            <p><strong>v36.0+</strong><br>• Introduced Cloud DB Sync, Vehicle Images, F1/Benny's tracking, and Custom Plates.</p>
+        </div>
+        <button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button>
+    </div>
+</div>
+
 <div id="lightbox" onclick="this.style.display='none'"><img id="lbImg"></div>
 
 <script>
     // --- 1. CONFIG & DB ---
-    const STORAGE_KEY = 'gta_vehicles_v1';
-    const NICK_KEY = 'gta_nicknames_v1';
     const BASE_URL = "https://raw.githubusercontent.com/insomanywords/MyGTAgarage-images/main/";
     const DB_URL = BASE_URL + "vehicles.json";
 
     let masterDB = [];
-    let vehicles = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    let floorNicknames = JSON.parse(localStorage.getItem(NICK_KEY)) || {};
-    let lastSell = parseInt(localStorage.getItem('gta_last_sale')) || 0;
-    let lastSoldName = localStorage.getItem('gta_last_sold_name') || "None";
+    
+    // --- MULTI-CHARACTER SETUP ---
+    let characters = JSON.parse(localStorage.getItem('gta_chars_v1')) || [{id: 'default', name: 'Character 1'}];
+    let activeCharId = localStorage.getItem('gta_active_char_v1') || 'default';
+
+    function getStorageKeys() {
+        let suffix = activeCharId === 'default' ? '' : '_' + activeCharId;
+        return {
+            v: 'gta_vehicles_v1' + suffix,
+            n: 'gta_nicknames_v1' + suffix,
+            ls: 'gta_last_sale' + suffix,
+            lsn: 'gta_last_sold_name' + suffix
+        };
+    }
+    
+    let keys = getStorageKeys();
+    let vehicles = JSON.parse(localStorage.getItem(keys.v)) || [];
+    let floorNicknames = JSON.parse(localStorage.getItem(keys.n)) || {};
+    let lastSell = parseInt(localStorage.getItem(keys.ls)) || 0;
+    let lastSoldName = localStorage.getItem(keys.lsn) || "None";
+    
     let editingId = null;
     let timerInt = null;
     let movingId = null;
+
+    // --- CHARACTER MANAGEMENT LOGIC ---
+    function openSettings() {
+        renderSettingsChars();
+        openModal('settingsModal');
+    }
+
+    function renderSettingsChars() {
+        const list = document.getElementById('settingsCharList');
+        list.innerHTML = characters.map(c => `
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="editChar_${c.id}" value="${c.name}" style="margin-bottom:0;">
+                <button class="btn-sec" style="flex-shrink:0; padding:0 12px;" onclick="updateCharName('${c.id}')">Save</button>
+            </div>
+        `).join('');
+    }
+
+    function updateCharName(id) {
+        const newName = document.getElementById('editChar_' + id).value.trim();
+        if(!newName) return;
+        const c = characters.find(x => x.id === id);
+        if(c) c.name = newName;
+        localStorage.setItem('gta_chars_v1', JSON.stringify(characters));
+        updateFooterCharName();
+        showSuccess("Saved", "Character name updated.");
+    }
+
+    function addCharacter() {
+        const val = document.getElementById('newCharName').value.trim();
+        if(!val) return;
+        const newId = 'char_' + Date.now();
+        characters.push({id: newId, name: val});
+        localStorage.setItem('gta_chars_v1', JSON.stringify(characters));
+        document.getElementById('newCharName').value = '';
+        renderSettingsChars();
+        showSuccess("Added", "New character added.");
+    }
+
+    function openCharModal() {
+        const list = document.getElementById('charSelectList');
+        list.innerHTML = characters.map(c => `
+            <button class="${c.id === activeCharId ? 'btn-pri' : 'btn-sec'}" style="width:100%; justify-content:flex-start;" onclick="switchChar('${c.id}')">
+                ${c.id === activeCharId ? '<i class="fas fa-check" style="margin-right:8px;"></i>' : ''}${c.name}
+            </button>
+        `).join('');
+        openModal('charModal');
+    }
+
+    function switchChar(id) {
+        activeCharId = id;
+        localStorage.setItem('gta_active_char_v1', id);
+        keys = getStorageKeys();
+        vehicles = JSON.parse(localStorage.getItem(keys.v)) || [];
+        floorNicknames = JSON.parse(localStorage.getItem(keys.n)) || {};
+        lastSell = parseInt(localStorage.getItem(keys.ls)) || 0;
+        lastSoldName = localStorage.getItem(keys.lsn) || "None";
+        updateFooterCharName();
+        render();
+        updateTimerLogic();
+        closeModal('charModal');
+    }
+
+    function updateFooterCharName() {
+        const c = characters.find(x => x.id === activeCharId);
+        if(c) document.getElementById('footerCharName').innerText = c.name;
+    }
 
     // --- HELPER FUNCTIONS FOR MODALS ---
     function openAlert(title, msg) {
@@ -514,7 +658,6 @@
         document.getElementById('confTitle').innerText = title;
         document.getElementById('confMsg').innerHTML = msg;
         const yesBtn = document.getElementById('confYesBtn');
-        // Clone button to remove old listeners
         const newBtn = yesBtn.cloneNode(true);
         yesBtn.parentNode.replaceChild(newBtn, yesBtn);
         newBtn.onclick = () => {
@@ -599,6 +742,8 @@
 
     // --- INITIALIZATION ---
     document.addEventListener('DOMContentLoaded', async () => {
+        updateFooterCharName();
+        
         let migrated = false;
         vehicles.forEach(v => {
             if (v.loc.includes("Penthouse Suite")) {
@@ -667,6 +812,8 @@
                 else if (mode === 'manuf') k = v.manuf;
                 else if (mode === 'class') k = (db.class || v.class || 'Unknown').replace(/_/g, ' ');
                 else if (mode === 'drive') k = db.drive || v.drive || 'Unknown';
+                else if (mode === 'wheels') k = v.wheels || 'Stock';
+                else if (mode === 'plates') k = v.plate || 'Standard';
                 if(!groups[k]) groups[k] = []; groups[k].push(v); 
             });
             Object.keys(groups).sort().forEach(k => {
@@ -684,7 +831,6 @@
                     pct = (groups[k].length/cap)*100; 
                 }
 
-                // NICKNAME LOGIC FOR MAIN HEADER (v37.13)
                 const isMulti = Object.keys(FLOOR_MAP).some(mk => k.includes(mk));
                 const mainNick = floorNicknames[k + "_Main Floor"] || floorNicknames[k]; 
                 const showMainNick = !isMulti && mainNick && mode === 'garage';
@@ -711,7 +857,6 @@
                         const fNickKey = k + (fKey !== "Main Floor" ? "_" + fKey : "");
                         const fNick = floorNicknames[fNickKey] || "";
                         
-                        // Only show floor nickname here if it IS multi-level
                         const showFloorNick = isMulti && fNick;
                         
                         const fHead = document.createElement('div');
@@ -720,6 +865,16 @@
                         
                         const fGrid = document.createElement('div');
                         fGrid.className = "vehicle-grid floor-grid hidden";
+                        
+                        floorGroups[fKey].sort((a, b) => {
+                            const valA = parseInt(a.slot);
+                            const valB = parseInt(b.slot);
+                            const numA = isNaN(valA) ? Infinity : valA;
+                            const numB = isNaN(valB) ? Infinity : valB;
+                            if (numA !== numB) return numA - numB;
+                            return a.id - b.id;
+                        });
+                        
                         floorGroups[fKey].forEach(v => {
                             const card = createCard(v);
                             if (card) fGrid.appendChild(card); 
@@ -814,6 +969,7 @@
             <div class="detail-loc"><div style="font-size:0.8rem; color:#888; margin-bottom:4px;">LOCATION</div><div style="font-weight:bold; font-size:1.1rem; color:#fff;">${v.loc}</div>${v.floor ? `<div style="color:var(--accent); margin-top:2px;">${v.floor} ${v.slot ? `(Slot ${v.slot})` : ''}</div>` : ''}</div>
             ${v.notes ? `<div class="detail-notes">"${v.notes}"</div>` : ''}
             <div style="display:flex; gap:10px; margin-top:15px; border-top:1px solid #333; padding-top:15px;">
+                <button class="btn-sec" style="flex:1; background:#8e44ad; color:#fff; border:none;" onclick="closeModal('detailModal'); copyVehicle(${v.id})"><i class="fas fa-copy"></i> Copy</button>
                 <button class="btn-sec" style="flex:1; background:#2980b9; color:#fff; border:none;" onclick="closeModal('detailModal'); editingId=${v.id}; startMove()"><i class="fas fa-exchange-alt"></i> Move</button>
                 <button class="btn-sec" style="flex:1; background:var(--sell); color:#fff; border:none;" onclick="closeModal('detailModal'); editingId=${v.id}; sellVehicle()"><i class="fas fa-dollar-sign"></i> Sell</button>
             </div>
@@ -845,8 +1001,32 @@
         document.getElementById('inNotes').value = v.notes||"";
         openModal('vehicleModal');
     }
+    
+    function copyVehicle(id) {
+        const v = vehicles.find(c=>c.id===id); if(!v) return;
+        editingId = null; // Important: null means we are adding a NEW vehicle
+        document.getElementById('modalTitle').innerText = "Duplicate Vehicle";
+        document.getElementById('editActions').style.display = 'none';
+        document.getElementById('inManuf').value = v.manuf;
+        updateModelDD(v.model); 
+        document.getElementById('inModel').value = v.model;
+        
+        const locSel = document.getElementById('inLoc');
+        let matchedVal = ""; Array.from(locSel.options).forEach(opt => { if (opt.value.replace(/\s\(\d+\)$/, "") === v.loc.replace(/\s\(\d+\)$/, "")) matchedVal = opt.value; });
+        if(matchedVal) locSel.value = matchedVal; else { locSel.value = 'Custom'; document.getElementById('inLocCustom').value = v.loc; }
+        
+        handleLocChange(); 
+        setTimeout(() => { document.getElementById('inFloor').value = v.floor; }, 0);
 
-    // UPDATED FOR v37.11: SINGLE-LEVEL NICKNAME LOGIC + v37.6 CAPACITY FILTERING
+        document.getElementById('inSlot').value = ""; // Clear slot number
+        document.getElementById('inWep').checked = v.isWeapon;
+        document.getElementById('inFav').checked = v.isFav || false; 
+        document.getElementById('inWheels').value = v.wheels||"Stock";
+        document.getElementById('inPlate').value = v.plate||"Standard";
+        document.getElementById('inNotes').value = v.notes||"";
+        openModal('vehicleModal');
+    }
+
     function handleLocChange() {
         const v = document.getElementById('inLoc').value;
         const dl = document.getElementById('inFloor');
@@ -866,7 +1046,6 @@
         const maxCap = CAPACITIES[cl];
         const currentCount = vehicles.filter(veh => veh.loc === v && veh.id !== editingId).length;
 
-        // Garage Full Check
         if (currentCount >= maxCap) {
             openAlert("Garage Full", `The location <strong>${v}</strong> is full (${currentCount}/${maxCap}).<br>Please select a different garage.`);
             document.getElementById('inLoc').value = ""; 
@@ -877,7 +1056,6 @@
         const mapKey = Object.keys(FLOOR_MAP).find(k => v.includes(k));
         
         if (mapKey) {
-            // MULTI-LEVEL LOGIC
             dl.style.display = 'block';
             if(floorStatic) floorStatic.style.display = 'none';
             floorRow.style.display = 'flex';
@@ -903,14 +1081,12 @@
                 return;
             }
         } else {
-            // SINGLE-LEVEL LOGIC (v37.11)
             dl.style.display = 'none';
             if(floorStatic) {
                 floorStatic.style.display = 'block';
                 floorStatic.innerText = "Main Level";
             }
-            floorRow.style.display = 'flex'; // Show row for Nickname button
-            // Add a dummy option for value access
+            floorRow.style.display = 'flex'; 
             dl.innerHTML = '<option value="Main Floor">Main Floor</option>';
         }
         
@@ -958,13 +1134,12 @@
     }
 
     function saveGarage() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(vehicles));
-        localStorage.setItem('gta_last_sale', lastSell);
-        localStorage.setItem('gta_last_sold_name', lastSoldName);
+        localStorage.setItem(keys.v, JSON.stringify(vehicles));
+        localStorage.setItem(keys.ls, lastSell);
+        localStorage.setItem(keys.lsn, lastSoldName);
         render(); updateTimerLogic();
     }
 
-    // --- NICKNAME LOGIC (Updated v37.11) ---
     function openNickModal() {
         const loc = document.getElementById('inLoc').value;
         const floorVal = document.getElementById('inFloor').value;
@@ -972,15 +1147,13 @@
         
         if(!loc) return openAlert("Error", "Select a Garage first.");
         
-        // Use "Main Floor" key if dropdown is hidden (single level garage)
         const floorKey = (floorStyle === 'none') ? "Main Floor" : floorVal;
         
         if(floorStyle !== 'none' && !floorVal) return openAlert("Error", "Select a Floor first.");
 
-        // Fix v37.13: Use consistent key logic
         const key = (floorStyle === 'none') ? (loc + "_Main Floor") : (loc + "_" + floorKey);
         
-        document.getElementById('nickTargetDisplay').innerText = loc; // Just show Garage Name
+        document.getElementById('nickTargetDisplay').innerText = loc; 
         document.getElementById('inNickname').value = floorNicknames[key] || "";
         openModal('nickModal');
     }
@@ -995,7 +1168,7 @@
         
         const val = document.getElementById('inNickname').value.trim();
         if(val) floorNicknames[key] = val; else delete floorNicknames[key];
-        localStorage.setItem(NICK_KEY, JSON.stringify(floorNicknames));
+        localStorage.setItem(keys.n, JSON.stringify(floorNicknames));
         closeModal('nickModal'); render(); 
     }
 
