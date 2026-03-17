@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v37.21</title>
+    <title>My GTA Garage v1.39.0</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -270,6 +270,7 @@
 <div id="vehicle-list"></div>
 
 <footer>
+    <span>v1.39.0</span> | 
     <a onclick="openCharModal()" id="footerCharName" style="color: var(--f1);">Character 1</a> | 
     <a onclick="openSettings()">Settings</a> | 
     <a onclick="openModal('aboutModal')">About</a>
@@ -308,7 +309,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v37.21</div>
+        <div class="modal-title">About My GTA Garage v1.39.0</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -338,7 +339,7 @@
 
             <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">4. Data & Settings</h4>
             <ul style="padding-left:20px; margin-bottom:15px;">
-                <li><strong>Characters:</strong> Manage multiple, completely separate vehicle collections per character via the Settings menu.</li>
+                <li><strong>Characters:</strong> Manage multiple, completely separate vehicle collections per character via the Settings menu. You can add, rename, or delete characters.</li>
                 <li><strong>Backup (💾) & Restore (📂):</strong> Save or load your current character's garage to/from a JSON file.</li>
                 <li><strong>Stats (📊):</strong> View a breakdown of your collection, top brands, and global capacity.</li>
                 <li><strong>Timer (💲):</strong> Tracks your daily sell limit cooldown.</li>
@@ -528,7 +529,9 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v37.21 (Current)</strong><br>• Complete Changelog History added.<br>• Updated About/User Manual.</p>
+            <p><strong>v1.39.0 (Current)</strong><br>• Added ability to delete individual characters.</p>
+            <p><strong>v1.38.0</strong><br>• Transitioned to semantic versioning.</p>
+            <p><strong>v37.21</strong><br>• Complete Changelog History added.<br>• Updated About/User Manual.</p>
             <p><strong>v37.20</strong><br>• Added slot number sorting logic.</p>
             <p><strong>v37.19</strong><br>• Added sorting by Wheels and Plates.</p>
             <p><strong>v37.18</strong><br>• Added Duplicate/Copy vehicle feature.</p>
@@ -589,10 +592,12 @@
 
     function renderSettingsChars() {
         const list = document.getElementById('settingsCharList');
+        const canDelete = characters.length > 1;
         list.innerHTML = characters.map(c => `
             <div style="display:flex; gap:8px;">
-                <input type="text" id="editChar_${c.id}" value="${c.name}" style="margin-bottom:0;">
+                <input type="text" id="editChar_${c.id}" value="${c.name}" style="margin-bottom:0; flex:1;">
                 <button class="btn-sec" style="flex-shrink:0; padding:0 12px;" onclick="updateCharName('${c.id}')">Save</button>
+                ${canDelete ? `<button class="btn-sec" style="flex-shrink:0; padding:0 12px; color: var(--wep); border-color: rgba(239,68,68,0.5);" onclick="deleteCharacter('${c.id}')"><i class="fas fa-trash"></i></button>` : ''}
             </div>
         `).join('');
     }
@@ -616,6 +621,31 @@
         document.getElementById('newCharName').value = '';
         renderSettingsChars();
         showSuccess("Added", "New character added.");
+    }
+
+    function deleteCharacter(id) {
+        if (characters.length <= 1) return;
+        const c = characters.find(x => x.id === id);
+        if (!c) return;
+        
+        openConfirm("Delete Character", `Are you sure you want to delete <strong>${c.name}</strong> and all their vehicles? This cannot be undone.`, () => {
+            characters = characters.filter(x => x.id !== id);
+            localStorage.setItem('gta_chars_v1', JSON.stringify(characters));
+            
+            let suffix = id === 'default' ? '' : '_' + id;
+            localStorage.removeItem('gta_vehicles_v1' + suffix);
+            localStorage.removeItem('gta_nicknames_v1' + suffix);
+            localStorage.removeItem('gta_last_sale' + suffix);
+            localStorage.removeItem('gta_last_sold_name' + suffix);
+            
+            if (activeCharId === id) {
+                switchChar(characters[0].id);
+            } else {
+                renderSettingsChars();
+            }
+            
+            showSuccess("Deleted", `Character has been removed.`);
+        });
     }
 
     function openCharModal() {
