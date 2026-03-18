@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.39.0</title>
+    <title>My GTA Garage v1.42.0</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -258,6 +258,7 @@
                 <option value="drive">Group: Drive</option>
                 <option value="wheels">Group: Wheels</option>
                 <option value="plates">Group: Plates</option>
+                <option value="weaponized">Group: Weaponized</option>
                 <option value="fav">Favorites Only</option>
                 <option value="all">View All</option>
             </select>
@@ -270,7 +271,6 @@
 <div id="vehicle-list"></div>
 
 <footer>
-    <span>v1.39.0</span> | 
     <a onclick="openCharModal()" id="footerCharName" style="color: var(--f1);">Character 1</a> | 
     <a onclick="openSettings()">Settings</a> | 
     <a onclick="openModal('aboutModal')">About</a>
@@ -309,7 +309,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.39.0</div>
+        <div class="modal-title">About My GTA Garage v1.42.0</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -324,9 +324,9 @@
 
             <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">2. Organization & Search</h4>
             <ul style="padding-left:20px; margin-bottom:15px;">
-                <li><strong>Grouping:</strong> Use the dropdown to group vehicles by Garage, Brand, Class, Drive, Wheels, or Plates.</li>
+                <li><strong>Grouping:</strong> Use the dropdown to group vehicles by Garage, Brand, Class, Drive, Wheels, Plates, or Weaponized status.</li>
                 <li><strong>Sorting:</strong> Vehicles in "Group: Garage" view are automatically sorted by their Slot number, then by order added.</li>
-                <li><strong>Search:</strong> Filter by name, location, or notes in real-time.</li>
+                <li><strong>Search:</strong> Filter by name, location, or notes in real-time. Search results maintain accurate full-garage capacity displays.</li>
                 <li><strong>Favorites:</strong> Toggle the <i class="fas fa-heart" style="color:var(--fav)"></i> icon and select "Favorites Only" to see top cars.</li>
             </ul>
 
@@ -529,7 +529,10 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.39.0 (Current)</strong><br>• Added ability to delete individual characters.</p>
+            <p><strong>v1.42.0 (Current)</strong><br>• Removed version number from footer for cleaner UI.</p>
+            <p><strong>v1.41.0</strong><br>• Added sorting/grouping by Weaponized status.</p>
+            <p><strong>v1.40.0</strong><br>• Garage/Floor capacities now show actual total used when searching.</p>
+            <p><strong>v1.39.0</strong><br>• Added ability to delete individual characters.</p>
             <p><strong>v1.38.0</strong><br>• Transitioned to semantic versioning.</p>
             <p><strong>v37.21</strong><br>• Complete Changelog History added.<br>• Updated About/User Manual.</p>
             <p><strong>v37.20</strong><br>• Added slot number sorting logic.</p>
@@ -844,6 +847,7 @@
                 else if (mode === 'drive') k = db.drive || v.drive || 'Unknown';
                 else if (mode === 'wheels') k = v.wheels || 'Stock';
                 else if (mode === 'plates') k = v.plate || 'Standard';
+                else if (mode === 'weaponized') k = v.isWeapon ? 'Weaponized' : 'Standard';
                 if(!groups[k]) groups[k] = []; groups[k].push(v); 
             });
             Object.keys(groups).sort().forEach(k => {
@@ -857,8 +861,9 @@
                     const cleanName = k.split(" (")[0]; 
                     const cl = Object.keys(CAPACITIES).find(m => cleanName.includes(m)) || "DEFAULT"; 
                     const cap=CAPACITIES[cl]; 
-                    meta = `${groups[k].length} / ${cap}`; 
-                    pct = (groups[k].length/cap)*100; 
+                    const actualGarageCount = vehicles.filter(v => v.loc === k).length;
+                    meta = `${actualGarageCount} / ${cap}`; 
+                    pct = (actualGarageCount/cap)*100; 
                 }
 
                 const isMulti = Object.keys(FLOOR_MAP).some(mk => k.includes(mk));
@@ -889,9 +894,10 @@
                         
                         const showFloorNick = isMulti && fNick;
                         
+                        const actualFloorCount = vehicles.filter(v => v.loc === k && (v.floor || "Main Floor") === fKey).length;
                         const fHead = document.createElement('div');
                         fHead.className = "floor-header collapsed"; 
-                        fHead.innerHTML = `<span><span class="arrow">▼</span>${fKey} ${showFloorNick ? `<span class="floor-nick">"${fNick}"</span>` : ""}</span><span class="floor-meta">${floorGroups[fKey].length} / ${fCap}</span>`;
+                        fHead.innerHTML = `<span><span class="arrow">▼</span>${fKey} ${showFloorNick ? `<span class="floor-nick">"${fNick}"</span>` : ""}</span><span class="floor-meta">${actualFloorCount} / ${fCap}</span>`;
                         
                         const fGrid = document.createElement('div');
                         fGrid.className = "vehicle-grid floor-grid hidden";
