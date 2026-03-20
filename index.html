@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.49.0</title>
+    <title>My GTA Garage v1.50.0</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -359,7 +359,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.49.0</div>
+        <div class="modal-title">About My GTA Garage v1.50.0</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -615,7 +615,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.49.0 (Current)</strong><br>• Resolved Add/Edit window closing prematurely during image upload.<br>• Reverted image upload backend to standard API for higher success rates.<br>• Fixed custom image display fetching URLs.<br>• Ensured image selection lists map correctly to new characters.</p>
+            <p><strong>v1.50.0 (Current)</strong><br>• Fixed Google Drive custom image upload preventing saves from finishing.<br>• Re-implemented real-time upload progress tracking for images.<br>• Restored Google Drive Thumbnail API logic to ensure custom images accurately render across all browsers.<br>• Bulletproofed existing image fetching to prevent the modal from crashing during async execution.</p>
+            <p><strong>v1.49.0</strong><br>• Resolved Add/Edit window closing prematurely during image upload.<br>• Reverted image upload backend to standard API for higher success rates.<br>• Fixed custom image display fetching URLs.<br>• Ensured image selection lists map correctly to new characters.</p>
             <p><strong>v1.48.0</strong><br>• Fixed Google Drive custom image upload/fetching.<br>• Added upload progress window and completion alert.</p>
             <p><strong>v1.47.0</strong><br>• Removed version number from footer.<br>• Expanded documentation and feature instructions in the About page.</p>
             <p><strong>v1.46.0</strong><br>• Fixed custom Google Drive images not displaying (changed embed URL format).<br>• Added image fallback logic so broken custom images revert to default vehicle images.</p>
@@ -928,37 +929,89 @@
     async function loadDriveImagesForSelect() {
         const sel = document.getElementById('inDriveImageSelect');
         sel.innerHTML = '<option value="">-- Use Default / Upload New --</option>';
-        if (!gapiInited || !gapi.client.getToken()) return;
+        
+        let hasToken = false;
+        try { if (gapi.client.getToken()) hasToken = true; } catch(e){}
+        if (!hasToken && localStorage.getItem('gta_gdrive_token')) hasToken = true;
+        
+        if (!gapiInited || !hasToken) return;
         
         if (!driveFolders.images) {
-            try { await ensureDriveStructure(); } catch(e) { return; }
+            try { await ensureDriveStructure(); } catch(e) { console.error("Error ensuring drive structure", e); return; }
         }
+        
         if (!driveFolders.images) return;
         
         let query = `'${driveFolders.images}' in parents and trashed=false`;
-        let res = await gapi.client.drive.files.list({ q: query, fields: 'files(id, name)' });
-        if (res.result.files) {
-            res.result.files.forEach(f => {
-                sel.innerHTML += `<option value="${f.id}">${f.name}</option>`;
-            });
-        }
+        try {
+            let res = await gapi.client.drive.files.list({ q: query, fields: 'files(id, name)' });
+            if (res.result.files) {
+                res.result.files.forEach(f => {
+                    sel.innerHTML += `<option value="${f.id}">${f.name}</option>`;
+                });
+            }
+        } catch(e) { console.error("Error fetching image list", e); }
     }
 
-    // --- REWRITTEN IMAGE UPLOAD LOGIC (v1.49.0) ---
-    async function uploadImageToDrive(file, spawnName) {
+    // --- REWRITTEN IMAGE UPLOAD LOGIC (v1.50.0) ---
+    function uploadImageToDriveXHR(file, spawnName, progressCallback) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onload = async () => {
+            reader.onload = () => {
+                let token = "";
+                try { 
+                    let t = gapi.client.getToken();
+                    if(t) token = t.access_token; 
+                } catch(e) {}
+                
+                if (!token) {
+                    const stored = JSON.parse(localStorage.getItem('gta_gdrive_token'));
+                    if (stored) token = stored.token;
+                }
+                
+                if (!token) return reject("No auth token");
+
                 const ext = file.name.split('.').pop();
                 const fileName = `${spawnName}_${Date.now()}.${ext}`;
                 const contentType = file.type || 'application/octet-stream';
                 const base64Data = reader.result.split(',')[1];
-                try {
-                    let res = await createDriveFile(fileName, driveFolders.images, base64Data, contentType);
-                    await gapi.client.drive.permissions.create({ fileId: res.result.id, resource: { type: 'anyone', role: 'reader' } });
-                    resolve(res.result.id);
-                } catch(e) { reject(e); }
+
+                const boundary = '-------314159265358979323846';
+                const delimiter = "\r\n--" + boundary + "\r\n";
+                const close_delim = "\r\n--" + boundary + "--";
+                
+                const metadata = { name: fileName, parents: [driveFolders.images], mimeType: contentType };
+
+                const multipartRequestBody =
+                    delimiter + 'Content-Type: application/json\r\n\r\n' + JSON.stringify(metadata) +
+                    delimiter + 'Content-Type: ' + contentType + '\r\nContent-Transfer-Encoding: base64\r\n\r\n' + base64Data + close_delim;
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart');
+                xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+                xhr.setRequestHeader('Content-Type', 'multipart/related; boundary=' + boundary);
+
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable && progressCallback) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        progressCallback(percent);
+                    }
+                };
+
+                xhr.onload = async () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        const res = JSON.parse(xhr.responseText);
+                        try {
+                            await gapi.client.drive.permissions.create({ fileId: res.id, resource: { type: 'anyone', role: 'reader' } });
+                        } catch(err) { console.warn("Permissions error", err); }
+                        resolve(res.id);
+                    } else {
+                        reject(xhr.responseText);
+                    }
+                };
+                xhr.onerror = () => reject(xhr.statusText);
+                xhr.send(multipartRequestBody);
             };
             reader.onerror = error => reject(error);
         });
@@ -1355,7 +1408,7 @@
         const db = masterDB.find(d => d.model === v.model) || {};
         const spawn = db.spawn || v.spawn || "";
         let img = spawn ? `${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png` : "";
-        if (v.driveImageId) img = `https://drive.google.com/uc?export=view&id=${v.driveImageId}`;
+        if (v.driveImageId) img = `https://drive.google.com/thumbnail?id=${v.driveImageId}&sz=w1000`;
         
         const gtaUrl = spawn ? `https://gtacars.net/gta5/${spawn.toLowerCase().replace(/_/g, '-')}` : null;
         
@@ -1402,7 +1455,7 @@
         const db = masterDB.find(d => d.model === v.model) || {};
         const spawn = db.spawn || v.spawn || "";
         let img = spawn ? `${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png` : "";
-        if (v.driveImageId) img = `https://drive.google.com/uc?export=view&id=${v.driveImageId}`;
+        if (v.driveImageId) img = `https://drive.google.com/thumbnail?id=${v.driveImageId}&sz=w1000`;
         
         let badges = "";
         if(v.isFav) badges += `<span class="badge fav"><i class="fas fa-heart"></i> FAVORITE</span> `;
@@ -1453,9 +1506,14 @@
         
         document.getElementById('inCustomImage').value = '';
         document.getElementById('inDriveImageId').value = v.driveImageId || '';
-        document.getElementById('cloudImgWarn').style.display = (gapiInited && gapi.client.getToken()) ? 'block' : 'none';
         
-        if (gapiInited && gapi.client.getToken()) {
+        let hasToken = false;
+        try { if (gapi.client.getToken()) hasToken = true; } catch(e){}
+        if (!hasToken && localStorage.getItem('gta_gdrive_token')) hasToken = true;
+        
+        document.getElementById('cloudImgWarn').style.display = (gapiInited && hasToken) ? 'block' : 'none';
+        
+        if (gapiInited && hasToken) {
             loadDriveImagesForSelect().then(() => {
                 document.getElementById('inDriveImageSelect').value = v.driveImageId || '';
             });
@@ -1491,9 +1549,14 @@
         
         document.getElementById('inCustomImage').value = '';
         document.getElementById('inDriveImageId').value = v.driveImageId || '';
-        document.getElementById('cloudImgWarn').style.display = (gapiInited && gapi.client.getToken()) ? 'block' : 'none';
         
-        if (gapiInited && gapi.client.getToken()) {
+        let hasToken = false;
+        try { if (gapi.client.getToken()) hasToken = true; } catch(e){}
+        if (!hasToken && localStorage.getItem('gta_gdrive_token')) hasToken = true;
+        
+        document.getElementById('cloudImgWarn').style.display = (gapiInited && hasToken) ? 'block' : 'none';
+        
+        if (gapiInited && hasToken) {
             loadDriveImagesForSelect().then(() => {
                 document.getElementById('inDriveImageSelect').value = v.driveImageId || '';
             });
@@ -1575,20 +1638,27 @@
         const db = masterDB.find(d => d.model === document.getElementById('inModel').value) || {};
         const spawnName = db.spawn || document.getElementById('inModel').value || 'custom';
         
-        if (fileInput.files.length > 0 && gapiInited && gapi.client.getToken() && navigator.onLine) {
+        let hasToken = false;
+        try { if (gapi.client.getToken()) hasToken = true; } catch(e){}
+        if (!hasToken && localStorage.getItem('gta_gdrive_token')) hasToken = true;
+
+        if (fileInput && fileInput.files.length > 0 && gapiInited && hasToken && navigator.onLine) {
             if (!driveFolders.images) {
-                await ensureDriveStructure();
+                try { await ensureDriveStructure(); } catch(e) { console.error("ensureDriveStructure failed", e); }
             }
             
             if (driveFolders.images) {
                 openModal('uploadProgressModal');
-                document.getElementById('uploadProgressBar').style.width = '50%';
-                document.getElementById('uploadProgressText').innerText = 'Uploading to Drive...';
+                document.getElementById('uploadProgressBar').style.width = '0%';
+                document.getElementById('uploadProgressText').innerText = 'Starting Upload...';
 
                 try {
-                    let driveId = await uploadImageToDrive(fileInput.files[0], spawnName);
-                    document.getElementById('inDriveImageId').value = driveId;
+                    let driveId = await uploadImageToDriveXHR(fileInput.files[0], spawnName, (percent) => {
+                        document.getElementById('uploadProgressBar').style.width = percent + '%';
+                        document.getElementById('uploadProgressText').innerText = percent + '%';
+                    });
                     
+                    document.getElementById('inDriveImageId').value = driveId;
                     document.getElementById('uploadProgressBar').style.width = '100%';
                     document.getElementById('uploadProgressText').innerText = 'Complete!';
                     
@@ -1601,12 +1671,13 @@
                 } catch(e) {
                     console.error("Image upload failed", e);
                     closeModal('uploadProgressModal');
-                    openAlert("Upload Error", "Failed to upload image to Google Drive. Saving without custom image.");
+                    openAlert("Upload Error", "Failed to upload image. Saving without custom image.");
                     saveVehicle();
                     return;
                 }
             }
         }
+        
         saveVehicle(); // Proceed normally if no file
     }
 
@@ -1853,9 +1924,14 @@
         
         document.getElementById('inCustomImage').value = '';
         document.getElementById('inDriveImageId').value = '';
-        document.getElementById('cloudImgWarn').style.display = (gapiInited && gapi.client.getToken()) ? 'block' : 'none';
         
-        if (gapiInited && gapi.client.getToken()) {
+        let hasToken = false;
+        try { if (gapi.client.getToken()) hasToken = true; } catch(e){}
+        if (!hasToken && localStorage.getItem('gta_gdrive_token')) hasToken = true;
+        
+        document.getElementById('cloudImgWarn').style.display = (gapiInited && hasToken) ? 'block' : 'none';
+        
+        if (gapiInited && hasToken) {
             loadDriveImagesForSelect();
         } else {
             document.getElementById('inDriveImageSelect').innerHTML = '<option value="">-- Use Default / Upload New --</option>';
