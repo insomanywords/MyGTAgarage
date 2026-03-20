@@ -6,11 +6,14 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.42.0</title>
+    <title>My GTA Garage v1.44.0</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
+
+    <script src="https://accounts.google.com/gsi/client" async defer onload="gisLoadedInit()"></script>
+    <script src="https://apis.google.com/js/api.js" async defer onload="gapiLoadedInit()"></script>
 
     <style>
         :root {
@@ -194,6 +197,13 @@
         .wep-toggle input { width: 20px; height: 20px; accent-color: var(--wep); }
         .nick-btn { background: #2c2c2c; color: var(--f1); border: 1px solid #444; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; margin-left: auto; }
 
+        /* TABS (For Settings) */
+        .tab-bar { display: flex; border-bottom: 1px solid #333; margin-bottom: 15px; gap: 5px; overflow-x: auto; }
+        .tab-btn { flex: 1; padding: 10px; background: transparent; border: none; color: var(--text-dim); cursor: pointer; border-bottom: 2px solid transparent; font-weight: bold; white-space: nowrap; border-radius: 0; height: auto; }
+        .tab-btn.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
         /* Z-INDEX FIX */
         #alertModal, #confirmModal { z-index: 1100; }
 
@@ -238,9 +248,6 @@
         <div class="header-actions">
             <button id="timerBtn" class="timer-btn" onclick="openTimerModal()">💲</button>
             <button class="btn-sec" style="width:44px" onclick="openStats()">📊</button>
-            <button class="btn-sec" style="width:44px" onclick="downloadBackup()">💾</button>
-            <button class="btn-sec" style="width:44px" onclick="document.getElementById('restoreInput').click()">📂</button>
-            <input type="file" id="restoreInput" style="display:none" onchange="restoreBackup(this)">
         </div>
     </header>
 
@@ -280,22 +287,65 @@
     <div class="modal-box">
         <div class="modal-title">Settings</div>
         
-        <div class="form-section">
-            <span class="label">Manage Characters</span>
-            <div id="settingsCharList" style="display:flex; flex-direction:column; gap:8px;"></div>
-            
-            <div style="display:flex; gap:8px; margin-top:15px; padding-top:15px; border-top:1px solid #333;">
-                <input type="text" id="newCharName" placeholder="New Character Name" style="margin-bottom:0;">
-                <button class="btn-pri" onclick="addCharacter()" style="flex-shrink:0;">Add</button>
+        <div class="tab-bar">
+            <button id="tabBtn_chars" class="tab-btn active" onclick="switchSettingsTab('chars')">Characters</button>
+            <button id="tabBtn_cloud" class="tab-btn" onclick="switchSettingsTab('cloud')">Google Drive</button>
+            <button id="tabBtn_local" class="tab-btn" onclick="switchSettingsTab('local')">Local Data</button>
+        </div>
+
+        <div id="tabContent_chars" class="tab-content active">
+            <div class="form-section">
+                <span class="label">Manage Characters</span>
+                <div id="settingsCharList" style="display:flex; flex-direction:column; gap:8px;"></div>
+                
+                <div style="display:flex; gap:8px; margin-top:15px; padding-top:15px; border-top:1px solid #333;">
+                    <input type="text" id="newCharName" placeholder="New Character Name" style="margin-bottom:0; flex:1;">
+                    <button class="btn-pri" onclick="addCharacter()" style="flex-shrink:0;">Add</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tabContent_cloud" class="tab-content">
+            <div class="form-section">
+                <span class="label">Google Drive Sync</span>
+                <button id="btnGLogin" class="btn-pri" style="width:100%; margin-bottom:10px;" onclick="handleAuthClick()">Sign in with Google</button>
+                <button id="btnGLogout" class="btn-sec" style="width:100%; display:none; margin-bottom:10px;" onclick="handleSignoutClick()">Sign Out</button>
+                <div id="cloudStatus" style="color:#aaa; font-size:0.85rem; text-align:center; margin-bottom:10px;">Not signed in.</div>
+                
+                <div id="cloudActions" style="display:none; border-top:1px solid #333; padding-top:15px; margin-top:5px;">
+                    <button class="btn-sec" style="width:100%; margin-bottom:10px; border-color:var(--accent); color:var(--accent);" onclick="manualCloudBackup()">Create Manual Cloud Backup</button>
+                    <button class="btn-sec" style="width:100%;" onclick="restoreCloudBackup()">Restore from Cloud Backup</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tabContent_local" class="tab-content">
+            <div class="form-section">
+                <span class="label">Local Device Backup</span>
+                <p style="font-size:0.8rem; color:#aaa; margin-top:0;">Save or load a local .json file containing the current character's vehicles.</p>
+                <button class="btn-sec" style="width:100%; margin-bottom:10px;" onclick="downloadBackup()">💾 Save to Device (JSON)</button>
+                <button class="btn-sec" style="width:100%;" onclick="document.getElementById('restoreInput').click()">📂 Load from Device (JSON)</button>
+                <input type="file" id="restoreInput" style="display:none" onchange="restoreBackup(this)">
+            </div>
+
+            <div class="form-section" style="border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05);">
+                <span class="label" style="color: var(--wep);">Danger Zone</span>
+                <button class="btn-sec" style="width:100%; color: var(--wep); border-color: rgba(239,68,68,0.5);" onclick="factoryReset()">Factory Reset All Data</button>
             </div>
         </div>
         
-        <div class="form-section" style="border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05);">
-            <span class="label" style="color: var(--wep);">Danger Zone</span>
-            <button class="btn-sec" style="width:100%; color: var(--wep); border-color: rgba(239,68,68,0.5);" onclick="factoryReset()">Factory Reset All Data</button>
-        </div>
-        
         <button class="btn-sec" style="width:100%; margin-top:15px;" onclick="closeModal('settingsModal')">Close</button>
+    </div>
+</div>
+
+<div id="cloudRestoreListModal" class="modal">
+    <div class="modal-box">
+        <div class="modal-title">Cloud Backups</div>
+        <p style="font-size:0.85rem; color:#aaa;">Select a backup file from Google Drive to restore for this character. Auto-sync file is usually at the top.</p>
+        <div id="cloudBackupList" style="display:flex; flex-direction:column; gap:8px; max-height: 300px; overflow-y: auto; margin-bottom: 15px;">
+            Loading...
+        </div>
+        <button class="btn-sec" style="width:100%" onclick="closeModal('cloudRestoreListModal'); openSettings(); switchSettingsTab('cloud');">Back</button>
     </div>
 </div>
 
@@ -309,7 +359,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.42.0</div>
+        <div class="modal-title">About My GTA Garage v1.44.0</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -317,9 +367,9 @@
             <ul style="padding-left:20px; margin-bottom:15px;">
                 <li><strong>Add Vehicle:</strong> Click <strong>+ Add</strong>. Select Make, Model, Garage, and Floor. Capacities are checked automatically.</li>
                 <li><strong>Edit:</strong> Click the <i class="fas fa-pencil-alt"></i> icon to change details like Plate, Wheels, Slot, or Notes.</li>
-                <li><strong>Copy/Duplicate:</strong> Open a vehicle's detail view and click <strong>Copy</strong> to rapidly enter duplicate vehicles (leaves slot blank).</li>
-                <li><strong>Move:</strong> Inside the detail view, click <strong>Move</strong> to transfer a car. The app finds the first empty floor automatically.</li>
-                <li><strong>Sell:</strong> Click <strong>Sell</strong> to simulate a sale, triggering an 18-hour cooldown timer.</li>
+                <li><strong>Custom Images:</strong> When adding or editing, you can select an image from your device. It will upload directly to your Google Drive character folder!</li>
+                <li><strong>Copy/Duplicate:</strong> Click <strong>Copy</strong> on a detail card. It duplicates the car AND keeps your custom image linked!</li>
+                <li><strong>Move/Sell:</strong> Click Move to transfer a car to an empty slot. Click Sell to start an 18-hour cooldown.</li>
             </ul>
 
             <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">2. Organization & Search</h4>
@@ -327,22 +377,15 @@
                 <li><strong>Grouping:</strong> Use the dropdown to group vehicles by Garage, Brand, Class, Drive, Wheels, Plates, or Weaponized status.</li>
                 <li><strong>Sorting:</strong> Vehicles in "Group: Garage" view are automatically sorted by their Slot number, then by order added.</li>
                 <li><strong>Search:</strong> Filter by name, location, or notes in real-time. Search results maintain accurate full-garage capacity displays.</li>
-                <li><strong>Favorites:</strong> Toggle the <i class="fas fa-heart" style="color:var(--fav)"></i> icon and select "Favorites Only" to see top cars.</li>
             </ul>
 
-            <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">3. Garage Tools</h4>
+            <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">3. Data & Cloud Sync (New!)</h4>
             <ul style="padding-left:20px; margin-bottom:15px;">
-                <li><strong>Nicknames:</strong> Click "Edit Nickname" to name specific floors or single-level garages (e.g., "JDM Floor"). These appear on the group headers.</li>
-                <li><strong>Swap All:</strong> Click the <i class="fas fa-exchange-alt"></i> button to swap the entire contents of two garages instantly.</li>
-                <li><strong>Capacity Tracking:</strong> The app hides full floors and warns you if a garage has no space left, showing real-time usage (e.g., 5/10).</li>
-            </ul>
-
-            <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">4. Data & Settings</h4>
-            <ul style="padding-left:20px; margin-bottom:15px;">
-                <li><strong>Characters:</strong> Manage multiple, completely separate vehicle collections per character via the Settings menu. You can add, rename, or delete characters.</li>
-                <li><strong>Backup (💾) & Restore (📂):</strong> Save or load your current character's garage to/from a JSON file.</li>
-                <li><strong>Stats (📊):</strong> View a breakdown of your collection, top brands, and global capacity.</li>
-                <li><strong>Timer (💲):</strong> Tracks your daily sell limit cooldown.</li>
+                <li><strong>Characters:</strong> Manage multiple, isolated collections per character. Renaming a character locally automatically renames their Cloud folder.</li>
+                <li><strong>Google Drive Sync:</strong> Sign in via Settings. The app automatically creates a "My GTA Garage" folder and auto-syncs your database after every change. It even stores your custom car images in Drive!</li>
+                <li><strong>Offline Mode:</strong> The app saves everything locally first. If you lose internet, your data is safe and will sync the next time you connect and use the app.</li>
+                <li><strong>Manual Backups:</strong> Still prefer local JSON files? You can download and restore them via the Local Data settings tab.</li>
+                <li><strong>Cloud Deletion:</strong> If you delete a character or Factory Reset the app, you will be prompted to completely delete your associated Cloud Backup folders to save space on your Google Drive.</li>
             </ul>
         </div>
         
@@ -398,6 +441,17 @@
         </div>
         <input type="text" id="inModelCustom" class="form-group" style="display:none; width:100%; margin-top:-10px;" placeholder="Enter custom model">
 
+        <div class="form-section">
+            <span class="label">Vehicle Image</span>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <select id="inDriveImageSelect" style="font-size:0.85rem;" onchange="document.getElementById('inDriveImageId').value = this.value; document.getElementById('inCustomImage').value='';"></select>
+                <span style="color:#aaa; font-size:0.75rem; text-align:center; font-weight:bold;">- OR UPLOAD NEW -</span>
+                <input type="file" id="inCustomImage" accept="image/*" style="font-size:0.8rem; padding:8px; background:#1a1a1a;" onchange="document.getElementById('inDriveImageSelect').value=''; document.getElementById('inDriveImageId').value='';">
+                <input type="hidden" id="inDriveImageId">
+            </div>
+            <p id="cloudImgWarn" style="display:none; font-size:0.75rem; color:var(--sell); margin-top:5px; margin-bottom:0;"><i class="fas fa-cloud-upload-alt"></i> Will sync to Google Drive on Save</p>
+        </div>
+
         <div class="form-group">
             <span class="label">Garage</span>
             <select id="inLoc" onchange="handleLocChange()"></select>
@@ -445,7 +499,7 @@
 
         <div class="modal-actions">
             <button class="btn-sec" onclick="closeModal('vehicleModal')">Cancel</button>
-            <button class="btn-primary" onclick="saveVehicle()">Save</button>
+            <button class="btn-primary" onclick="saveVehicleWrapper()">Save</button>
         </div>
         
         <div id="editActions" style="display:none; margin-top:20px; flex-direction:column; gap:8px; border-top:1px solid #333; padding-top:15px;">
@@ -529,7 +583,9 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.42.0 (Current)</strong><br>• Removed version number from footer for cleaner UI.</p>
+            <p><strong>v1.44.0 (Current)</strong><br>• Google Drive character folders now rename dynamically.<br>• Added options to delete cloud data on character delete and factory reset.</p>
+            <p><strong>v1.43.0</strong><br>• Google Drive Cloud Sync integration.<br>• Custom vehicle images linked to Drive.<br>• Character-specific isolated cloud folders.<br>• Settings menu converted to Tabs.<br>• Offline resilience and manual cloud backups.</p>
+            <p><strong>v1.42.0</strong><br>• Removed version number from footer for cleaner UI.</p>
             <p><strong>v1.41.0</strong><br>• Added sorting/grouping by Weaponized status.</p>
             <p><strong>v1.40.0</strong><br>• Garage/Floor capacities now show actual total used when searching.</p>
             <p><strong>v1.39.0</strong><br>• Added ability to delete individual characters.</p>
@@ -587,9 +643,236 @@
     let timerInt = null;
     let movingId = null;
 
+    // --- GOOGLE API SETUP ---
+    const CLIENT_ID = '473173544641-ke5r8vnp9t25lj9j7b39okb3jvpda268.apps.googleusercontent.com';
+    const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+
+    let tokenClient;
+    let gapiInited = false;
+    let gisInited = false;
+    let driveFolders = { root: null, char: null, db: null, images: null };
+    let isAutoSyncing = false;
+
+    function gapiLoadedInit() { gapi.load('client', initializeGapiClient); }
+    async function initializeGapiClient() {
+        await gapi.client.init({ discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] });
+        gapiInited = true;
+        checkCloudAuth();
+    }
+    function gisLoadedInit() {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+            client_id: CLIENT_ID,
+            scope: SCOPES,
+            callback: (tokenResponse) => {
+                if (tokenResponse && tokenResponse.access_token) {
+                    localStorage.setItem('gta_gdrive_token', JSON.stringify({
+                        token: tokenResponse.access_token,
+                        expiresAt: Date.now() + (tokenResponse.expires_in * 1000)
+                    }));
+                    onGoogleSignedIn();
+                }
+            },
+        });
+        gisInited = true;
+        checkCloudAuth();
+    }
+    function checkCloudAuth() {
+        if (!gapiInited || !gisInited) return;
+        const stored = JSON.parse(localStorage.getItem('gta_gdrive_token'));
+        if (stored && stored.expiresAt > Date.now()) {
+            gapi.client.setToken({ access_token: stored.token });
+            onGoogleSignedIn();
+        }
+    }
+    function handleAuthClick() { tokenClient.requestAccessToken({prompt: 'consent'}); }
+    function handleSignoutClick() {
+        const stored = JSON.parse(localStorage.getItem('gta_gdrive_token'));
+        if (stored && stored.token) google.accounts.oauth2.revoke(stored.token);
+        gapi.client.setToken('');
+        localStorage.removeItem('gta_gdrive_token');
+        document.getElementById('btnGLogin').style.display = 'block';
+        document.getElementById('btnGLogout').style.display = 'none';
+        document.getElementById('cloudActions').style.display = 'none';
+        document.getElementById('cloudStatus').innerText = 'Not signed in.';
+        driveFolders = { root: null, char: null, db: null, images: null };
+    }
+
+    async function findOrCreateFolder(name, parentId = 'root') {
+        let query = `mimeType='application/vnd.google-apps.folder' and name='${name}' and trashed=false and '${parentId}' in parents`;
+        let response = await gapi.client.drive.files.list({ q: query, fields: 'files(id, name)' });
+        if (response.result.files && response.result.files.length > 0) return response.result.files[0].id;
+        let fileMetadata = { name: name, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] };
+        let folder = await gapi.client.drive.files.create({ resource: fileMetadata, fields: 'id' });
+        return folder.result.id;
+    }
+
+    async function getFolderIdByName(name, parentId) {
+        let query = `mimeType='application/vnd.google-apps.folder' and name='${name}' and trashed=false and '${parentId}' in parents`;
+        let response = await gapi.client.drive.files.list({ q: query, fields: 'files(id)' });
+        if (response.result.files && response.result.files.length > 0) return response.result.files[0].id;
+        return null;
+    }
+
+    async function ensureDriveStructure() {
+        document.getElementById('cloudStatus').innerText = 'Signed in. Initializing Drive folders...';
+        driveFolders.root = await findOrCreateFolder('My GTA Garage');
+        const charName = characters.find(c => c.id === activeCharId)?.name || 'Character';
+        driveFolders.char = await findOrCreateFolder(charName, driveFolders.root);
+        driveFolders.db = await findOrCreateFolder('database', driveFolders.char);
+        driveFolders.images = await findOrCreateFolder('images', driveFolders.char);
+    }
+
+    async function onGoogleSignedIn() {
+        document.getElementById('btnGLogin').style.display = 'none';
+        document.getElementById('btnGLogout').style.display = 'block';
+        document.getElementById('cloudActions').style.display = 'block';
+        try {
+            await ensureDriveStructure();
+            document.getElementById('cloudStatus').innerText = 'Signed in. Folders mapped. Auto-sync active.';
+            syncToCloud();
+        } catch(e) { console.error(e); document.getElementById('cloudStatus').innerText = 'Error setting up Drive folders.'; }
+    }
+
+    async function createDriveFile(name, parentId, content, mimeType='application/json') {
+        const boundary = '-------314159265358979323846';
+        const delimiter = "\r\n--" + boundary + "\r\n";
+        const close_delim = "\r\n--" + boundary + "--";
+        const metadata = { name: name, parents: [parentId], mimeType: mimeType };
+        let payload = content;
+        let encoding = '';
+
+        if(mimeType !== 'application/json') {
+            payload = content; // Assuming base64
+            encoding = '\r\nContent-Transfer-Encoding: base64';
+        }
+
+        const multipartRequestBody =
+            delimiter + 'Content-Type: application/json\r\n\r\n' + JSON.stringify(metadata) +
+            delimiter + 'Content-Type: ' + mimeType + encoding + '\r\n\r\n' + payload + close_delim;
+
+        let res = await gapi.client.request({
+            path: '/upload/drive/v3/files',
+            method: 'POST',
+            params: { uploadType: 'multipart' },
+            headers: { 'Content-Type': 'multipart/related; boundary=' + boundary },
+            body: multipartRequestBody
+        });
+        return res;
+    }
+
+    async function syncToCloud() {
+        if (isAutoSyncing || !gapi.client.getToken() || !driveFolders.db || !navigator.onLine) return;
+        isAutoSyncing = true;
+        document.getElementById('cloudStatus').innerText = 'Signed in. Syncing...';
+        try {
+            const data = { vehicles: vehicles, nicknames: floorNicknames, lastSell: lastSell, lastSoldName: lastSoldName };
+            const fileContent = JSON.stringify(data);
+            const fileName = 'autosync_db.json';
+            let query = `name='${fileName}' and '${driveFolders.db}' in parents and trashed=false`;
+            let response = await gapi.client.drive.files.list({ q: query, fields: 'files(id)' });
+            
+            if (response.result.files && response.result.files.length > 0) {
+                await gapi.client.request({
+                    path: '/upload/drive/v3/files/' + response.result.files[0].id,
+                    method: 'PATCH', params: { uploadType: 'media' }, body: fileContent
+                });
+            } else {
+                await createDriveFile(fileName, driveFolders.db, fileContent);
+            }
+            document.getElementById('cloudStatus').innerText = 'Signed in. Folders mapped. Auto-sync active. (Synced just now)';
+        } catch(e) { console.error(e); }
+        isAutoSyncing = false;
+    }
+    
+    window.addEventListener('online', () => { if(gapi.client.getToken()) syncToCloud(); });
+
+    async function manualCloudBackup() {
+        if (!gapi.client.getToken() || !driveFolders.db) return openAlert("Error", "Not connected to Drive.");
+        const data = JSON.stringify({ vehicles, nicknames: floorNicknames, lastSell, lastSoldName });
+        const fileName = `manual_backup_${Date.now()}.json`;
+        await createDriveFile(fileName, driveFolders.db, data);
+        showSuccess("Cloud Backup", "Manual backup saved to Google Drive.");
+    }
+
+    async function restoreCloudBackup() {
+        if (!gapi.client.getToken() || !driveFolders.db) return openAlert("Error", "Not connected to Drive.");
+        let query = `'${driveFolders.db}' in parents and mimeType='application/json' and trashed=false`;
+        let res = await gapi.client.drive.files.list({ q: query, fields: 'files(id, name, modifiedTime)' });
+        let listDiv = document.getElementById('cloudBackupList');
+        if (res.result.files && res.result.files.length > 0) {
+            listDiv.innerHTML = res.result.files.sort((a,b) => new Date(b.modifiedTime) - new Date(a.modifiedTime)).map(f => 
+                `<button class="btn-sec" style="width:100%; justify-content:space-between; margin-bottom:5px;" onclick="loadSpecificCloudBackup('${f.id}')">
+                    <span>${f.name}</span> <span style="font-size:0.7rem;color:#888">${new Date(f.modifiedTime).toLocaleDateString()}</span>
+                </button>`
+            ).join('');
+        } else {
+            listDiv.innerHTML = '<span style="color:#888">No backups found in this characters database folder.</span>';
+        }
+        closeModal('settingsModal');
+        openModal('cloudRestoreListModal');
+    }
+
+    async function loadSpecificCloudBackup(fileId) {
+        openConfirm("Restore Cloud Backup", "This will replace your current character's vehicles. Proceed?", async () => {
+            try {
+                let res = await gapi.client.drive.files.get({ fileId: fileId, alt: 'media' });
+                let data = res.result;
+                if(typeof data === 'string') data = JSON.parse(data);
+                vehicles = data.vehicles || [];
+                floorNicknames = data.nicknames || {};
+                lastSell = data.lastSell || 0;
+                lastSoldName = data.lastSoldName || "None";
+                saveGarage(); 
+                closeModal('cloudRestoreListModal');
+                showSuccess("Restored", "Cloud backup loaded successfully.");
+            } catch(e) { console.error(e); openAlert("Error", "Failed to load backup."); }
+        });
+    }
+
+    async function loadDriveImagesForSelect() {
+        const sel = document.getElementById('inDriveImageSelect');
+        sel.innerHTML = '<option value="">-- Use Default / Upload New --</option>';
+        if (!gapiInited || !gapi.client.getToken() || !driveFolders.images) return;
+        
+        let query = `'${driveFolders.images}' in parents and trashed=false`;
+        let res = await gapi.client.drive.files.list({ q: query, fields: 'files(id, name)' });
+        if (res.result.files) {
+            res.result.files.forEach(f => {
+                sel.innerHTML += `<option value="${f.id}">${f.name}</option>`;
+            });
+        }
+    }
+
+    async function uploadImageToDrive(file, spawnName) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+                const ext = file.name.split('.').pop();
+                const fileName = `${spawnName}_${Date.now()}.${ext}`;
+                const contentType = file.type || 'application/octet-stream';
+                const base64Data = reader.result.split(',')[1];
+                try {
+                    let res = await createDriveFile(fileName, driveFolders.images, base64Data, contentType);
+                    await gapi.client.drive.permissions.create({ fileId: res.result.id, resource: { type: 'anyone', role: 'reader' } });
+                    resolve(res.result.id);
+                } catch(e) { reject(e); }
+            };
+        });
+    }
+
+    // --- SETTINGS TABS ---
+    function switchSettingsTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.getElementById('tabBtn_' + tab).classList.add('active');
+        document.getElementById('tabContent_' + tab).classList.add('active');
+    }
+
     // --- CHARACTER MANAGEMENT LOGIC ---
     function openSettings() {
         renderSettingsChars();
+        switchSettingsTab('chars');
         openModal('settingsModal');
     }
 
@@ -605,13 +888,29 @@
         `).join('');
     }
 
-    function updateCharName(id) {
+    async function updateCharName(id) {
         const newName = document.getElementById('editChar_' + id).value.trim();
         if(!newName) return;
         const c = characters.find(x => x.id === id);
-        if(c) c.name = newName;
+        if(!c) return;
+        
+        const oldName = c.name;
+        if (oldName === newName) return;
+
+        c.name = newName;
         localStorage.setItem('gta_chars_v1', JSON.stringify(characters));
         updateFooterCharName();
+
+        if (gapiInited && gapi.client.getToken() && driveFolders.root) {
+            try {
+                let folderId = await getFolderIdByName(oldName, driveFolders.root);
+                if (folderId) {
+                    await gapi.client.drive.files.update({ fileId: folderId, resource: { name: newName } });
+                    if (id === activeCharId) driveFolders.char = folderId; 
+                }
+            } catch(e) { console.error("Cloud rename failed", e); }
+        }
+
         showSuccess("Saved", "Character name updated.");
     }
 
@@ -631,7 +930,8 @@
         const c = characters.find(x => x.id === id);
         if (!c) return;
         
-        openConfirm("Delete Character", `Are you sure you want to delete <strong>${c.name}</strong> and all their vehicles? This cannot be undone.`, () => {
+        openConfirm("Delete Character", `Are you sure you want to delete <strong>${c.name}</strong> and all their vehicles? This cannot be undone.`, async () => {
+            const charName = c.name;
             characters = characters.filter(x => x.id !== id);
             localStorage.setItem('gta_chars_v1', JSON.stringify(characters));
             
@@ -641,6 +941,15 @@
             localStorage.removeItem('gta_last_sale' + suffix);
             localStorage.removeItem('gta_last_sold_name' + suffix);
             
+            if (gapiInited && gapi.client.getToken() && driveFolders.root) {
+                if (window.confirm(`Do you also want to completely delete ${charName}'s backup folder from Google Drive?`)) {
+                    try {
+                        let folderId = await getFolderIdByName(charName, driveFolders.root);
+                        if (folderId) await gapi.client.drive.files.delete({ fileId: folderId });
+                    } catch(e) { console.error("Cloud delete failed", e); }
+                }
+            }
+
             if (activeCharId === id) {
                 switchChar(characters[0].id);
             } else {
@@ -661,7 +970,7 @@
         openModal('charModal');
     }
 
-    function switchChar(id) {
+    async function switchChar(id) {
         activeCharId = id;
         localStorage.setItem('gta_active_char_v1', id);
         keys = getStorageKeys();
@@ -673,6 +982,12 @@
         render();
         updateTimerLogic();
         closeModal('charModal');
+        
+        // Re-map drive folders for new char if logged in
+        if(gapiInited && gapi.client.getToken()) {
+            await ensureDriveStructure();
+            syncToCloud();
+        }
     }
 
     function updateFooterCharName() {
@@ -680,24 +995,18 @@
         if(c) document.getElementById('footerCharName').innerText = c.name;
     }
 
-    // --- HELPER FUNCTIONS FOR MODALS ---
-    function openAlert(title, msg) {
-        document.getElementById('alertTitle').innerText = title;
-        document.getElementById('alertMsg').innerHTML = msg;
-        openModal('alertModal');
-    }
-
-    function openConfirm(title, msg, onYes) {
-        document.getElementById('confTitle').innerText = title;
-        document.getElementById('confMsg').innerHTML = msg;
-        const yesBtn = document.getElementById('confYesBtn');
-        const newBtn = yesBtn.cloneNode(true);
-        yesBtn.parentNode.replaceChild(newBtn, yesBtn);
-        newBtn.onclick = () => {
-            onYes();
-            closeModal('confirmModal');
-        };
-        openModal('confirmModal');
+    function factoryReset() { 
+        openConfirm("Factory Reset", "This will wipe all local data. Continue?", async () => {
+            if (gapiInited && gapi.client.getToken() && driveFolders.root) {
+                if (window.confirm("Do you also want to completely delete your 'My GTA Garage' folder from Google Drive?")) {
+                    try {
+                        await gapi.client.drive.files.delete({ fileId: driveFolders.root });
+                        driveFolders.root = null;
+                    } catch(e) { console.error("Cloud delete failed", e); }
+                }
+            }
+            localStorage.clear(); location.reload(); 
+        });
     }
 
     // --- MIGRATION CONFIG (Smart Matching) ---
@@ -942,7 +1251,9 @@
         if (!v) return null; 
         const db = masterDB.find(d => d.model === v.model) || {};
         const spawn = db.spawn || v.spawn || "";
-        const img = spawn ? `${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png` : "";
+        let img = spawn ? `${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png` : "";
+        if (v.driveImageId) img = `https://drive.google.com/uc?id=${v.driveImageId}`;
+        
         const gtaUrl = spawn ? `https://gtacars.net/gta5/${spawn.toLowerCase().replace(/_/g, '-')}` : null;
         
         let badges = "";
@@ -987,7 +1298,8 @@
         const v = vehicles.find(c => c.id === id); if(!v) return;
         const db = masterDB.find(d => d.model === v.model) || {};
         const spawn = db.spawn || v.spawn || "";
-        const img = spawn ? `${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png` : "";
+        let img = spawn ? `${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png` : "";
+        if (v.driveImageId) img = `https://drive.google.com/uc?id=${v.driveImageId}`;
         
         let badges = "";
         if(v.isFav) badges += `<span class="badge fav"><i class="fas fa-heart"></i> FAVORITE</span> `;
@@ -1035,6 +1347,14 @@
         document.getElementById('inWheels').value = v.wheels||"Stock";
         document.getElementById('inPlate').value = v.plate||"Standard";
         document.getElementById('inNotes').value = v.notes||"";
+        
+        document.getElementById('inCustomImage').value = '';
+        document.getElementById('inDriveImageId').value = v.driveImageId || '';
+        document.getElementById('cloudImgWarn').style.display = (gapiInited && gapi.client.getToken()) ? 'block' : 'none';
+        loadDriveImagesForSelect().then(() => {
+            document.getElementById('inDriveImageSelect').value = v.driveImageId || '';
+        });
+        
         openModal('vehicleModal');
     }
     
@@ -1060,6 +1380,14 @@
         document.getElementById('inWheels').value = v.wheels||"Stock";
         document.getElementById('inPlate').value = v.plate||"Standard";
         document.getElementById('inNotes').value = v.notes||"";
+        
+        document.getElementById('inCustomImage').value = '';
+        document.getElementById('inDriveImageId').value = v.driveImageId || '';
+        document.getElementById('cloudImgWarn').style.display = (gapiInited && gapi.client.getToken()) ? 'block' : 'none';
+        loadDriveImagesForSelect().then(() => {
+            document.getElementById('inDriveImageSelect').value = v.driveImageId || '';
+        });
+        
         openModal('vehicleModal');
     }
 
@@ -1129,6 +1457,24 @@
         document.getElementById('inLocCustom').style.display = 'none';
     }
 
+    async function saveVehicleWrapper() {
+        const fileInput = document.getElementById('inCustomImage');
+        const db = masterDB.find(d => d.model === document.getElementById('inModel').value) || {};
+        const spawnName = db.spawn || document.getElementById('inModel').value || 'custom';
+        
+        if (fileInput.files.length > 0 && gapiInited && gapi.client.getToken() && navigator.onLine && driveFolders.images) {
+            document.getElementById('modalTitle').innerText = "Uploading Image...";
+            try {
+                let driveId = await uploadImageToDrive(fileInput.files[0], spawnName);
+                document.getElementById('inDriveImageId').value = driveId;
+            } catch(e) {
+                console.error("Image upload failed", e);
+                openAlert("Upload Error", "Failed to upload image to Google Drive. Saving without custom image.");
+            }
+        }
+        saveVehicle();
+    }
+
     function saveVehicle() {
         const manuf = document.getElementById('inManuf').value;
         let model = document.getElementById('inModel').value;
@@ -1162,7 +1508,8 @@
             plate: document.getElementById('inPlate').value,
             notes: document.getElementById('inNotes').value,
             spawn: db.spawn||"", class: db.class||"", drive: db.drive||"", seats: db.seats||"",
-            locNickname: ""
+            locNickname: "",
+            driveImageId: document.getElementById('inDriveImageId').value || ""
         };
         if(editingId) vehicles[vehicles.findIndex(v => v.id === editingId)] = car;
         else vehicles.push(car);
@@ -1174,6 +1521,7 @@
         localStorage.setItem(keys.ls, lastSell);
         localStorage.setItem(keys.lsn, lastSoldName);
         render(); updateTimerLogic();
+        syncToCloud();
     }
 
     function openNickModal() {
@@ -1205,7 +1553,7 @@
         const val = document.getElementById('inNickname').value.trim();
         if(val) floorNicknames[key] = val; else delete floorNicknames[key];
         localStorage.setItem(keys.n, JSON.stringify(floorNicknames));
-        closeModal('nickModal'); render(); 
+        closeModal('nickModal'); render(); syncToCloud();
     }
 
     function openStats() {
@@ -1285,67 +1633,6 @@
         }); 
     }
     
-    function deleteVehicle() { openConfirm("Delete Vehicle", "This action cannot be undone. Delete?", () => { vehicles=vehicles.filter(v=>v.id!==editingId); saveGarage(); closeModal('vehicleModal'); }); }
-    function startMove() { movingId = editingId; document.getElementById('moveCarName').innerText = vehicles.find(v=>v.id===editingId).model; openModal('moveModal'); closeModal('vehicleModal'); }
-    function checkMoveCap() { const d = document.getElementById('moveDest').value, cl = Object.keys(CAPACITIES).find(m => d.includes(m)) || "DEFAULT"; if(vehicles.filter(v=>v.loc===d).length >= CAPACITIES[cl]) { document.getElementById('moveSwapUI').style.display='block'; document.getElementById('moveSwapTarget').innerHTML = vehicles.filter(v=>v.loc===d).map(v=>`<option value="${v.id}">${v.model}</option>`).join(''); } else document.getElementById('moveSwapUI').style.display='none'; }
-    
-    function commitMove() { 
-        openConfirm("Confirm Move", "Move vehicle to new location?", () => {
-            const d = document.getElementById('moveDest').value, carA = vehicles.find(v=>v.id===movingId);
-            let msg = `Moved <strong>${carA.model}</strong> to ${d}.`;
-            if(document.getElementById('moveSwapUI').style.display!=='none') { 
-                const carB = vehicles.find(v=>v.id==document.getElementById('moveSwapTarget').value); 
-                const tmp = carA.loc; carA.loc = d; carB.loc = tmp; 
-                msg = `Swapped <strong>${carA.model}</strong> with <strong>${carB.model}</strong>.`;
-            } else {
-                carA.loc = d;
-                let cleanDest = d.split(" (")[0]; 
-                let mapKey = Object.keys(FLOOR_MAP).find(k => d.includes(k));
-                let newFloor = "";
-                if (mapKey) {
-                    const floors = FLOOR_MAP[mapKey];
-                    for (let f of floors) {
-                        const cap = getFloorCap(d, f);
-                        const count = vehicles.filter(v => v.loc === d && v.floor === f).length;
-                        if (count < cap) { newFloor = f; break; }
-                    }
-                } else {
-                    newFloor = "Main Floor"; 
-                }
-                carA.floor = newFloor; carA.slot = "";
-                msg = `Moved <strong>${carA.model}</strong> to ${d}${newFloor !== "Main Floor" ? ` - ${newFloor}` : ''}.`;
-            }
-            saveGarage(); closeModal('moveModal'); showSuccess("Vehicle Moved", msg);
-        });
-    }
-
-    function performSwapAll() {
-        const f = document.getElementById('saFrom').value, t = document.getElementById('saTo').value;
-        if(!f || !t || f === t) return openAlert("Error", "Select different garages");
-        openConfirm("Swap Garage Contents", `Swap all vehicles between ${f} and ${t}?`, () => {
-            let countA = 0, countB = 0;
-            vehicles.forEach(v => { if(v.loc === f) { v.loc = "SW_TMP"; countA++; } });
-            vehicles.forEach(v => { if(v.loc === t) { v.loc = f; countB++; } });
-            vehicles.forEach(v => { if(v.loc === "SW_TMP") v.loc = t; });
-            saveGarage(); closeModal('swapAllModal');
-            showSuccess("Garage Swap Complete", `Moved ${countA} vehicles to ${t}<br>Moved ${countB} vehicles to ${f}`);
-        });
-    }
-
-    function runMigration() { 
-        openConfirm("Start Migration", "Sync vehicle data with cloud database?", () => {
-            let c=0, f=0; const log = document.getElementById('migLog'); 
-            vehicles = vehicles.map(v => { 
-                const m = masterDB.find(db => db.model.toLowerCase() === v.model.toLowerCase()); 
-                if(m && !v.spawn) { c++; return {...v, spawn: m.spawn, class: m.class, drive: m.drive, seats: m.seats}; } 
-                if(!m) { f++; log.innerHTML += `<div style='color:#e74c3c'>Failed: ${v.model}</div>`; }
-                return v; 
-            }); 
-            saveGarage(); 
-            log.innerHTML += `<br>Updated ${c} cars successfully.`; 
-        });
-    }
-    
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     function closeMoveModal() { closeModal('moveModal'); }
@@ -1368,6 +1655,11 @@
         document.getElementById('inModelCustom').style.display = 'none';
         document.getElementById('inLocCustom').style.display = 'none';
         
+        document.getElementById('inCustomImage').value = '';
+        document.getElementById('inDriveImageId').value = '';
+        document.getElementById('cloudImgWarn').style.display = (gapiInited && gapi.client.getToken()) ? 'block' : 'none';
+        loadDriveImagesForSelect();
+
         handleLocChange();
         openModal('vehicleModal'); 
     }
@@ -1381,11 +1673,6 @@
         const r=new FileReader(); 
         r.onload=e=>{ vehicles=JSON.parse(e.target.result); saveGarage(); location.reload(); }; 
         r.readAsText(f); 
-    }
-    function factoryReset() { 
-        openConfirm("Factory Reset", "This will wipe all local data. Continue?", () => {
-            localStorage.clear(); location.reload(); 
-        });
     }
     function handleImgError(i, s) { if(!i.retry) { i.retry=1; i.src=`${BASE_URL}vehicles/${s.charAt(0).toUpperCase()+s.slice(1).toLowerCase()}.png`; } else { i.style.display='none'; i.nextElementSibling.style.display='block'; } }
     window.onclick = e => { if(e.target.className === 'modal') e.target.style.display = 'none'; }
