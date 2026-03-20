@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.50.0</title>
+    <title>My GTA Garage v1.52.0</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -359,7 +359,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.50.0</div>
+        <div class="modal-title">About My GTA Garage v1.52.0</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -367,7 +367,7 @@
             <ul style="padding-left:20px; margin-bottom:15px;">
                 <li><strong>Add Vehicle:</strong> Click the <strong>+ Add</strong> button on the main screen. Select the Make and Model (or choose "Custom..." to type your own). Choose the Garage and Floor. Floor capacities are checked automatically to prevent overfilling. Set the slot number, wheels, plates, and toggle Weaponized or Favorite status.</li>
                 <li><strong>Edit Vehicle:</strong> Click the <i class="fas fa-pencil-alt"></i> icon on any vehicle card to modify its details, update its location, change its custom image, or edit notes.</li>
-                <li><strong>Custom Images:</strong> When adding or editing a vehicle, use the "Vehicle Image" section to upload a picture from your device. If you are signed in to Google Drive, the image will be securely uploaded to your character's Drive folder (with a real-time progress bar) and linked automatically.</li>
+                <li><strong>Custom Images:</strong> When adding or editing a vehicle, use the "Vehicle Image" section to upload a picture from your device. If you are signed in to Google Drive, the image will be securely uploaded to your character's Drive folder and linked automatically.</li>
                 <li><strong>Copy/Duplicate:</strong> Open a vehicle's detail view (by clicking on its card) and click <strong>Copy</strong>. This opens the Add window with all the car's details and custom image pre-filled, leaving only the slot number blank for rapid entry of duplicate cars.</li>
                 <li><strong>Move Vehicle:</strong> Inside the edit or detail view, click <strong>Move</strong>. Select the destination garage. The app will automatically find the first empty floor and slot. If the destination is completely full, you will be prompted to select a vehicle to swap places with.</li>
                 <li><strong>Sell Vehicle:</strong> Click <strong>Sell</strong> in the edit or detail view to simulate selling a car. This removes the car from your garage and starts an 18-hour real-time cooldown timer (matching GTA Online's daily sell limit).</li>
@@ -444,16 +444,6 @@
     <div class="modal-box">
         <div id="detailContent"></div>
         <button class="btn-sec" style="width:100%; margin-top:20px;" onclick="closeModal('detailModal')">Close</button>
-    </div>
-</div>
-
-<div id="uploadProgressModal" class="modal" style="z-index: 1300;">
-    <div class="modal-box" style="text-align:center;">
-        <div class="modal-title">Uploading Image...</div>
-        <div class="usage-container" style="height: 20px; background: #333; margin-bottom: 15px;">
-            <div id="uploadProgressBar" class="usage-bar" style="width: 0%; transition: width 0.1s;"></div>
-        </div>
-        <div id="uploadProgressText" style="color: #aaa; font-weight: bold;">0%</div>
     </div>
 </div>
 
@@ -615,7 +605,9 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.50.0 (Current)</strong><br>• Fixed Google Drive custom image upload preventing saves from finishing.<br>• Re-implemented real-time upload progress tracking for images.<br>• Restored Google Drive Thumbnail API logic to ensure custom images accurately render across all browsers.<br>• Bulletproofed existing image fetching to prevent the modal from crashing during async execution.</p>
+            <p><strong>v1.52.0 (Current)</strong><br>• Completely reverted image uploading/fetching back to the proven v1.43.0 API methodology to resolve upload aborts and empty dropdown lists.<br>• Retained the Google Drive Thumbnail API URL fix to ensure custom images successfully display on vehicle cards.</p>
+            <p><strong>v1.51.0</strong><br>• Upgraded to Google Drive's native Resumable Upload API for robust custom image saving.<br>• Resolved issues preventing the image upload progress modal from opening.<br>• Fixed race conditions causing the Add/Edit window to close prematurely.<br>• Improved token validation to ensure custom images populate correctly in the dropdown list.</p>
+            <p><strong>v1.50.0</strong><br>• Fixed Google Drive custom image upload preventing saves from finishing.<br>• Re-implemented real-time upload progress tracking for images.<br>• Restored Google Drive Thumbnail API logic to ensure custom images accurately render across all browsers.<br>• Bulletproofed existing image fetching to prevent the modal from crashing during async execution.</p>
             <p><strong>v1.49.0</strong><br>• Resolved Add/Edit window closing prematurely during image upload.<br>• Reverted image upload backend to standard API for higher success rates.<br>• Fixed custom image display fetching URLs.<br>• Ensured image selection lists map correctly to new characters.</p>
             <p><strong>v1.48.0</strong><br>• Fixed Google Drive custom image upload/fetching.<br>• Added upload progress window and completion alert.</p>
             <p><strong>v1.47.0</strong><br>• Removed version number from footer.<br>• Expanded documentation and feature instructions in the About page.</p>
@@ -752,13 +744,22 @@
         return null;
     }
 
+    let driveStructurePromise = null;
     async function ensureDriveStructure() {
-        document.getElementById('cloudStatus').innerText = 'Signed in. Initializing Drive folders...';
-        driveFolders.root = await findOrCreateFolder('My GTA Garage');
-        const charName = characters.find(c => c.id === activeCharId)?.name || 'Character';
-        driveFolders.char = await findOrCreateFolder(charName, driveFolders.root);
-        driveFolders.db = await findOrCreateFolder('database', driveFolders.char);
-        driveFolders.images = await findOrCreateFolder('images', driveFolders.char);
+        if (driveFolders.images) return; 
+        if (driveStructurePromise) return driveStructurePromise;
+        
+        driveStructurePromise = (async () => {
+            document.getElementById('cloudStatus').innerText = 'Signed in. Initializing Drive folders...';
+            driveFolders.root = await findOrCreateFolder('My GTA Garage');
+            const charName = characters.find(c => c.id === activeCharId)?.name || 'Character';
+            driveFolders.char = await findOrCreateFolder(charName, driveFolders.root);
+            driveFolders.db = await findOrCreateFolder('database', driveFolders.char);
+            driveFolders.images = await findOrCreateFolder('images', driveFolders.char);
+        })();
+        
+        await driveStructurePromise;
+        driveStructurePromise = null;
     }
 
     async function checkInitialSync() {
@@ -829,7 +830,7 @@
         } catch(e) { console.error(e); document.getElementById('cloudStatus').innerText = 'Error setting up Drive folders.'; }
     }
 
-    // Retained for database JSON backups
+    // --- REVERTED BACK TO V1.43.0 LOGIC FOR FILES ---
     async function createDriveFile(name, parentId, content, mimeType='application/json') {
         const boundary = '-------314159265358979323846';
         const delimiter = "\r\n--" + boundary + "\r\n";
@@ -926,24 +927,19 @@
         });
     }
 
+    // --- REVERTED BACK TO V1.43.0 LOGIC FOR LIST FETCHING ---
     async function loadDriveImagesForSelect() {
         const sel = document.getElementById('inDriveImageSelect');
         sel.innerHTML = '<option value="">-- Use Default / Upload New --</option>';
-        
-        let hasToken = false;
-        try { if (gapi.client.getToken()) hasToken = true; } catch(e){}
-        if (!hasToken && localStorage.getItem('gta_gdrive_token')) hasToken = true;
-        
-        if (!gapiInited || !hasToken) return;
+        if (!gapiInited || !gapi.client.getToken()) return;
         
         if (!driveFolders.images) {
             try { await ensureDriveStructure(); } catch(e) { console.error("Error ensuring drive structure", e); return; }
         }
-        
         if (!driveFolders.images) return;
         
-        let query = `'${driveFolders.images}' in parents and trashed=false`;
         try {
+            let query = `'${driveFolders.images}' in parents and trashed=false`;
             let res = await gapi.client.drive.files.list({ q: query, fields: 'files(id, name)' });
             if (res.result.files) {
                 res.result.files.forEach(f => {
@@ -953,65 +949,21 @@
         } catch(e) { console.error("Error fetching image list", e); }
     }
 
-    // --- REWRITTEN IMAGE UPLOAD LOGIC (v1.50.0) ---
-    function uploadImageToDriveXHR(file, spawnName, progressCallback) {
+    // --- REVERTED BACK TO V1.43.0 LOGIC FOR IMAGE UPLOAD ---
+    async function uploadImageToDrive(file, spawnName) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onload = () => {
-                let token = "";
-                try { 
-                    let t = gapi.client.getToken();
-                    if(t) token = t.access_token; 
-                } catch(e) {}
-                
-                if (!token) {
-                    const stored = JSON.parse(localStorage.getItem('gta_gdrive_token'));
-                    if (stored) token = stored.token;
-                }
-                
-                if (!token) return reject("No auth token");
-
+            reader.onload = async () => {
                 const ext = file.name.split('.').pop();
                 const fileName = `${spawnName}_${Date.now()}.${ext}`;
                 const contentType = file.type || 'application/octet-stream';
                 const base64Data = reader.result.split(',')[1];
-
-                const boundary = '-------314159265358979323846';
-                const delimiter = "\r\n--" + boundary + "\r\n";
-                const close_delim = "\r\n--" + boundary + "--";
-                
-                const metadata = { name: fileName, parents: [driveFolders.images], mimeType: contentType };
-
-                const multipartRequestBody =
-                    delimiter + 'Content-Type: application/json\r\n\r\n' + JSON.stringify(metadata) +
-                    delimiter + 'Content-Type: ' + contentType + '\r\nContent-Transfer-Encoding: base64\r\n\r\n' + base64Data + close_delim;
-
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart');
-                xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-                xhr.setRequestHeader('Content-Type', 'multipart/related; boundary=' + boundary);
-
-                xhr.upload.onprogress = (e) => {
-                    if (e.lengthComputable && progressCallback) {
-                        const percent = Math.round((e.loaded / e.total) * 100);
-                        progressCallback(percent);
-                    }
-                };
-
-                xhr.onload = async () => {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        const res = JSON.parse(xhr.responseText);
-                        try {
-                            await gapi.client.drive.permissions.create({ fileId: res.id, resource: { type: 'anyone', role: 'reader' } });
-                        } catch(err) { console.warn("Permissions error", err); }
-                        resolve(res.id);
-                    } else {
-                        reject(xhr.responseText);
-                    }
-                };
-                xhr.onerror = () => reject(xhr.statusText);
-                xhr.send(multipartRequestBody);
+                try {
+                    let res = await createDriveFile(fileName, driveFolders.images, base64Data, contentType);
+                    await gapi.client.drive.permissions.create({ fileId: res.result.id, resource: { type: 'anyone', role: 'reader' } });
+                    resolve(res.result.id);
+                } catch(e) { reject(e); }
             };
             reader.onerror = error => reject(error);
         });
@@ -1139,7 +1091,6 @@
         updateTimerLogic();
         closeModal('charModal');
         
-        // Re-map drive folders for new char if logged in
         if(gapiInited && gapi.client.getToken()) {
             await ensureDriveStructure();
             await checkInitialSync();
@@ -1643,42 +1594,25 @@
         if (!hasToken && localStorage.getItem('gta_gdrive_token')) hasToken = true;
 
         if (fileInput && fileInput.files.length > 0 && gapiInited && hasToken && navigator.onLine) {
+            document.getElementById('modalTitle').innerText = "Uploading Image to Drive...";
+            
             if (!driveFolders.images) {
                 try { await ensureDriveStructure(); } catch(e) { console.error("ensureDriveStructure failed", e); }
             }
             
             if (driveFolders.images) {
-                openModal('uploadProgressModal');
-                document.getElementById('uploadProgressBar').style.width = '0%';
-                document.getElementById('uploadProgressText').innerText = 'Starting Upload...';
-
                 try {
-                    let driveId = await uploadImageToDriveXHR(fileInput.files[0], spawnName, (percent) => {
-                        document.getElementById('uploadProgressBar').style.width = percent + '%';
-                        document.getElementById('uploadProgressText').innerText = percent + '%';
-                    });
-                    
+                    let driveId = await uploadImageToDrive(fileInput.files[0], spawnName);
                     document.getElementById('inDriveImageId').value = driveId;
-                    document.getElementById('uploadProgressBar').style.width = '100%';
-                    document.getElementById('uploadProgressText').innerText = 'Complete!';
-                    
-                    setTimeout(() => {
-                        closeModal('uploadProgressModal');
-                        openAlert("Success", "Custom image uploaded to Google Drive!");
-                        saveVehicle();
-                    }, 500);
-                    return; // Prevent synchronous saveVehicle execution
+                    alert("Image uploaded successfully!");
                 } catch(e) {
                     console.error("Image upload failed", e);
-                    closeModal('uploadProgressModal');
-                    openAlert("Upload Error", "Failed to upload image. Saving without custom image.");
-                    saveVehicle();
-                    return;
+                    openAlert("Upload Error", "Failed to upload image to Google Drive. Saving without custom image.");
                 }
             }
         }
         
-        saveVehicle(); // Proceed normally if no file
+        saveVehicle(); 
     }
 
     function saveVehicle() {
@@ -1925,13 +1859,16 @@
         document.getElementById('inCustomImage').value = '';
         document.getElementById('inDriveImageId').value = '';
         
-        let hasToken = false;
-        try { if (gapi.client.getToken()) hasToken = true; } catch(e){}
-        if (!hasToken && localStorage.getItem('gta_gdrive_token')) hasToken = true;
+        let token = false;
+        try { 
+            let t = gapi.client.getToken(); 
+            if (t) token = true;
+        } catch(e) {}
+        if (!token && localStorage.getItem('gta_gdrive_token')) token = true;
         
-        document.getElementById('cloudImgWarn').style.display = (gapiInited && hasToken) ? 'block' : 'none';
+        document.getElementById('cloudImgWarn').style.display = (gapiInited && token) ? 'block' : 'none';
         
-        if (gapiInited && hasToken) {
+        if (gapiInited && token) {
             loadDriveImagesForSelect();
         } else {
             document.getElementById('inDriveImageSelect').innerHTML = '<option value="">-- Use Default / Upload New --</option>';
@@ -1953,7 +1890,7 @@
     }
     function factoryReset() { 
         openConfirm("Factory Reset", "This will wipe all local data. Continue?", async () => {
-            if (gapiInited && gapi.client.getToken() && driveFolders.root) {
+            if (gapiInited && getActiveToken() && driveFolders.root) {
                 if (window.confirm("Do you also want to completely delete your 'My GTA Garage' folder from Google Drive?")) {
                     try {
                         await gapi.client.drive.files.delete({ fileId: driveFolders.root });
