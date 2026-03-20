@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.44.0</title>
+    <title>My GTA Garage v1.47.0</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -359,33 +359,43 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.44.0</div>
+        <div class="modal-title">About My GTA Garage v1.47.0</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
             <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">1. Vehicle Management</h4>
             <ul style="padding-left:20px; margin-bottom:15px;">
-                <li><strong>Add Vehicle:</strong> Click <strong>+ Add</strong>. Select Make, Model, Garage, and Floor. Capacities are checked automatically.</li>
-                <li><strong>Edit:</strong> Click the <i class="fas fa-pencil-alt"></i> icon to change details like Plate, Wheels, Slot, or Notes.</li>
-                <li><strong>Custom Images:</strong> When adding or editing, you can select an image from your device. It will upload directly to your Google Drive character folder!</li>
-                <li><strong>Copy/Duplicate:</strong> Click <strong>Copy</strong> on a detail card. It duplicates the car AND keeps your custom image linked!</li>
-                <li><strong>Move/Sell:</strong> Click Move to transfer a car to an empty slot. Click Sell to start an 18-hour cooldown.</li>
+                <li><strong>Add Vehicle:</strong> Click the <strong>+ Add</strong> button on the main screen. Select the Make and Model (or choose "Custom..." to type your own). Choose the Garage and Floor. Floor capacities are checked automatically to prevent overfilling. Set the slot number, wheels, plates, and toggle Weaponized or Favorite status.</li>
+                <li><strong>Edit Vehicle:</strong> Click the <i class="fas fa-pencil-alt"></i> icon on any vehicle card to modify its details, update its location, change its custom image, or edit notes.</li>
+                <li><strong>Custom Images:</strong> When adding or editing a vehicle, use the "Vehicle Image" section to upload a picture from your device. If you are signed in to Google Drive, the image will be securely uploaded to your character's Drive folder and linked automatically.</li>
+                <li><strong>Copy/Duplicate:</strong> Open a vehicle's detail view (by clicking on its card) and click <strong>Copy</strong>. This opens the Add window with all the car's details and custom image pre-filled, leaving only the slot number blank for rapid entry of duplicate cars.</li>
+                <li><strong>Move Vehicle:</strong> Inside the edit or detail view, click <strong>Move</strong>. Select the destination garage. The app will automatically find the first empty floor and slot. If the destination is completely full, you will be prompted to select a vehicle to swap places with.</li>
+                <li><strong>Sell Vehicle:</strong> Click <strong>Sell</strong> in the edit or detail view to simulate selling a car. This removes the car from your garage and starts an 18-hour real-time cooldown timer (matching GTA Online's daily sell limit).</li>
             </ul>
 
             <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">2. Organization & Search</h4>
             <ul style="padding-left:20px; margin-bottom:15px;">
-                <li><strong>Grouping:</strong> Use the dropdown to group vehicles by Garage, Brand, Class, Drive, Wheels, Plates, or Weaponized status.</li>
-                <li><strong>Sorting:</strong> Vehicles in "Group: Garage" view are automatically sorted by their Slot number, then by order added.</li>
-                <li><strong>Search:</strong> Filter by name, location, or notes in real-time. Search results maintain accurate full-garage capacity displays.</li>
+                <li><strong>Grouping:</strong> Use the dropdown menu at the top to group your vehicles by Garage, Brand, Class, Drive type, Wheels, Plates, or Weaponized status. Groups can be collapsed or expanded by clicking their headers.</li>
+                <li><strong>Sorting:</strong> When viewing by "Group: Garage", vehicles are automatically sorted by their Slot number (1, 2, 3, etc.). Vehicles without a slot number are placed at the end in the order they were added.</li>
+                <li><strong>Search:</strong> Use the search bar to instantly filter your collection by vehicle name, manufacturer, location, or notes. Garage capacities will dynamically update to show the real total usage even while filtering.</li>
+                <li><strong>Favorites:</strong> Mark your best cars by toggling the <i class="fas fa-heart" style="color:var(--fav)"></i> Favorite checkbox when adding/editing. Select "Favorites Only" from the view dropdown to display only these vehicles.</li>
             </ul>
 
-            <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">3. Data & Cloud Sync (New!)</h4>
+            <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">3. Garage Tools</h4>
             <ul style="padding-left:20px; margin-bottom:15px;">
-                <li><strong>Characters:</strong> Manage multiple, isolated collections per character. Renaming a character locally automatically renames their Cloud folder.</li>
-                <li><strong>Google Drive Sync:</strong> Sign in via Settings. The app automatically creates a "My GTA Garage" folder and auto-syncs your database after every change. It even stores your custom car images in Drive!</li>
-                <li><strong>Offline Mode:</strong> The app saves everything locally first. If you lose internet, your data is safe and will sync the next time you connect and use the app.</li>
-                <li><strong>Manual Backups:</strong> Still prefer local JSON files? You can download and restore them via the Local Data settings tab.</li>
-                <li><strong>Cloud Deletion:</strong> If you delete a character or Factory Reset the app, you will be prompted to completely delete your associated Cloud Backup folders to save space on your Google Drive.</li>
+                <li><strong>Floor Nicknames:</strong> In the Add/Edit window, click the "Edit Nickname" button next to the Floor selector to assign a custom name to that specific garage floor (e.g., "JDM Floor", "Supercars"). These nicknames will appear on the group headers in the main view.</li>
+                <li><strong>Swap Entire Garages:</strong> Click the <i class="fas fa-exchange-alt"></i> button next to the view dropdown to instantly swap the entire contents of two different garages.</li>
+                <li><strong>Capacity Tracking:</strong> The app actively tracks your garage capacities. It hides floors that are full in the Add menu, warns you if a garage has no space left, and shows real-time usage (e.g., 5/10) on every floor header.</li>
+            </ul>
+
+            <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">4. Data & Cloud Sync</h4>
+            <ul style="padding-left:20px; margin-bottom:15px;">
+                <li><strong>Character Management:</strong> Manage multiple, completely isolated vehicle collections per character via the Settings menu. You can add, rename, or delete characters. Renaming a character locally will automatically rename their corresponding Cloud folder.</li>
+                <li><strong>Google Drive Sync:</strong> Sign in via the "Google Drive" tab in Settings. The app automatically creates a "My GTA Garage" folder and auto-syncs your database to the cloud after every change. Custom car images are also stored securely in your Drive.</li>
+                <li><strong>Offline Mode & Safety:</strong> The app saves everything locally to your browser first. If you lose internet, your data remains safe and will sync the next time you connect. The app checks for conflicts when signing in on a new device to prevent accidental overwrites, prompting you to choose between Local or Cloud data.</li>
+                <li><strong>Manual Cloud Backups:</strong> Use the "Create Manual Cloud Backup" button in Settings to save a timestamped snapshot of your garage to Google Drive, ensuring you always have a fallback.</li>
+                <li><strong>Local Backups:</strong> Prefer local files? Use the "Local Data" tab in Settings to download your garage as a JSON file to your device, or load an existing JSON file.</li>
+                <li><strong>Cloud Deletion:</strong> If you delete a character or Factory Reset the app from the Danger Zone, you will be prompted with the option to also completely delete your associated Cloud Backup folders from Google Drive to save space.</li>
             </ul>
         </div>
         
@@ -414,6 +424,18 @@
         <div class="modal-actions">
             <button class="btn-sec" onclick="closeModal('confirmModal')">Cancel</button>
             <button class="btn-pri" id="confYesBtn">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<div id="syncConflictModal" class="modal">
+    <div class="modal-box" style="text-align:center;">
+        <div style="font-size:3rem; margin-bottom:10px;">☁️</div>
+        <h2 style="color:#fff; margin:0 0 10px 0;">Sync Conflict Detected</h2>
+        <p style="color:#ccc; font-size:0.95rem; line-height:1.5; margin-bottom:20px;">We found existing cloud data for this character. Do you want to keep your Local Data or download the Cloud Data?</p>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <button class="btn-pri" onclick="resolveSync('local')">Keep Local Data (Overwrite Cloud)</button>
+            <button class="btn-sec" onclick="resolveSync('cloud')">Download Cloud Data (Overwrite Local)</button>
         </div>
     </div>
 </div>
@@ -583,7 +605,10 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.44.0 (Current)</strong><br>• Google Drive character folders now rename dynamically.<br>• Added options to delete cloud data on character delete and factory reset.</p>
+            <p><strong>v1.47.0 (Current)</strong><br>• Removed version number from footer.<br>• Expanded documentation and feature instructions in the About page.</p>
+            <p><strong>v1.46.0</strong><br>• Fixed custom Google Drive images not displaying (changed embed URL format).<br>• Added image fallback logic so broken custom images revert to default vehicle images.</p>
+            <p><strong>v1.45.0</strong><br>• Smart initial sync check. Auto-pulls cloud data if local is empty.<br>• Added local/cloud conflict prompt to prevent accidental overwrites.</p>
+            <p><strong>v1.44.0</strong><br>• Google Drive character folders now rename dynamically.<br>• Added options to delete cloud data on character delete and factory reset.</p>
             <p><strong>v1.43.0</strong><br>• Google Drive Cloud Sync integration.<br>• Custom vehicle images linked to Drive.<br>• Character-specific isolated cloud folders.<br>• Settings menu converted to Tabs.<br>• Offline resilience and manual cloud backups.</p>
             <p><strong>v1.42.0</strong><br>• Removed version number from footer for cleaner UI.</p>
             <p><strong>v1.41.0</strong><br>• Added sorting/grouping by Weaponized status.</p>
@@ -652,6 +677,7 @@
     let gisInited = false;
     let driveFolders = { root: null, char: null, db: null, images: null };
     let isAutoSyncing = false;
+    let tempCloudData = null;
 
     function gapiLoadedInit() { gapi.load('client', initializeGapiClient); }
     async function initializeGapiClient() {
@@ -722,14 +748,71 @@
         driveFolders.images = await findOrCreateFolder('images', driveFolders.char);
     }
 
+    async function checkInitialSync() {
+        document.getElementById('cloudStatus').innerText = 'Signed in. Checking cloud data...';
+        try {
+            const fileName = 'autosync_db.json';
+            let query = `name='${fileName}' and '${driveFolders.db}' in parents and trashed=false`;
+            let response = await gapi.client.drive.files.list({ q: query, fields: 'files(id)' });
+            
+            if (response.result.files && response.result.files.length > 0) {
+                let fileId = response.result.files[0].id;
+                let res = await gapi.client.drive.files.get({ fileId: fileId, alt: 'media' });
+                let cloudData = res.result;
+                if(typeof cloudData === 'string') cloudData = JSON.parse(cloudData);
+                
+                let hasLocal = vehicles.length > 0;
+                let hasCloud = cloudData.vehicles && cloudData.vehicles.length > 0;
+                
+                if (!hasLocal && hasCloud) {
+                    applyCloudData(cloudData);
+                    document.getElementById('cloudStatus').innerText = 'Signed in. Auto-pulled from Cloud.';
+                } else if (hasLocal && hasCloud) {
+                    tempCloudData = cloudData;
+                    openModal('syncConflictModal');
+                } else {
+                    document.getElementById('cloudStatus').innerText = 'Signed in. Folders mapped. Auto-sync active.';
+                    syncToCloud();
+                }
+            } else {
+                document.getElementById('cloudStatus').innerText = 'Signed in. Folders mapped. Auto-sync active.';
+                syncToCloud();
+            }
+        } catch(e) {
+            console.error(e);
+            document.getElementById('cloudStatus').innerText = 'Error checking cloud sync status.';
+        }
+    }
+
+    function applyCloudData(data) {
+        vehicles = data.vehicles || [];
+        floorNicknames = data.nicknames || {};
+        lastSell = data.lastSell || 0;
+        lastSoldName = data.lastSoldName || "None";
+        
+        saveGarage(); 
+    }
+
+    function resolveSync(choice) {
+        closeModal('syncConflictModal');
+        if (choice === 'cloud') {
+            applyCloudData(tempCloudData);
+            document.getElementById('cloudStatus').innerText = 'Signed in. Auto-sync active (Cloud Data Applied).';
+            showSuccess("Sync Complete", "Cloud data has been downloaded and applied.");
+        } else {
+            document.getElementById('cloudStatus').innerText = 'Signed in. Folders mapped. Auto-sync active.';
+            syncToCloud();
+        }
+        tempCloudData = null;
+    }
+
     async function onGoogleSignedIn() {
         document.getElementById('btnGLogin').style.display = 'none';
         document.getElementById('btnGLogout').style.display = 'block';
         document.getElementById('cloudActions').style.display = 'block';
         try {
             await ensureDriveStructure();
-            document.getElementById('cloudStatus').innerText = 'Signed in. Folders mapped. Auto-sync active.';
-            syncToCloud();
+            await checkInitialSync();
         } catch(e) { console.error(e); document.getElementById('cloudStatus').innerText = 'Error setting up Drive folders.'; }
     }
 
@@ -986,7 +1069,7 @@
         // Re-map drive folders for new char if logged in
         if(gapiInited && gapi.client.getToken()) {
             await ensureDriveStructure();
-            syncToCloud();
+            await checkInitialSync();
         }
     }
 
@@ -1252,7 +1335,7 @@
         const db = masterDB.find(d => d.model === v.model) || {};
         const spawn = db.spawn || v.spawn || "";
         let img = spawn ? `${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png` : "";
-        if (v.driveImageId) img = `https://drive.google.com/uc?id=${v.driveImageId}`;
+        if (v.driveImageId) img = `https://drive.google.com/thumbnail?id=${v.driveImageId}&sz=w1000`;
         
         const gtaUrl = spawn ? `https://gtacars.net/gta5/${spawn.toLowerCase().replace(/_/g, '-')}` : null;
         
@@ -1299,7 +1382,7 @@
         const db = masterDB.find(d => d.model === v.model) || {};
         const spawn = db.spawn || v.spawn || "";
         let img = spawn ? `${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png` : "";
-        if (v.driveImageId) img = `https://drive.google.com/uc?id=${v.driveImageId}`;
+        if (v.driveImageId) img = `https://drive.google.com/thumbnail?id=${v.driveImageId}&sz=w1000`;
         
         let badges = "";
         if(v.isFav) badges += `<span class="badge fav"><i class="fas fa-heart"></i> FAVORITE</span> `;
@@ -1309,7 +1392,7 @@
         if(v.plate && v.plate !== 'Standard') badges += `<span class="badge">${v.plate} PLATE</span>`;
         
         const content = `
-            <div class="detail-img-box"><img src="${img}" class="detail-img" onerror="this.style.display='none'"></div>
+            <div class="detail-img-box"><img src="${img}" class="detail-img" onerror="if(this.src.includes('drive.google') && '${spawn}'){this.src='${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png';}else{this.style.display='none';}"></div>
             <div class="detail-manuf">${v.manuf}</div>
             <div class="detail-title">${v.model}</div>
             <div style="margin-bottom:15px;">${badges}</div>
@@ -1633,6 +1716,67 @@
         }); 
     }
     
+    function deleteVehicle() { openConfirm("Delete Vehicle", "This action cannot be undone. Delete?", () => { vehicles=vehicles.filter(v=>v.id!==editingId); saveGarage(); closeModal('vehicleModal'); }); }
+    function startMove() { movingId = editingId; document.getElementById('moveCarName').innerText = vehicles.find(v=>v.id===editingId).model; openModal('moveModal'); closeModal('vehicleModal'); }
+    function checkMoveCap() { const d = document.getElementById('moveDest').value, cl = Object.keys(CAPACITIES).find(m => d.includes(m)) || "DEFAULT"; if(vehicles.filter(v=>v.loc===d).length >= CAPACITIES[cl]) { document.getElementById('moveSwapUI').style.display='block'; document.getElementById('moveSwapTarget').innerHTML = vehicles.filter(v=>v.loc===d).map(v=>`<option value="${v.id}">${v.model}</option>`).join(''); } else document.getElementById('moveSwapUI').style.display='none'; }
+    
+    function commitMove() { 
+        openConfirm("Confirm Move", "Move vehicle to new location?", () => {
+            const d = document.getElementById('moveDest').value, carA = vehicles.find(v=>v.id===movingId);
+            let msg = `Moved <strong>${carA.model}</strong> to ${d}.`;
+            if(document.getElementById('moveSwapUI').style.display!=='none') { 
+                const carB = vehicles.find(v=>v.id==document.getElementById('moveSwapTarget').value); 
+                const tmp = carA.loc; carA.loc = d; carB.loc = tmp; 
+                msg = `Swapped <strong>${carA.model}</strong> with <strong>${carB.model}</strong>.`;
+            } else {
+                carA.loc = d;
+                let cleanDest = d.split(" (")[0]; 
+                let mapKey = Object.keys(FLOOR_MAP).find(k => d.includes(k));
+                let newFloor = "";
+                if (mapKey) {
+                    const floors = FLOOR_MAP[mapKey];
+                    for (let f of floors) {
+                        const cap = getFloorCap(d, f);
+                        const count = vehicles.filter(v => v.loc === d && v.floor === f).length;
+                        if (count < cap) { newFloor = f; break; }
+                    }
+                } else {
+                    newFloor = "Main Floor"; 
+                }
+                carA.floor = newFloor; carA.slot = "";
+                msg = `Moved <strong>${carA.model}</strong> to ${d}${newFloor !== "Main Floor" ? ` - ${newFloor}` : ''}.`;
+            }
+            saveGarage(); closeModal('moveModal'); showSuccess("Vehicle Moved", msg);
+        });
+    }
+
+    function performSwapAll() {
+        const f = document.getElementById('saFrom').value, t = document.getElementById('saTo').value;
+        if(!f || !t || f === t) return openAlert("Error", "Select different garages");
+        openConfirm("Swap Garage Contents", `Swap all vehicles between ${f} and ${t}?`, () => {
+            let countA = 0, countB = 0;
+            vehicles.forEach(v => { if(v.loc === f) { v.loc = "SW_TMP"; countA++; } });
+            vehicles.forEach(v => { if(v.loc === t) { v.loc = f; countB++; } });
+            vehicles.forEach(v => { if(v.loc === "SW_TMP") v.loc = t; });
+            saveGarage(); closeModal('swapAllModal');
+            showSuccess("Garage Swap Complete", `Moved ${countA} vehicles to ${t}<br>Moved ${countB} vehicles to ${f}`);
+        });
+    }
+
+    function runMigration() { 
+        openConfirm("Start Migration", "Sync vehicle data with cloud database?", () => {
+            let c=0, f=0; const log = document.getElementById('migLog'); 
+            vehicles = vehicles.map(v => { 
+                const m = masterDB.find(db => db.model.toLowerCase() === v.model.toLowerCase()); 
+                if(m && !v.spawn) { c++; return {...v, spawn: m.spawn, class: m.class, drive: m.drive, seats: m.seats}; } 
+                if(!m) { f++; log.innerHTML += `<div style='color:#e74c3c'>Failed: ${v.model}</div>`; }
+                return v; 
+            }); 
+            saveGarage(); 
+            log.innerHTML += `<br>Updated ${c} cars successfully.`; 
+        });
+    }
+    
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     function closeMoveModal() { closeModal('moveModal'); }
@@ -1674,7 +1818,28 @@
         r.onload=e=>{ vehicles=JSON.parse(e.target.result); saveGarage(); location.reload(); }; 
         r.readAsText(f); 
     }
-    function handleImgError(i, s) { if(!i.retry) { i.retry=1; i.src=`${BASE_URL}vehicles/${s.charAt(0).toUpperCase()+s.slice(1).toLowerCase()}.png`; } else { i.style.display='none'; i.nextElementSibling.style.display='block'; } }
+    function factoryReset() { 
+        openConfirm("Factory Reset", "This will wipe all local data. Continue?", async () => {
+            if (gapiInited && gapi.client.getToken() && driveFolders.root) {
+                if (window.confirm("Do you also want to completely delete your 'My GTA Garage' folder from Google Drive?")) {
+                    try {
+                        await gapi.client.drive.files.delete({ fileId: driveFolders.root });
+                        driveFolders.root = null;
+                    } catch(e) { console.error("Cloud delete failed", e); }
+                }
+            }
+            localStorage.clear(); location.reload(); 
+        });
+    }
+    function handleImgError(i, s) { 
+        if (i.src.includes('drive.google')) { 
+            i.src = s ? `${BASE_URL}vehicles/${s.toLowerCase().trim()}.png` : ''; 
+            if (!s) { i.style.display='none'; if(i.nextElementSibling) i.nextElementSibling.style.display='block'; }
+            return; 
+        }
+        if(!i.retry && s) { i.retry=1; i.src=`${BASE_URL}vehicles/${s.charAt(0).toUpperCase()+s.slice(1).toLowerCase()}.png`; } 
+        else { i.style.display='none'; if(i.nextElementSibling) i.nextElementSibling.style.display='block'; } 
+    }
     window.onclick = e => { if(e.target.className === 'modal') e.target.style.display = 'none'; }
     function checkCustomModel() { document.getElementById('inModelCustom').style.display = document.getElementById('inModel').value==='Custom'?'block':'none'; }
 </script>
