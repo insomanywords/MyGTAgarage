@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.56.0</title>
+    <title>My GTA Garage v1.56.1</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -359,7 +359,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.56.0</div>
+        <div class="modal-title">About My GTA Garage v1.56.1</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -367,7 +367,7 @@
             <ul style="padding-left:20px; margin-bottom:15px;">
                 <li><strong>Add Vehicle:</strong> Click the <strong>+ Add</strong> button on the main screen. Select the Make and Model (or choose "Custom..." to type your own). Choose the Garage and Floor. Floor capacities are checked automatically to prevent overfilling. Set the slot number, wheels, plates, and toggle Weaponized or Favorite status.</li>
                 <li><strong>Edit Vehicle:</strong> Click the <i class="fas fa-pencil-alt"></i> icon on any vehicle card to modify its details, update its location, change its custom image, or edit notes.</li>
-                <li><strong>Custom Images:</strong> When adding or editing a vehicle, use the "Vehicle Image" section to upload a picture from your device. If you are signed in to Google Drive, the image will be securely uploaded to your character's Drive folder and linked automatically.</li>
+                <li><strong>Custom Images:</strong> When adding or editing a vehicle, use the "Vehicle Image" section to upload a picture from your device. If you are signed in to Google Drive, the image will be securely uploaded to your character's Drive folder (with a real-time progress bar) and linked automatically.</li>
                 <li><strong>Copy/Duplicate:</strong> Open a vehicle's detail view (by clicking on its card) and click <strong>Copy</strong>. This opens the Add window with all the car's details and custom image pre-filled, leaving only the slot number blank for rapid entry of duplicate cars.</li>
                 <li><strong>Move Vehicle:</strong> Inside the edit or detail view, click <strong>Move</strong>. Select the destination garage. The app will automatically find the first empty floor and slot. If the destination is completely full, you will be prompted to select a vehicle to swap places with.</li>
                 <li><strong>Sell Vehicle:</strong> Click <strong>Sell</strong> in the edit or detail view to simulate selling a car. This removes the car from your garage and starts an 18-hour real-time cooldown timer (matching GTA Online's daily sell limit).</li>
@@ -392,7 +392,7 @@
             <ul style="padding-left:20px; margin-bottom:15px;">
                 <li><strong>Character Management:</strong> Manage multiple, completely isolated vehicle collections per character via the Settings menu. You can add, rename, or delete characters. Renaming a character locally will automatically rename their corresponding Cloud folder.</li>
                 <li><strong>Google Drive Sync:</strong> Sign in via the "Google Drive" tab in Settings. The app automatically creates a "My GTA Garage" folder and auto-syncs your database to the cloud after every change. Custom car images are also stored securely in your Drive.</li>
-                <li><strong>Offline Mode & Safety:</strong> The app saves everything locally to your browser first. If you lose internet, your data remains safe and will sync the next time you connect. The app performs a smart check when signing in on a new device to prevent accidental overwrites, prompting you to choose between Local or Cloud data if there is an actual data conflict.</li>
+                <li><strong>Offline Mode & Safety:</strong> The app saves everything locally to your browser first. If you lose internet, your data remains safe and will sync the next time you connect. The app checks for conflicts when signing in on a new device to prevent accidental overwrites, prompting you to choose between Local or Cloud data if there is an actual data conflict.</li>
                 <li><strong>Persistent Sessions:</strong> Once you sign in to Google Drive, the app will silently renew your connection in the background so you stay logged in permanently until you actively choose to sign out.</li>
                 <li><strong>Manual Cloud Backups:</strong> Use the "Create Manual Cloud Backup" button in Settings to save a timestamped snapshot of your garage to Google Drive, ensuring you always have a fallback.</li>
                 <li><strong>Local Backups:</strong> Prefer local files? Use the "Local Data" tab in Settings to download your garage as a JSON file to your device, or load an existing JSON file.</li>
@@ -614,7 +614,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.56.0 (Current)</strong><br>• Implemented silent token refresh to keep users signed into Google Drive automatically across sessions.<br>• Added background token renewal to prevent timeouts during long active sessions.</p>
+            <p><strong>v1.56.1 (Current)</strong><br>• Fixed issue causing 'Sell' button to fail silently due to duplicate background modal HTML elements confusing the javascript functions.</p>
+            <p><strong>v1.56.0</strong><br>• Implemented silent token refresh to keep users signed into Google Drive automatically across sessions.<br>• Added background token renewal to prevent timeouts during long active sessions.</p>
             <p><strong>v1.55.0</strong><br>• Improved Cloud Sync logic to compare local and cloud data hashes, preventing the Sync Conflict modal from appearing on every page refresh when data is already identical.</p>
             <p><strong>v1.54.0</strong><br>• Fully converted all Google Drive operations to `gapi.client.request` API to resolve all Safari/ITP and CORS issues.<br>• Implemented non-intrusive modal UI for real-time image uploading and success handling.<br>• Restored bulletproof image fetching logic.</p>
             <p><strong>v1.53.0</strong><br>• Fixed mobile Google Drive initialization errors by switching to direct token-authorized fetch requests.<br>• Replaced image upload browser alerts with a dedicated visual progress/success modal.<br>• Optimized folder structuring logic to bypass strict tracking protection in mobile Safari.</p>
@@ -792,7 +793,7 @@
         
         driveStructurePromise = (async () => {
             let token = getActiveToken();
-            if (token) gapi.client.setToken({ access_token: token });
+            if (token) gapi.client.setToken({ access_token: token }); 
             
             document.getElementById('cloudStatus').innerText = 'Signed in. Initializing Drive folders...';
             driveFolders.root = await findOrCreateFolder('My GTA Garage');
@@ -1670,7 +1671,7 @@
             floors.forEach(f => {
                 const fCap = getFloorCap(v, f);
                 const fCount = vehicles.filter(veh => veh.loc === v && veh.floor === f && veh.id !== editingId).length;
-                const isCurrentSpot = (editingId && vehicles.find(veh => veh.id === editingId && veh.loc === v && veh.floor === f));
+                const isCurrentSpot = (editingId && vehicles.find(veh => veh.id == editingId && veh.loc === v && veh.floor === f));
                 
                 if (fCount < fCap || isCurrentSpot) {
                     dl.innerHTML += `<option value="${f}">${f} (${fCount}/${fCap})</option>`;
@@ -1787,7 +1788,7 @@
             locNickname: "",
             driveImageId: document.getElementById('inDriveImageId').value || ""
         };
-        if(editingId) vehicles[vehicles.findIndex(v => v.id === editingId)] = car;
+        if(editingId) vehicles[vehicles.findIndex(v => v.id == editingId)] = car;
         else vehicles.push(car);
         saveGarage(); closeModal('vehicleModal');
     }
@@ -1894,28 +1895,32 @@
 
     function sellVehicle() { 
         const cd = 18 * 3600000;
-        if (Date.now() - lastSell < cd) {
-            const rem = cd - (Date.now() - lastSell);
+        const timeSinceLastSell = Date.now() - lastSell;
+        if (lastSell > 0 && timeSinceLastSell < cd) {
+            const rem = cd - timeSinceLastSell;
             const h = Math.floor(rem/3600000);
             const m = Math.floor((rem%3600000)/60000);
-            return openAlert("Sale Cooldown", `You cannot sell another vehicle yet.<br>Time remaining: ${h}h ${m}m.`);
+            openAlert("Sale Cooldown", `You cannot sell another vehicle yet.<br>Time remaining: ${h}h ${m}m.`);
+            return;
         }
         openConfirm("Sell Vehicle", "Are you sure you want to sell this vehicle?", () => { 
             lastSell = Date.now(); 
-            lastSoldName = vehicles.find(c => c.id === editingId).model; 
-            vehicles = vehicles.filter(v => v.id !== editingId); 
+            const vehicleToSell = vehicles.find(c => c.id == editingId);
+            lastSoldName = vehicleToSell ? vehicleToSell.model : "Unknown"; 
+            vehicles = vehicles.filter(v => v.id != editingId); 
             saveGarage(); 
             closeModal('vehicleModal'); 
+            showSuccess("Vehicle Sold", "Successfully recorded vehicle sale.");
         }); 
     }
     
-    function deleteVehicle() { openConfirm("Delete Vehicle", "This action cannot be undone. Delete?", () => { vehicles=vehicles.filter(v=>v.id!==editingId); saveGarage(); closeModal('vehicleModal'); }); }
-    function startMove() { movingId = editingId; document.getElementById('moveCarName').innerText = vehicles.find(v=>v.id===editingId).model; openModal('moveModal'); closeModal('vehicleModal'); }
+    function deleteVehicle() { openConfirm("Delete Vehicle", "This action cannot be undone. Delete?", () => { vehicles=vehicles.filter(v=>v.id!=editingId); saveGarage(); closeModal('vehicleModal'); }); }
+    function startMove() { movingId = editingId; document.getElementById('moveCarName').innerText = vehicles.find(v=>v.id==editingId).model; openModal('moveModal'); closeModal('vehicleModal'); }
     function checkMoveCap() { const d = document.getElementById('moveDest').value, cl = Object.keys(CAPACITIES).find(m => d.includes(m)) || "DEFAULT"; if(vehicles.filter(v=>v.loc===d).length >= CAPACITIES[cl]) { document.getElementById('moveSwapUI').style.display='block'; document.getElementById('moveSwapTarget').innerHTML = vehicles.filter(v=>v.loc===d).map(v=>`<option value="${v.id}">${v.model}</option>`).join(''); } else document.getElementById('moveSwapUI').style.display='none'; }
     
     function commitMove() { 
         openConfirm("Confirm Move", "Move vehicle to new location?", () => {
-            const d = document.getElementById('moveDest').value, carA = vehicles.find(v=>v.id===movingId);
+            const d = document.getElementById('moveDest').value, carA = vehicles.find(v=>v.id==movingId);
             let msg = `Moved <strong>${carA.model}</strong> to ${d}.`;
             if(document.getElementById('moveSwapUI').style.display!=='none') { 
                 const carB = vehicles.find(v=>v.id==document.getElementById('moveSwapTarget').value); 
@@ -1973,6 +1978,7 @@
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     function closeMoveModal() { closeModal('moveModal'); }
+    function closeTimerModal() { closeModal('timerModal'); if(timerInt) clearInterval(timerInt); }
     
     function openAddModal() { 
         editingId = null; 
@@ -2015,7 +2021,6 @@
     }
     
     function openTimerModal() { openModal('timerModal'); updateTimerLogic(); if(timerInt) clearInterval(timerInt); timerInt=setInterval(updateTimerLogic,1000); }
-    function closeTimerModal() { closeModal('timerModal'); if(timerInt) clearInterval(timerInt); }
     function openSwapAllModal() { openModal('swapAllModal'); }
     function openLb(s) { document.getElementById('lbImg').src=s; openModal('lightbox'); }
     function downloadBackup() { const b=new Blob([JSON.stringify(vehicles)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`gta_garage.json`; a.click(); }
