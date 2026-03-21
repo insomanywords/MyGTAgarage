@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.1</title>
+    <title>My GTA Garage v1.60.2</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -361,7 +361,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.1</div>
+        <div class="modal-title">About My GTA Garage v1.60.2</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -476,6 +476,18 @@
         <div style="font-size:3rem; margin-bottom:10px;"><i id="uploadWaitIcon" class="fas fa-spinner fa-spin" style="color: var(--accent);"></i></div>
         <h2 id="uploadWaitTitle" style="color:#fff; margin:0 0 10px 0;">Uploading Image...</h2>
         <p id="uploadWaitMsg" style="color:#ccc; font-size:0.95rem; line-height:1.5; margin-bottom:0;">Please wait while your image is securely saved to Google Drive.</p>
+    </div>
+</div>
+
+<div id="shareWaitModal" class="modal" style="z-index: 1300;">
+    <div class="modal-box" style="text-align:center;">
+        <div style="font-size:3rem; margin-bottom:10px;"><i id="shareWaitIcon" class="fas fa-spinner fa-spin" style="color: var(--accent);"></i></div>
+        <h2 id="shareWaitTitle" style="color:#fff; margin:0 0 10px 0;">Generating Snapshot...</h2>
+        <p id="shareWaitMsg" style="color:#ccc; font-size:0.95rem; line-height:1.5; margin-bottom:20px;">Please wait while we prepare your vehicle card.</p>
+        <div id="shareActionDiv" style="display:none; justify-content:center; gap:10px;">
+            <button class="btn-sec" onclick="closeModal('shareWaitModal')" style="flex:1;">Cancel</button>
+            <button id="shareFinalBtn" class="btn-pri" style="flex:2;">Share Image</button>
+        </div>
     </div>
 </div>
 
@@ -652,7 +664,7 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.1 (Current)</strong><br>• Fixed mobile sharing silently failing by restructuring the async image generation to preserve the browser's native user-gesture token.</p>
+            <p><strong>v1.60.2 (Current)</strong><br>• Fixed mobile sharing silently failing by restructuring the async image generation to preserve the browser's native user-gesture token.</p>
             <p><strong>v1.60.0</strong><br>• Added the ability to snapshot and share vehicle detail cards directly from the app (using Web Share API on mobile or direct download on desktop).</p>
             <p><strong>v1.59.0</strong><br>• Added 'LSCM Price' and 'Sell Price' inputs to the Add/Edit/Duplicate vehicle menus.<br>• Large vehicle detail cards now neatly display the respective LSCM/Sell prices when data exists.<br>• The Sales History window now formally tracks and displays the specific Sell Price of the vehicle when simulating a sale.</p>
             <p><strong>v1.58.0</strong><br>• Added Sales History tracking to store a log of previously sold vehicles.<br>• Added a new modal in the Sales Dashboard to view your full Sales History.</p>
@@ -715,6 +727,9 @@
     
     // Keep track of current detail view vehicle ID for sharing
     let currentDetailViewId = null;
+    let pendingShareFile = null;
+    let pendingShareFilename = null;
+    let pendingShareTitle = null;
 
     // --- GOOGLE API SETUP ---
     const CLIENT_ID = '473173544641-ke5r8vnp9t25lj9j7b39okb3jvpda268.apps.googleusercontent.com';
@@ -1659,50 +1674,82 @@
 
         const wrapper = document.getElementById('detailContentWrapper');
         
-        try {
-            const canvas = await html2canvas(wrapper, {
-                backgroundColor: '#1e1e1e',
-                scale: 2,
-                useCORS: true 
-            });
+        openModal('shareWaitModal');
+        document.getElementById('shareWaitIcon').className = "fas fa-spinner fa-spin";
+        document.getElementById('shareWaitIcon').style.color = "var(--accent)";
+        document.getElementById('shareWaitTitle').innerText = "Generating Snapshot...";
+        document.getElementById('shareWaitMsg').innerText = "Please wait while we prepare your vehicle card.";
+        document.getElementById('shareActionDiv').style.display = 'none';
 
-            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-            const filename = `${v.model.replace(/\s+/g, '_')}_MyGTAGarage.png`;
-            const file = new File([blob], filename, { type: 'image/png' });
+        setTimeout(async () => {
+            try {
+                const actionBtns = document.getElementById('detailActionButtons');
+                if(actionBtns) actionBtns.style.display = 'none';
 
-            let shared = false;
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        title: v.model,
-                        text: `Check out my ${v.model} from My GTA Garage!`,
-                        files: [file]
-                    });
-                    shared = true;
-                } catch (err) {
-                    console.log('Share canceled or failed', err);
-                    if (err.name !== 'AbortError') {
-                        shared = false; 
-                    } else {
-                        shared = true; 
-                    }
-                }
-            } 
-            
-            if (!shared) {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                setTimeout(() => URL.revokeObjectURL(url), 100);
+                const canvas = await html2canvas(wrapper, {
+                    backgroundColor: '#1e1e1e',
+                    scale: 2,
+                    useCORS: true 
+                });
+
+                if(actionBtns) actionBtns.style.display = 'flex';
+
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                pendingShareFilename = `${v.model.replace(/\s+/g, '_')}_MyGTAGarage.png`;
+                pendingShareFile = new File([blob], pendingShareFilename, { type: 'image/png' });
+                pendingShareTitle = v.model;
+
+                document.getElementById('shareWaitIcon').className = "fas fa-check-circle";
+                document.getElementById('shareWaitIcon').style.color = "var(--sell)";
+                document.getElementById('shareWaitTitle').innerText = "Snapshot Ready!";
+                document.getElementById('shareWaitMsg').innerText = "Your vehicle card is ready to be shared.";
+                document.getElementById('shareActionDiv').style.display = 'flex';
+                
+                document.getElementById('shareFinalBtn').onclick = executeFinalShare;
+
+            } catch (error) {
+                console.error("Error generating image:", error);
+                const actionBtns = document.getElementById('detailActionButtons');
+                if(actionBtns) actionBtns.style.display = 'flex';
+                closeModal('shareWaitModal');
+                openAlert("Share Failed", "Could not generate image to share.");
             }
-        } catch (error) {
-            console.error("Error generating image:", error);
-            openAlert("Share Failed", "Could not generate image to share.");
+        }, 50);
+    }
+
+    async function executeFinalShare() {
+        if (!pendingShareFile) return;
+        
+        let shared = false;
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [pendingShareFile] })) {
+            try {
+                await navigator.share({
+                    title: pendingShareTitle,
+                    text: `Check out my ${pendingShareTitle} from My GTA Garage!`,
+                    files: [pendingShareFile]
+                });
+                shared = true;
+            } catch (err) {
+                console.log('Share canceled or failed', err);
+                if (err.name !== 'AbortError') {
+                    shared = false; 
+                } else {
+                    shared = true; 
+                }
+            }
+        } 
+        
+        if (!shared) {
+            const url = URL.createObjectURL(pendingShareFile);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = pendingShareFilename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 100);
         }
+        closeModal('shareWaitModal');
     }
 
     function triggerCopyVehicle() {
