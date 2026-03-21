@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.2</title>
+    <title>My GTA Garage v1.60.3</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -174,7 +174,7 @@
 
         /* DETAIL CARD */
         .detail-img-box { width: 100%; height: 250px; background: #000; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 8px; margin-bottom: 15px; border: 1px solid #333; }
-        .detail-img { width: 100%; height: 100%; object-fit: contain; }
+        .detail-img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .detail-title { font-size: 1.8rem; font-weight: 800; color: #fff; line-height: 1.2; margin-bottom: 5px; }
         .detail-manuf { color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 0.9rem; margin-bottom: 15px; }
         .detail-row { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
@@ -361,7 +361,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.2</div>
+        <div class="modal-title">About My GTA Garage v1.60.3</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -664,7 +664,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.2 (Current)</strong><br>• Fixed mobile sharing silently failing by restructuring the async image generation to preserve the browser's native user-gesture token.</p>
+            <p><strong>v1.60.3 (Current)</strong><br>• Fixed aspect ratio distortion on shared vehicle snapshot images.<br>• Resolved issue where custom Google Drive images appeared black in shared snapshots due to CORS restrictions.</p>
+            <p><strong>v1.60.2</strong><br>• Fixed mobile sharing silently failing by restructuring the async image generation to preserve the browser's native user-gesture token.</p>
             <p><strong>v1.60.0</strong><br>• Added the ability to snapshot and share vehicle detail cards directly from the app (using Web Share API on mobile or direct download on desktop).</p>
             <p><strong>v1.59.0</strong><br>• Added 'LSCM Price' and 'Sell Price' inputs to the Add/Edit/Duplicate vehicle menus.<br>• Large vehicle detail cards now neatly display the respective LSCM/Sell prices when data exists.<br>• The Sales History window now formally tracks and displays the specific Sell Price of the vehicle when simulating a sale.</p>
             <p><strong>v1.58.0</strong><br>• Added Sales History tracking to store a log of previously sold vehicles.<br>• Added a new modal in the Sales Dashboard to view your full Sales History.</p>
@@ -1655,7 +1656,7 @@
         }
 
         const content = `
-            <div class="detail-img-box"><img src="${img}" class="detail-img" onerror="if(this.src.includes('drive.google') && '${spawn}'){this.src='${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png';}else{this.style.display='none';}"></div>
+            <div class="detail-img-box"><img src="${img}" crossorigin="anonymous" class="detail-img" onerror="if(this.src.includes('drive.google') && '${spawn}'){this.src='${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png';}else{this.style.display='none';}"></div>
             <div class="detail-manuf">${v.manuf}</div>
             <div class="detail-title">${v.model}</div>
             <div style="margin-bottom:15px;">${badges}</div>
