@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.55.0</title>
+    <title>My GTA Garage v1.56.0</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -359,7 +359,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.55.0</div>
+        <div class="modal-title">About My GTA Garage v1.56.0</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -393,6 +393,7 @@
                 <li><strong>Character Management:</strong> Manage multiple, completely isolated vehicle collections per character via the Settings menu. You can add, rename, or delete characters. Renaming a character locally will automatically rename their corresponding Cloud folder.</li>
                 <li><strong>Google Drive Sync:</strong> Sign in via the "Google Drive" tab in Settings. The app automatically creates a "My GTA Garage" folder and auto-syncs your database to the cloud after every change. Custom car images are also stored securely in your Drive.</li>
                 <li><strong>Offline Mode & Safety:</strong> The app saves everything locally to your browser first. If you lose internet, your data remains safe and will sync the next time you connect. The app performs a smart check when signing in on a new device to prevent accidental overwrites, prompting you to choose between Local or Cloud data if there is an actual data conflict.</li>
+                <li><strong>Persistent Sessions:</strong> Once you sign in to Google Drive, the app will silently renew your connection in the background so you stay logged in permanently until you actively choose to sign out.</li>
                 <li><strong>Manual Cloud Backups:</strong> Use the "Create Manual Cloud Backup" button in Settings to save a timestamped snapshot of your garage to Google Drive, ensuring you always have a fallback.</li>
                 <li><strong>Local Backups:</strong> Prefer local files? Use the "Local Data" tab in Settings to download your garage as a JSON file to your device, or load an existing JSON file.</li>
                 <li><strong>Cloud Deletion:</strong> If you delete a character or Factory Reset the app from the Danger Zone, you will be prompted with the option to also completely delete your associated Cloud Backup folders from Google Drive to save space.</li>
@@ -613,7 +614,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.55.0 (Current)</strong><br>• Improved Cloud Sync logic to compare local and cloud data hashes, preventing the Sync Conflict modal from appearing on every page refresh when data is already identical.</p>
+            <p><strong>v1.56.0 (Current)</strong><br>• Implemented silent token refresh to keep users signed into Google Drive automatically across sessions.<br>• Added background token renewal to prevent timeouts during long active sessions.</p>
+            <p><strong>v1.55.0</strong><br>• Improved Cloud Sync logic to compare local and cloud data hashes, preventing the Sync Conflict modal from appearing on every page refresh when data is already identical.</p>
             <p><strong>v1.54.0</strong><br>• Fully converted all Google Drive operations to `gapi.client.request` API to resolve all Safari/ITP and CORS issues.<br>• Implemented non-intrusive modal UI for real-time image uploading and success handling.<br>• Restored bulletproof image fetching logic.</p>
             <p><strong>v1.53.0</strong><br>• Fixed mobile Google Drive initialization errors by switching to direct token-authorized fetch requests.<br>• Replaced image upload browser alerts with a dedicated visual progress/success modal.<br>• Optimized folder structuring logic to bypass strict tracking protection in mobile Safari.</p>
             <p><strong>v1.52.0</strong><br>• Completely reverted image uploading/fetching back to the proven v1.43.0 API methodology to resolve upload aborts and empty dropdown lists.<br>• Retained the Google Drive Thumbnail API URL fix to ensure custom images successfully display on vehicle cards.</p>
@@ -626,7 +628,6 @@
             <p><strong>v1.45.0</strong><br>• Smart initial sync check. Auto-pulls cloud data if local is empty.<br>• Added local/cloud conflict prompt to prevent accidental overwrites.</p>
             <p><strong>v1.44.0</strong><br>• Google Drive character folders now rename dynamically.<br>• Added options to delete cloud data on character delete and factory reset.</p>
             <p><strong>v1.43.0</strong><br>• Google Drive Cloud Sync integration.<br>• Custom vehicle images linked to Drive.<br>• Character-specific isolated cloud folders.<br>• Settings menu converted to Tabs.<br>• Offline resilience and manual cloud backups.</p>
-            <p><strong>v1.42.0</strong><br>• Removed version number from footer for cleaner UI.</p>
         </div>
         <button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button>
     </div>
@@ -675,6 +676,7 @@
     let driveFolders = { root: null, char: null, db: null, images: null };
     let isAutoSyncing = false;
     let tempCloudData = null;
+    let hasDoneInitialSync = false;
 
     function gapiLoadedInit() { gapi.load('client', initializeGapiClient); }
     async function initializeGapiClient() {
@@ -692,12 +694,24 @@
                         token: tokenResponse.access_token,
                         expiresAt: Date.now() + (tokenResponse.expires_in * 1000)
                     }));
+                    localStorage.setItem('gta_gdrive_autologin', 'true');
+                    gapi.client.setToken({ access_token: tokenResponse.access_token });
                     onGoogleSignedIn();
+                } else if (tokenResponse && tokenResponse.error) {
+                    console.warn("Silent token refresh failed:", tokenResponse.error);
+                    localStorage.removeItem('gta_gdrive_autologin');
+                    handleSignoutClick();
                 }
             },
         });
         gisInited = true;
         checkCloudAuth();
+        
+        setInterval(() => {
+            if (localStorage.getItem('gta_gdrive_autologin') === 'true') {
+                tokenClient.requestAccessToken({ prompt: 'none' });
+            }
+        }, 45 * 60 * 1000); 
     }
     
     function getActiveToken() {
@@ -720,14 +734,21 @@
         if (token) {
             gapi.client.setToken({ access_token: token });
             onGoogleSignedIn();
+        } else if (localStorage.getItem('gta_gdrive_autologin') === 'true') {
+            tokenClient.requestAccessToken({ prompt: 'none' });
         }
     }
     function handleAuthClick() { tokenClient.requestAccessToken({prompt: 'consent'}); }
     function handleSignoutClick() {
         const stored = JSON.parse(localStorage.getItem('gta_gdrive_token'));
-        if (stored && stored.token) google.accounts.oauth2.revoke(stored.token);
+        if (stored && stored.token) {
+            try { google.accounts.oauth2.revoke(stored.token); } catch(e){}
+        }
         gapi.client.setToken('');
         localStorage.removeItem('gta_gdrive_token');
+        localStorage.removeItem('gta_gdrive_autologin');
+        hasDoneInitialSync = false;
+        
         document.getElementById('btnGLogin').style.display = 'block';
         document.getElementById('btnGLogout').style.display = 'none';
         document.getElementById('cloudActions').style.display = 'none';
@@ -832,6 +853,7 @@
         } catch(e) {
             console.error(e);
             document.getElementById('cloudStatus').innerText = 'Error checking cloud sync status.';
+            hasDoneInitialSync = false; 
         }
     }
 
@@ -861,10 +883,22 @@
         document.getElementById('btnGLogin').style.display = 'none';
         document.getElementById('btnGLogout').style.display = 'block';
         document.getElementById('cloudActions').style.display = 'block';
-        try {
-            await ensureDriveStructure();
-            await checkInitialSync();
-        } catch(e) { console.error(e); document.getElementById('cloudStatus').innerText = 'Error setting up Drive folders.'; }
+        
+        if (!hasDoneInitialSync) {
+            hasDoneInitialSync = true;
+            try {
+                await ensureDriveStructure();
+                await checkInitialSync();
+            } catch(e) { 
+                console.error(e); 
+                document.getElementById('cloudStatus').innerText = 'Error setting up Drive folders.'; 
+                hasDoneInitialSync = false;
+            }
+        } else {
+             if (document.getElementById('cloudStatus').innerText.includes("Not signed in")) {
+                  document.getElementById('cloudStatus').innerText = 'Signed in. Folders mapped. Auto-sync active.';
+             }
+        }
     }
 
     async function createDriveFile(name, parentId, content, mimeType='application/json') {
@@ -1172,6 +1206,7 @@
         closeModal('charModal');
         
         if(gapiInited && getActiveToken()) {
+            hasDoneInitialSync = false;
             await ensureDriveStructure();
             await checkInitialSync();
         }
