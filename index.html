@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.0</title>
+    <title>My GTA Garage v1.60.1</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -361,7 +361,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.0</div>
+        <div class="modal-title">About My GTA Garage v1.60.1</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -652,7 +652,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.0 (Current)</strong><br>• Added the ability to snapshot and share vehicle detail cards directly from the app (using Web Share API on mobile or direct download on desktop).</p>
+            <p><strong>v1.60.1 (Current)</strong><br>• Fixed mobile sharing silently failing by restructuring the async image generation to preserve the browser's native user-gesture token.</p>
+            <p><strong>v1.60.0</strong><br>• Added the ability to snapshot and share vehicle detail cards directly from the app (using Web Share API on mobile or direct download on desktop).</p>
             <p><strong>v1.59.0</strong><br>• Added 'LSCM Price' and 'Sell Price' inputs to the Add/Edit/Duplicate vehicle menus.<br>• Large vehicle detail cards now neatly display the respective LSCM/Sell prices when data exists.<br>• The Sales History window now formally tracks and displays the specific Sell Price of the vehicle when simulating a sale.</p>
             <p><strong>v1.58.0</strong><br>• Added Sales History tracking to store a log of previously sold vehicles.<br>• Added a new modal in the Sales Dashboard to view your full Sales History.</p>
             <p><strong>v1.57.0</strong><br>• Added a quick-access cloud status button to the header to easily monitor your Google Drive connection and sign back in.<br>• Implemented a notification modal to alert you when your 1-hour Google session has naturally expired.</p>
@@ -1665,31 +1666,39 @@
                 useCORS: true 
             });
 
-            canvas.toBlob(async (blob) => {
-                const filename = `${v.model.replace(/\s+/g, '_')}_MyGTAGarage.png`;
-                const file = new File([blob], filename, { type: 'image/png' });
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            const filename = `${v.model.replace(/\s+/g, '_')}_MyGTAGarage.png`;
+            const file = new File([blob], filename, { type: 'image/png' });
 
-                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                    try {
-                        await navigator.share({
-                            title: v.model,
-                            text: `Check out my ${v.model} from My GTA Garage!`,
-                            files: [file]
-                        });
-                    } catch (err) {
-                        console.log('Share canceled or failed', err);
+            let shared = false;
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        title: v.model,
+                        text: `Check out my ${v.model} from My GTA Garage!`,
+                        files: [file]
+                    });
+                    shared = true;
+                } catch (err) {
+                    console.log('Share canceled or failed', err);
+                    if (err.name !== 'AbortError') {
+                        shared = false; 
+                    } else {
+                        shared = true; 
                     }
-                } else {
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = filename;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
                 }
-            }, 'image/png');
+            } 
+            
+            if (!shared) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 100);
+            }
         } catch (error) {
             console.error("Error generating image:", error);
             openAlert("Share Failed", "Could not generate image to share.");
