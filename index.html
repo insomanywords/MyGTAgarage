@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.3</title>
+    <title>My GTA Garage v1.60.5</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -361,7 +361,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.3</div>
+        <div class="modal-title">About My GTA Garage v1.60.5</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -562,8 +562,8 @@
         </div>
 
         <div class="modal-row" style="margin-bottom:15px;">
-            <div><span class="label">LSCM Price ($)</span><input type="number" id="inLscmPrice" placeholder="Purchase price..." min="0"></div>
-            <div><span class="label">Sell Price ($)</span><input type="number" id="inSellPrice" placeholder="Resale price..." min="0"></div>
+            <div><span class="label">LSCM Price ($)</span><input type="text" id="inLscmPrice" placeholder="Purchase price..." oninput="formatCurrency(this)"></div>
+            <div><span class="label">Sell Price ($)</span><input type="text" id="inSellPrice" placeholder="Resale price..." oninput="formatCurrency(this)"></div>
         </div>
 
         <div class="form-group"><span class="label">Notes</span><input type="text" id="inNotes" style="width:100%" placeholder="Paint, livery, upgrades..."></div>
@@ -664,7 +664,9 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.3 (Current)</strong><br>• Fixed aspect ratio distortion on shared vehicle snapshot images.<br>• Resolved issue where custom Google Drive images appeared black in shared snapshots due to CORS restrictions.</p>
+            <p><strong>v1.60.5 (Current)</strong><br>• Removed strict CORS tags from the detail view to prevent custom images from breaking and reverting to stock images.<br>• Rewrote the share snapshot generator to securely fetch custom images as local blobs via the Google Drive API right before capture, completely bypassing browser 'tainted canvas' security blocks.</p>
+            <p><strong>v1.60.4</strong><br>• Added auto-formatting with commas for LSCM and Sell Price inputs.</p>
+            <p><strong>v1.60.3</strong><br>• Fixed aspect ratio distortion on shared vehicle snapshot images.<br>• Resolved issue where custom Google Drive images appeared black in shared snapshots due to CORS restrictions.</p>
             <p><strong>v1.60.2</strong><br>• Fixed mobile sharing silently failing by restructuring the async image generation to preserve the browser's native user-gesture token.</p>
             <p><strong>v1.60.0</strong><br>• Added the ability to snapshot and share vehicle detail cards directly from the app (using Web Share API on mobile or direct download on desktop).</p>
             <p><strong>v1.59.0</strong><br>• Added 'LSCM Price' and 'Sell Price' inputs to the Add/Edit/Duplicate vehicle menus.<br>• Large vehicle detail cards now neatly display the respective LSCM/Sell prices when data exists.<br>• The Sales History window now formally tracks and displays the specific Sell Price of the vehicle when simulating a sale.</p>
@@ -1650,13 +1652,13 @@
         let priceHtml = "";
         if(v.lscmPrice || v.sellPrice) {
             priceHtml = `<div style="display:flex; gap:15px; margin-bottom:15px; border-top:1px solid #333; padding-top:15px;">`;
-            if(v.lscmPrice) priceHtml += `<div><div style="font-size:0.75rem; color:#888;">LSCM PRICE</div><div style="color:var(--f1); font-weight:bold;">$${Number(v.lscmPrice).toLocaleString()}</div></div>`;
-            if(v.sellPrice) priceHtml += `<div><div style="font-size:0.75rem; color:#888;">SELL PRICE</div><div style="color:var(--sell); font-weight:bold;">$${Number(v.sellPrice).toLocaleString()}</div></div>`;
+            if(v.lscmPrice) priceHtml += `<div><div style="font-size:0.75rem; color:#888;">LSCM PRICE</div><div style="color:var(--f1); font-weight:bold;">$${Number(v.lscmPrice).toLocaleString('en-US')}</div></div>`;
+            if(v.sellPrice) priceHtml += `<div><div style="font-size:0.75rem; color:#888;">SELL PRICE</div><div style="color:var(--sell); font-weight:bold;">$${Number(v.sellPrice).toLocaleString('en-US')}</div></div>`;
             priceHtml += `</div>`;
         }
 
         const content = `
-            <div class="detail-img-box"><img src="${img}" crossorigin="anonymous" class="detail-img" onerror="if(this.src.includes('drive.google') && '${spawn}'){this.src='${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png';}else{this.style.display='none';}"></div>
+            <div class="detail-img-box"><img src="${img}" class="detail-img" onerror="if(this.src.includes('drive.google') && '${spawn}'){this.src='${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png';}else{this.style.display='none';}"></div>
             <div class="detail-manuf">${v.manuf}</div>
             <div class="detail-title">${v.model}</div>
             <div style="margin-bottom:15px;">${badges}</div>
@@ -1674,6 +1676,9 @@
         if (!v) return;
 
         const wrapper = document.getElementById('detailContentWrapper');
+        const imgEl = wrapper.querySelector('.detail-img');
+        let originalSrc = imgEl.src;
+        let blobUrl = null;
         
         openModal('shareWaitModal');
         document.getElementById('shareWaitIcon').className = "fas fa-spinner fa-spin";
@@ -1681,6 +1686,25 @@
         document.getElementById('shareWaitTitle').innerText = "Generating Snapshot...";
         document.getElementById('shareWaitMsg').innerText = "Please wait while we prepare your vehicle card.";
         document.getElementById('shareActionDiv').style.display = 'none';
+
+        if (v.driveImageId && imgEl.src.includes('drive.google')) {
+            try {
+                let token = getActiveToken();
+                if (token) {
+                    let res = await fetch(`https://www.googleapis.com/drive/v3/files/${v.driveImageId}?alt=media`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        let blob = await res.blob();
+                        blobUrl = URL.createObjectURL(blob);
+                        imgEl.src = blobUrl;
+                        await new Promise(r => setTimeout(r, 250)); 
+                    }
+                }
+            } catch(e) {
+                console.error("Failed to fetch CORS-safe blob", e);
+            }
+        }
 
         setTimeout(async () => {
             try {
@@ -1694,6 +1718,11 @@
                 });
 
                 if(actionBtns) actionBtns.style.display = 'flex';
+                
+                if (blobUrl) {
+                    imgEl.src = originalSrc;
+                    URL.revokeObjectURL(blobUrl);
+                }
 
                 const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
                 pendingShareFilename = `${v.model.replace(/\s+/g, '_')}_MyGTAGarage.png`;
@@ -1712,6 +1741,12 @@
                 console.error("Error generating image:", error);
                 const actionBtns = document.getElementById('detailActionButtons');
                 if(actionBtns) actionBtns.style.display = 'flex';
+                
+                if (blobUrl) {
+                    imgEl.src = originalSrc;
+                    URL.revokeObjectURL(blobUrl);
+                }
+
                 closeModal('shareWaitModal');
                 openAlert("Share Failed", "Could not generate image to share.");
             }
@@ -1753,6 +1788,14 @@
         closeModal('shareWaitModal');
     }
 
+    function formatCurrency(input) {
+        let val = input.value.replace(/\D/g, '');
+        if (val !== '') {
+            val = parseInt(val, 10).toLocaleString('en-US');
+        }
+        input.value = val;
+    }
+
     function triggerCopyVehicle() {
         closeModal('detailModal');
         copyVehicle(currentDetailViewId);
@@ -1789,8 +1832,8 @@
         document.getElementById('inWheels').value = v.wheels||"Stock";
         document.getElementById('inPlate').value = v.plate||"Standard";
         
-        document.getElementById('inLscmPrice').value = v.lscmPrice || "";
-        document.getElementById('inSellPrice').value = v.sellPrice || "";
+        document.getElementById('inLscmPrice').value = v.lscmPrice ? Number(v.lscmPrice).toLocaleString('en-US') : "";
+        document.getElementById('inSellPrice').value = v.sellPrice ? Number(v.sellPrice).toLocaleString('en-US') : "";
         
         document.getElementById('inNotes').value = v.notes||"";
         
@@ -1833,8 +1876,8 @@
         document.getElementById('inWheels').value = v.wheels||"Stock";
         document.getElementById('inPlate').value = v.plate||"Standard";
         
-        document.getElementById('inLscmPrice').value = v.lscmPrice || "";
-        document.getElementById('inSellPrice').value = v.sellPrice || "";
+        document.getElementById('inLscmPrice').value = v.lscmPrice ? Number(v.lscmPrice).toLocaleString('en-US') : "";
+        document.getElementById('inSellPrice').value = v.sellPrice ? Number(v.sellPrice).toLocaleString('en-US') : "";
         
         document.getElementById('inNotes').value = v.notes||"";
         
@@ -2025,8 +2068,8 @@
             isWeapon: document.getElementById('inWep').checked,
             wheels: document.getElementById('inWheels').value,
             plate: document.getElementById('inPlate').value,
-            lscmPrice: document.getElementById('inLscmPrice').value,
-            sellPrice: document.getElementById('inSellPrice').value,
+            lscmPrice: document.getElementById('inLscmPrice').value.replace(/\D/g, ''),
+            sellPrice: document.getElementById('inSellPrice').value.replace(/\D/g, ''),
             notes: document.getElementById('inNotes').value,
             spawn: db.spawn||"", class: db.class||"", drive: db.drive||"", seats: db.seats||"",
             locNickname: "",
@@ -2121,7 +2164,7 @@
                 <div style="background:#252525; padding:10px; border-radius:6px; border:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
                     <div style="display:flex; flex-direction:column; gap:3px;">
                         <span style="font-weight:bold; color:#fff;">${sale.name}</span>
-                        ${sale.price && sale.price !== "Unknown" ? `<span style="font-size:0.75rem; color:var(--sell); font-weight:bold;">$${Number(sale.price).toLocaleString()}</span>` : ''}
+                        ${sale.price && sale.price !== "Unknown" ? `<span style="font-size:0.75rem; color:var(--sell); font-weight:bold;">$${Number(sale.price).toLocaleString('en-US')}</span>` : ''}
                     </div>
                     <span style="font-size:0.75rem; color:#aaa;">${new Date(sale.date).toLocaleString()}</span>
                 </div>
