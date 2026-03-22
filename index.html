@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.5</title>
+    <title>My GTA Garage v1.60.6</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -311,7 +311,7 @@
             <div class="form-section">
                 <span class="label">Google Drive Sync</span>
                 <button id="btnGLogin" class="btn-pri" style="width:100%; margin-bottom:10px;" onclick="handleAuthClick()">Sign in with Google</button>
-                <button id="btnGLogout" class="btn-sec" style="width:100%; display:none; margin-bottom:10px;" onclick="handleSignoutClick()">Sign Out</button>
+                <button id="btnGLogout" class="btn-sec" style="width:100%; display:none; margin-bottom:10px;" onclick="handleSignoutClick(true)">Sign Out</button>
                 <div id="cloudStatus" style="color:#aaa; font-size:0.85rem; text-align:center; margin-bottom:10px;">Not signed in.</div>
                 
                 <div id="cloudActions" style="display:none; border-top:1px solid #333; padding-top:15px; margin-top:5px;">
@@ -361,7 +361,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.5</div>
+        <div class="modal-title">About My GTA Garage v1.60.6</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -435,10 +435,10 @@
 <div id="loggedOutModal" class="modal">
     <div class="modal-box" style="text-align:center;">
         <div style="font-size:3rem; margin-bottom:10px;">⚠️</div>
-        <h2 style="color:#fff; margin:0 0 10px 0;">Session Expired</h2>
-        <p style="color:#ccc; font-size:0.95rem; line-height:1.5; margin-bottom:20px;">Your Google Drive session has expired. Please sign in again to continue syncing your garage to the cloud.</p>
+        <h2 style="color:#fff; margin:0 0 10px 0;">Disconnected</h2>
+        <p style="color:#ccc; font-size:0.95rem; line-height:1.5; margin-bottom:20px;">Your Google Drive connection has expired or been disconnected. Please sign in again to continue syncing your garage to the cloud.</p>
         <div class="modal-actions">
-            <button class="btn-sec" onclick="closeModal('loggedOutModal')">Dismiss</button>
+            <button class="btn-sec" onclick="closeModal('loggedOutModal'); localStorage.removeItem('gta_cloud_intent');">Dismiss</button>
             <button class="btn-pri" onclick="closeModal('loggedOutModal'); handleAuthClick()">Sign In</button>
         </div>
     </div>
@@ -664,7 +664,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.5 (Current)</strong><br>• Removed strict CORS tags from the detail view to prevent custom images from breaking and reverting to stock images.<br>• Rewrote the share snapshot generator to securely fetch custom images as local blobs via the Google Drive API right before capture, completely bypassing browser 'tainted canvas' security blocks.</p>
+            <p><strong>v1.60.6 (Current)</strong><br>• Expanded session expiration modal to alert users on page refresh if they were previously signed in but their connection was lost.</p>
+            <p><strong>v1.60.5</strong><br>• Removed strict CORS tags from the detail view to prevent custom images from breaking and reverting to stock images.<br>• Rewrote the share snapshot generator to securely fetch custom images as local blobs via the Google Drive API right before capture, completely bypassing browser 'tainted canvas' security blocks.</p>
             <p><strong>v1.60.4</strong><br>• Added auto-formatting with commas for LSCM and Sell Price inputs.</p>
             <p><strong>v1.60.3</strong><br>• Fixed aspect ratio distortion on shared vehicle snapshot images.<br>• Resolved issue where custom Google Drive images appeared black in shared snapshots due to CORS restrictions.</p>
             <p><strong>v1.60.2</strong><br>• Fixed mobile sharing silently failing by restructuring the async image generation to preserve the browser's native user-gesture token.</p>
@@ -762,11 +763,12 @@
                         token: tokenResponse.access_token,
                         expiresAt: Date.now() + (tokenResponse.expires_in * 1000)
                     }));
+                    localStorage.setItem('gta_cloud_intent', 'true');
                     gapi.client.setToken({ access_token: tokenResponse.access_token });
                     onGoogleSignedIn();
                 } else if (tokenResponse && tokenResponse.error) {
                     console.warn("Token request failed:", tokenResponse.error);
-                    handleSignoutClick();
+                    handleSignoutClick(false);
                     openModal('loggedOutModal');
                 }
             },
@@ -802,11 +804,13 @@
         }
 
         let token = getActiveToken();
+        let intent = localStorage.getItem('gta_cloud_intent') === 'true';
+
         if (token && !isExpired) {
             gapi.client.setToken({ access_token: token });
             onGoogleSignedIn();
-        } else if (isExpired) {
-            handleSignoutClick();
+        } else if (intent || isExpired) {
+            handleSignoutClick(false);
             openModal('loggedOutModal');
         }
         updateCloudHeaderIcon();
@@ -818,7 +822,7 @@
         if (storedStr) {
             let stored = JSON.parse(storedStr);
             if (stored && stored.expiresAt <= Date.now()) {
-                handleSignoutClick();
+                handleSignoutClick(false);
                 openModal('loggedOutModal');
             }
         }
@@ -848,13 +852,16 @@
     
     function handleAuthClick() { tokenClient.requestAccessToken({prompt: 'consent'}); }
     
-    function handleSignoutClick() {
+    function handleSignoutClick(isManual = true) {
         const stored = JSON.parse(localStorage.getItem('gta_gdrive_token'));
         if (stored && stored.token) {
             try { google.accounts.oauth2.revoke(stored.token); } catch(e){}
         }
         gapi.client.setToken('');
         localStorage.removeItem('gta_gdrive_token');
+        if (isManual) {
+            localStorage.removeItem('gta_cloud_intent');
+        }
         hasDoneInitialSync = false;
         
         document.getElementById('btnGLogin').style.display = 'block';
