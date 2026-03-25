@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.7</title>
+    <title>My GTA Garage v1.60.8</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -361,7 +361,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.7</div>
+        <div class="modal-title">About My GTA Garage v1.60.8</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -664,7 +664,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.7 (Current)</strong><br>• Fixed Google Drive token expiration issue by implementing a robust silent background refresh system.<br>• Replaced forced 1-hour logouts with proactive token renewals.<br>• Added smart retry logic to transparently recover expired sessions without interrupting the user.</p>
+            <p><strong>v1.60.8 (Current)</strong><br>• Fixed Google Sign-In failure by correcting the tokenClient callback initialization implementation.</p>
+            <p><strong>v1.60.7</strong><br>• Fixed Google Drive token expiration issue by implementing a robust silent background refresh system.<br>• Replaced forced 1-hour logouts with proactive token renewals.<br>• Added smart retry logic to transparently recover expired sessions without interrupting the user.</p>
             <p><strong>v1.60.6</strong><br>• Expanded session expiration modal to alert users on page refresh if they were previously signed in but their connection was lost.</p>
             <p><strong>v1.60.5</strong><br>• Removed strict CORS tags from the detail view to prevent custom images from breaking and reverting to stock images.<br>• Rewrote the share snapshot generator to securely fetch custom images as local blobs via the Google Drive API right before capture, completely bypassing browser 'tainted canvas' security blocks.</p>
             <p><strong>v1.60.4</strong><br>• Added auto-formatting with commas for LSCM and Sell Price inputs.</p>
@@ -811,26 +812,24 @@
                 reject("Token client not initialized");
                 return;
             }
-            tokenClient.requestAccessToken({
-                prompt: 'none',
-                callback: (tokenResponse) => {
-                    isRefreshingToken = null;
-                    if (tokenResponse && tokenResponse.access_token) {
-                        localStorage.setItem('gta_gdrive_token', JSON.stringify({
-                            token: tokenResponse.access_token,
-                            expiresAt: Date.now() + (tokenResponse.expires_in * 1000)
-                        }));
-                        gapi.client.setToken({ access_token: tokenResponse.access_token });
-                        scheduleTokenRefresh();
-                        resolve(tokenResponse.access_token);
-                    } else {
-                        console.warn("Silent token refresh failed:", tokenResponse);
-                        handleSignoutClick(false);
-                        openModal('loggedOutModal');
-                        reject(tokenResponse);
-                    }
+            tokenClient.callback = (tokenResponse) => {
+                isRefreshingToken = null;
+                if (tokenResponse && tokenResponse.access_token) {
+                    localStorage.setItem('gta_gdrive_token', JSON.stringify({
+                        token: tokenResponse.access_token,
+                        expiresAt: Date.now() + (tokenResponse.expires_in * 1000)
+                    }));
+                    gapi.client.setToken({ access_token: tokenResponse.access_token });
+                    scheduleTokenRefresh();
+                    resolve(tokenResponse.access_token);
+                } else {
+                    console.warn("Silent token refresh failed:", tokenResponse);
+                    handleSignoutClick(false);
+                    openModal('loggedOutModal');
+                    reject(tokenResponse);
                 }
-            });
+            };
+            tokenClient.requestAccessToken({ prompt: '' });
         });
         return isRefreshingToken;
     }
@@ -892,24 +891,22 @@
     }
     
     function handleAuthClick() { 
-        tokenClient.requestAccessToken({
-            prompt: 'consent',
-            callback: (tokenResponse) => {
-                if (tokenResponse && tokenResponse.access_token) {
-                    localStorage.setItem('gta_gdrive_token', JSON.stringify({
-                        token: tokenResponse.access_token,
-                        expiresAt: Date.now() + (tokenResponse.expires_in * 1000)
-                    }));
-                    localStorage.setItem('gta_cloud_intent', 'true');
-                    gapi.client.setToken({ access_token: tokenResponse.access_token });
-                    scheduleTokenRefresh();
-                    onGoogleSignedIn();
-                } else if (tokenResponse && tokenResponse.error) {
-                    console.warn("Token request failed:", tokenResponse.error);
-                    handleSignoutClick(false);
-                }
+        tokenClient.callback = (tokenResponse) => {
+            if (tokenResponse && tokenResponse.access_token) {
+                localStorage.setItem('gta_gdrive_token', JSON.stringify({
+                    token: tokenResponse.access_token,
+                    expiresAt: Date.now() + (tokenResponse.expires_in * 1000)
+                }));
+                localStorage.setItem('gta_cloud_intent', 'true');
+                gapi.client.setToken({ access_token: tokenResponse.access_token });
+                scheduleTokenRefresh();
+                onGoogleSignedIn();
+            } else if (tokenResponse && tokenResponse.error) {
+                console.warn("Token request failed:", tokenResponse.error);
+                handleSignoutClick(false);
             }
-        }); 
+        };
+        tokenClient.requestAccessToken({prompt: 'consent'}); 
     }
     
     function handleSignoutClick(isManual = true) {
@@ -1229,6 +1226,7 @@
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = async () => {
+                let token = getActiveToken();
                 const ext = file.name.split('.').pop();
                 const fileName = `${spawnName}_${Date.now()}.${ext}`;
                 const contentType = file.type || 'application/octet-stream';
