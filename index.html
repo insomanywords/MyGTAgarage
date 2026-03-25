@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.13</title>
+    <title>My GTA Garage v1.60.14</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -361,7 +361,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.13</div>
+        <div class="modal-title">About My GTA Garage v1.60.14</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -664,7 +664,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.13 (Current)</strong><br>• Displayed vehicle slot number on small vehicle cards.<br>• Added an edit button icon to the large vehicle detail card.<br>• Improved readability and spacing of the About page sections.</p>
+            <p><strong>v1.60.14 (Current)</strong><br>• Fixed an issue where the detail view edit button was visible in shared snapshot images.</p>
+            <p><strong>v1.60.13</strong><br>• Displayed vehicle slot number on small vehicle cards.<br>• Added an edit button icon to the large vehicle detail card.<br>• Improved readability and spacing of the About page sections.</p>
             <p><strong>v1.60.12</strong><br>• Preserved UI State: The app now remembers which garage and floor groups are expanded. When saving or editing a vehicle, your open groups will no longer unexpectedly collapse, allowing you to instantly see your changes.</p>
             <p><strong>v1.60.11</strong><br>• Added a retry tolerance to the silent token refresh logic to prevent aggressive logouts on temporary network failures.</p>
             <p><strong>v1.60.10</strong><br>• Cleaned up Google Identity Services (GIS) token handlers. Removed all invalid prompt configurations and nested callbacks from requestAccessToken to guarantee stable silent background refreshes and login flows without throwing account picker prompts.</p>
@@ -1754,7 +1755,7 @@
             <div class="detail-manuf">${v.manuf}</div>
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px;">
                 <div class="detail-title" style="margin-bottom:0;">${v.model}</div>
-                <button class="action-btn" style="color:#fff; background:rgba(255,255,255,0.1); border-radius:6px; margin-left:10px; flex-shrink:0;" onclick="closeModal('detailModal'); editVehicle(${v.id})"><i class="fas fa-pencil-alt"></i></button>
+                <button id="detailEditBtn" class="action-btn" style="color:#fff; background:rgba(255,255,255,0.1); border-radius:6px; margin-left:10px; flex-shrink:0;" onclick="closeModal('detailModal'); editVehicle(${v.id})"><i class="fas fa-pencil-alt"></i></button>
             </div>
             <div style="margin-bottom:15px;">${badges}</div>
             <div class="detail-row"><span class="detail-chip"><i class="fas fa-tag"></i> ${(db.class||v.class||'-').replace(/_/g, ' ')}</span><span class="detail-chip"><i class="fas fa-cog"></i> ${db.drive||v.drive||'-'}</span><span class="detail-chip"><i class="fas fa-user"></i> ${db.seats||v.seats||'2'} Seats</span></div>
@@ -1784,25 +1785,23 @@
 
         if (v.driveImageId && imgEl.src.includes('drive.google')) {
             try {
-                let res = await driveApiRequest({
-                    path: `/drive/v3/files/${v.driveImageId}`,
-                    method: 'GET',
-                    params: { alt: 'media' }
-                });
-                if (res.status === 200 || res.status === 204 || res.body) {
-                    let blob;
-                    if (res.body instanceof Blob) {
-                        blob = res.body;
-                    } else {
-                        const byteArray = new Uint8Array(res.body.length);
-                        for (let i = 0; i < res.body.length; i++) {
-                            byteArray[i] = res.body.charCodeAt(i) & 0xff;
-                        }
-                        blob = new Blob([byteArray], {type: 'image/jpeg'});
+                let token = getActiveToken();
+                if (token) {
+                    let res = await fetch(`https://www.googleapis.com/drive/v3/files/${v.driveImageId}?alt=media`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.status === 401) {
+                        token = await silentlyRefreshToken();
+                        res = await fetch(`https://www.googleapis.com/drive/v3/files/${v.driveImageId}?alt=media`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
                     }
-                    blobUrl = URL.createObjectURL(blob);
-                    imgEl.src = blobUrl;
-                    await new Promise(r => setTimeout(r, 250)); 
+                    if (res.ok) {
+                        let blob = await res.blob();
+                        blobUrl = URL.createObjectURL(blob);
+                        imgEl.src = blobUrl;
+                        await new Promise(r => setTimeout(r, 250)); 
+                    }
                 }
             } catch(e) {
                 console.error("Failed to fetch CORS-safe blob", e);
@@ -1812,7 +1811,9 @@
         setTimeout(async () => {
             try {
                 const actionBtns = document.getElementById('detailActionButtons');
+                const editBtn = document.getElementById('detailEditBtn');
                 if(actionBtns) actionBtns.style.display = 'none';
+                if(editBtn) editBtn.style.display = 'none';
 
                 const canvas = await html2canvas(wrapper, {
                     backgroundColor: '#1e1e1e',
@@ -1821,6 +1822,7 @@
                 });
 
                 if(actionBtns) actionBtns.style.display = 'flex';
+                if(editBtn) editBtn.style.display = 'flex';
                 
                 if (blobUrl) {
                     imgEl.src = originalSrc;
@@ -1843,7 +1845,9 @@
             } catch (error) {
                 console.error("Error generating image:", error);
                 const actionBtns = document.getElementById('detailActionButtons');
+                const editBtn = document.getElementById('detailEditBtn');
                 if(actionBtns) actionBtns.style.display = 'flex';
+                if(editBtn) editBtn.style.display = 'flex';
                 
                 if (blobUrl) {
                     imgEl.src = originalSrc;
