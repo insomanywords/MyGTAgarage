@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.15</title>
+    <title>My GTA Garage v1.60.16</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -361,7 +361,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.15</div>
+        <div class="modal-title">About My GTA Garage v1.60.16</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -664,7 +664,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.15 (Current)</strong><br>• Fixed an issue where large vehicle detail cards were reverting custom Google Drive images to stock images by removing an invalid CORS attribute.</p>
+            <p><strong>v1.60.16 (Current)</strong><br>• Fixed silent token refresh opening the account picker on mobile by re-implementing prompt: 'none'.<br>• Added a visibility check to prevent silent token refresh from running while the app is in the background.</p>
+            <p><strong>v1.60.15</strong><br>• Removed an invalid CORS attribute from the detail modal to restore custom Drive images.</p>
             <p><strong>v1.60.14</strong><br>• Fixed an issue where the detail view edit button was visible in shared snapshot images.</p>
             <p><strong>v1.60.13</strong><br>• Displayed vehicle slot number on small vehicle cards.<br>• Added an edit button icon to the large vehicle detail card.<br>• Improved readability and spacing of the About page sections.</p>
             <p><strong>v1.60.12</strong><br>• Preserved UI State: The app now remembers which garage and floor groups are expanded. When saving or editing a vehicle, your open groups will no longer unexpectedly collapse, allowing you to instantly see your changes.</p>
@@ -680,22 +681,6 @@
             <p><strong>v1.59.0</strong><br>• Added 'LSCM Price' and 'Sell Price' inputs to the Add/Edit/Duplicate vehicle menus.<br>• Large vehicle detail cards now neatly display the respective LSCM/Sell prices when data exists.<br>• The Sales History window now formally tracks and displays the specific Sell Price of the vehicle when simulating a sale.</p>
             <p><strong>v1.58.0</strong><br>• Added Sales History tracking to store a log of previously sold vehicles.<br>• Added a new modal in the Sales Dashboard to view your full Sales History.</p>
             <p><strong>v1.57.0</strong><br>• Added a quick-access cloud status button to the header to easily monitor your Google Drive connection and sign back in.<br>• Implemented a notification modal to alert you when your 1-hour Google session has naturally expired.</p>
-            <p><strong>v1.56.3</strong><br>• Restored the missing `openAlert` function which was causing the Sell button to fail when triggering the cooldown warning.</p>
-            <p><strong>v1.56.2</strong><br>• Fixed 'Sell', 'Move', and 'Delete' buttons failing silently due to a missing confirmation function.<br>• Removed background token refresh to prevent intrusive browser popups. (Note: Google strictly limits client-side sessions to 1 hour; you will need to re-click Sign In when your session expires).</p>
-            <p><strong>v1.56.0</strong><br>• Implemented silent token refresh to keep users signed into Google Drive automatically across sessions.<br>• Added background token renewal to prevent timeouts during long active sessions.</p>
-            <p><strong>v1.55.0</strong><br>• Improved Cloud Sync logic to compare local and cloud data hashes, preventing the Sync Conflict modal from appearing on every page refresh when data is already identical.</p>
-            <p><strong>v1.54.0</strong><br>• Fully converted all Google Drive operations to `gapi.client.request` API to resolve all Safari/ITP and CORS issues.<br>• Implemented non-intrusive modal UI for real-time image uploading and success handling.<br>• Restored bulletproof image fetching logic.</p>
-            <p><strong>v1.53.0</strong><br>• Fixed mobile Google Drive initialization errors by switching to direct token-authorized fetch requests.<br>• Replaced image upload browser alerts with a dedicated visual progress/success modal.<br>• Optimized folder structuring logic to bypass strict tracking protection in mobile Safari.</p>
-            <p><strong>v1.52.0</strong><br>• Completely reverted image uploading/fetching back to the proven v1.43.0 API methodology to resolve upload aborts and empty dropdown lists.<br>• Retained the Google Drive Thumbnail API URL fix to ensure custom images successfully display on vehicle cards.</p>
-            <p><strong>v1.51.0</strong><br>• Upgraded to Google Drive's native Resumable Upload API for robust custom image saving.<br>• Resolved issues preventing the image upload progress modal from opening.<br>• Fixed race conditions causing the Add/Edit window to close prematurely.<br>• Improved token validation to ensure custom images populate correctly in the dropdown list.</p>
-            <p><strong>v1.50.0</strong><br>• Fixed Google Drive custom image upload preventing saves from finishing.<br>• Re-implemented real-time upload progress tracking for images.<br>• Restored Google Drive Thumbnail API logic to ensure custom images accurately render across all browsers.<br>• Bulletproofed existing image fetching to prevent the modal from crashing during async execution.</p>
-            <p><strong>v1.49.0</strong><br>• Resolved Add/Edit window closing prematurely during image upload.<br>• Reverted image upload backend to standard API for higher success rates.<br>• Fixed custom image display fetching URLs.<br>• Ensured image selection lists map correctly to new characters.</p>
-            <p><strong>v1.48.0</strong><br>• Fixed Google Drive custom image upload/fetching.<br>• Added upload progress window and completion alert.</p>
-            <p><strong>v1.47.0</strong><br>• Removed version number from footer.<br>• Expanded documentation and feature instructions in the About page.</p>
-            <p><strong>v1.46.0</strong><br>• Fixed custom Google Drive images not displaying (changed embed URL format).<br>• Added image fallback logic so broken custom images revert to default vehicle images.</p>
-            <p><strong>v1.45.0</strong><br>• Smart initial sync check. Auto-pulls cloud data if local is empty.<br>• Added local/cloud conflict prompt to prevent accidental overwrites.</p>
-            <p><strong>v1.44.0</strong><br>• Google Drive character folders now rename dynamically.<br>• Added options to delete cloud data on character delete and factory reset.</p>
-            <p><strong>v1.43.0</strong><br>• Google Drive Cloud Sync integration.<br>• Custom vehicle images linked to Drive.<br>• Character-specific isolated cloud folders.<br>• Settings menu converted to Tabs.<br>• Offline resilience and manual cloud backups.</p>
         </div>
         <button class="btn-pri" style="width:100%; margin-top:15px;" onclick="closeModal('changelogModal')">Close</button>
     </div>
@@ -820,6 +805,14 @@
                 reject("Token client not initialized");
                 return;
             }
+
+            if (document.hidden) {
+                console.warn('Skipping token refresh: tab not active');
+                isRefreshingToken = null;
+                reject('Tab inactive');
+                return;
+            }
+
             tokenClient.callback = (tokenResponse) => {
                 isRefreshingToken = null;
                 if (tokenResponse && tokenResponse.access_token) {
@@ -843,7 +836,7 @@
                     reject(tokenResponse);
                 }
             };
-            tokenClient.requestAccessToken({ prompt: '' });
+            tokenClient.requestAccessToken({ prompt: 'none' });
         });
         return isRefreshingToken;
     }
