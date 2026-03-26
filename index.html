@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.19</title>
+    <title>My GTA Garage v1.60.20</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -361,7 +361,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.19</div>
+        <div class="modal-title">About My GTA Garage v1.60.20</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -664,7 +664,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.19 (Current)</strong><br>• Implemented dual-mode authentication strategy to prevent mobile account picker popups.</p>
+            <p><strong>v1.60.20 (Current)</strong><br>• Fixed an issue where the Google account picker would unnecessarily open on mobile whenever the app was brought back from the background by implementing a smart token validation check.<br>• Removed a lingering CORS attribute in the detail modal to stop custom images from reverting to stock images.</p>
+            <p><strong>v1.60.19</strong><br>• Implemented dual-mode authentication strategy to prevent mobile account picker popups.</p>
             <p><strong>v1.60.18</strong><br>• Fixed an issue where waking up the app on mobile after a long period of inactivity would cause Drive sync to fail and permanently display an error state. The app now gracefully resets the login button if a silent refresh is blocked by the browser, preventing the need to manually sign out.<br>• Updated the background session monitor to cleanly attempt a silent token refresh instead of aggressively forcing a logout when the expiration time is reached.</p>
             <p><strong>v1.60.17</strong><br>• Fixed a bug causing the custom image upload modal to skip silently. <br>• Corrected Save buttons to properly render their purple primary styling.</p>
             <p><strong>v1.60.16</strong><br>• Fixed silent token refresh opening the account picker on mobile by re-implementing prompt: 'none'.<br>• Added a visibility check to prevent silent token refresh from running while the app is in the background.</p>
@@ -801,9 +802,9 @@
     document.addEventListener('visibilitychange', async () => {
         if (document.visibilityState === 'visible') {
             try {
-                await silentlyRefreshToken();
+                await ensureValidToken();
             } catch (e) {
-                console.warn('Visibility refresh skipped:', e);
+                console.warn('Visibility token check failed:', e);
             }
         }
     });
@@ -862,7 +863,7 @@
                     reject(tokenResponse);
                 }
             };
-            tokenClient.requestAccessToken({ prompt: '' });
+            tokenClient.requestAccessToken({ prompt: 'none' });
         });
         return isRefreshingToken;
     }
@@ -1772,7 +1773,7 @@
         }
 
         const content = `
-            <div class="detail-img-box"><img src="${img}" crossorigin="anonymous" class="detail-img" onerror="if(this.src.includes('drive.google') && '${spawn}'){this.src='${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png';}else{this.style.display='none';}"></div>
+            <div class="detail-img-box"><img src="${img}" class="detail-img" onerror="if(this.src.includes('drive.google') && '${spawn}'){this.src='${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png';}else{this.style.display='none';}"></div>
             <div class="detail-manuf">${v.manuf}</div>
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px;">
                 <div class="detail-title" style="margin-bottom:0;">${v.model}</div>
