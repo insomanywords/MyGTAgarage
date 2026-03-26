@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.16</title>
+    <title>My GTA Garage v1.60.17</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -361,7 +361,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.16</div>
+        <div class="modal-title">About My GTA Garage v1.60.17</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -570,7 +570,7 @@
 
         <div class="modal-actions">
             <button class="btn-sec" onclick="closeModal('vehicleModal')">Cancel</button>
-            <button class="btn-primary" onclick="saveVehicleWrapper()">Save</button>
+            <button class="btn-pri" onclick="saveVehicleWrapper()">Save</button>
         </div>
         
         <div id="editActions" style="display:none; margin-top:20px; flex-direction:column; gap:8px; border-top:1px solid #333; padding-top:15px;">
@@ -589,7 +589,7 @@
         <input type="text" id="inNickname" placeholder="Enter nickname..." style="margin-bottom:15px;">
         <div class="modal-actions">
             <button class="btn-sec" onclick="closeModal('nickModal')">Cancel</button>
-            <button class="btn-primary" onclick="saveNickname()">Save Nickname</button>
+            <button class="btn-pri" onclick="saveNickname()">Save Nickname</button>
         </div>
     </div>
 </div>
@@ -664,7 +664,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.16 (Current)</strong><br>• Fixed silent token refresh opening the account picker on mobile by re-implementing prompt: 'none'.<br>• Added a visibility check to prevent silent token refresh from running while the app is in the background.</p>
+            <p><strong>v1.60.17 (Current)</strong><br>• Fixed a bug causing the custom image upload modal to skip silently. <br>• Corrected Save buttons to properly render their purple primary styling.</p>
+            <p><strong>v1.60.16</strong><br>• Fixed silent token refresh opening the account picker on mobile by re-implementing prompt: 'none'.<br>• Added a visibility check to prevent silent token refresh from running while the app is in the background.</p>
             <p><strong>v1.60.15</strong><br>• Removed an invalid CORS attribute from the detail modal to restore custom Drive images.</p>
             <p><strong>v1.60.14</strong><br>• Fixed an issue where the detail view edit button was visible in shared snapshot images.</p>
             <p><strong>v1.60.13</strong><br>• Displayed vehicle slot number on small vehicle cards.<br>• Added an edit button icon to the large vehicle detail card.<br>• Improved readability and spacing of the About page sections.</p>
@@ -1779,25 +1780,23 @@
 
         if (v.driveImageId && imgEl.src.includes('drive.google')) {
             try {
-                let res = await driveApiRequest({
-                    path: `/drive/v3/files/${v.driveImageId}`,
-                    method: 'GET',
-                    params: { alt: 'media' }
-                });
-                if (res.status === 200 || res.status === 204 || res.body) {
-                    let blob;
-                    if (res.body instanceof Blob) {
-                        blob = res.body;
-                    } else {
-                        const byteArray = new Uint8Array(res.body.length);
-                        for (let i = 0; i < res.body.length; i++) {
-                            byteArray[i] = res.body.charCodeAt(i) & 0xff;
-                        }
-                        blob = new Blob([byteArray], {type: 'image/jpeg'});
+                let token = getActiveToken();
+                if (token) {
+                    let res = await fetch(`https://www.googleapis.com/drive/v3/files/${v.driveImageId}?alt=media`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.status === 401) {
+                        token = await silentlyRefreshToken();
+                        res = await fetch(`https://www.googleapis.com/drive/v3/files/${v.driveImageId}?alt=media`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
                     }
-                    blobUrl = URL.createObjectURL(blob);
-                    imgEl.src = blobUrl;
-                    await new Promise(r => setTimeout(r, 250)); 
+                    if (res.ok) {
+                        let blob = await res.blob();
+                        blobUrl = URL.createObjectURL(blob);
+                        imgEl.src = blobUrl;
+                        await new Promise(r => setTimeout(r, 250)); 
+                    }
                 }
             } catch(e) {
                 console.error("Failed to fetch CORS-safe blob", e);
