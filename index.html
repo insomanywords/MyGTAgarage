@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.21</title>
+    <title>My GTA Garage v1.60.22</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -361,7 +361,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.21</div>
+        <div class="modal-title">About My GTA Garage v1.60.22</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -664,7 +664,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.21 (Current)</strong><br>• Implemented dual-mode authentication strategy. Mobile devices no longer use background timers to refresh tokens, preventing random account picker popups. Replaced with intelligent, proactive refresh validation right before API calls and when the app wakes up.<br>• Removed aggressive forced-logout behavior. Users remain seamlessly signed in locally even if silent token refresh fails.</p>
+            <p><strong>v1.60.22 (Current)</strong><br>• Completely removed the lingering <code>crossorigin="anonymous"</code> attribute from the large detail card template. Custom Google Drive images will no longer hit a CORS block and revert to the stock fallback image.</p>
+            <p><strong>v1.60.21</strong><br>• Implemented dual-mode authentication strategy. Mobile devices no longer use background timers to refresh tokens, preventing random account picker popups. Replaced with intelligent, proactive refresh validation right before API calls and when the app wakes up.<br>• Removed aggressive forced-logout behavior. Users remain seamlessly signed in locally even if silent token refresh fails.</p>
             <p><strong>v1.60.20</strong><br>• Fixed an issue where the Google account picker would unnecessarily open on mobile whenever the app was brought back from the background by implementing a smart token validation check.<br>• Removed a lingering CORS attribute in the detail modal to stop custom images from reverting to stock images.</p>
             <p><strong>v1.60.19</strong><br>• Implemented dual-mode authentication strategy to prevent mobile account picker popups.</p>
             <p><strong>v1.60.18</strong><br>• Fixed an issue where waking up the app on mobile after a long period of inactivity would cause Drive sync to fail and permanently display an error state. The app now gracefully resets the login button if a silent refresh is blocked by the browser, preventing the need to manually sign out.<br>• Updated the background session monitor to cleanly attempt a silent token refresh instead of aggressively forcing a logout when the expiration time is reached.</p>
@@ -805,10 +806,9 @@
     document.addEventListener('visibilitychange', async () => {
         if (document.visibilityState === 'visible' && localStorage.getItem('gta_cloud_intent') === 'true') {
             try {
-                await silentlyRefreshToken();
-                driveStatus = 'connected';
-            } catch {
-                driveStatus = 'expired';
+                await ensureValidToken();
+            } catch (e) {
+                console.warn('Visibility token check failed:', e);
             }
         }
     });
@@ -861,33 +861,17 @@
                 } else {
                     console.warn("Silent token refresh failed:", tokenResponse);
                     refreshFailureCount++;
-                    driveStatus = 'expired';
-                    console.warn('Refresh failed, user remains signed in until manual action');
+                    if (refreshFailureCount >= MAX_REFRESH_FAILURES) {
+                        console.warn('Refresh failed, user remains signed in until manual action');
+                    } else {
+                        console.warn('Silent token refresh failed, retrying...', refreshFailureCount);
+                    }
                     reject(tokenResponse);
                 }
             };
             tokenClient.requestAccessToken({ prompt: 'none' });
         });
         return isRefreshingToken;
-    }
-
-    function reconnectDrive() {
-        return new Promise((resolve, reject) => {
-            tokenClient.callback = (tokenResponse) => {
-                if (tokenResponse && tokenResponse.access_token) {
-                    localStorage.setItem('gta_gdrive_token', JSON.stringify({
-                        token: tokenResponse.access_token,
-                        expiresAt: Date.now() + (tokenResponse.expires_in * 1000)
-                    }));
-                    gapi.client.setToken({ access_token: tokenResponse.access_token });
-                    driveStatus = 'connected';
-                    resolve(true);
-                } else {
-                    reject(false);
-                }
-            };
-            tokenClient.requestAccessToken({ prompt: '' });
-        });
     }
 
     async function driveApiRequest(options, isRetry = false) {
@@ -1805,7 +1789,7 @@
         }
 
         const content = `
-            <div class="detail-img-box"><img src="${img}" crossorigin="anonymous" class="detail-img" onerror="if(this.src.includes('drive.google') && '${spawn}'){this.src='${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png';}else{this.style.display='none';}"></div>
+            <div class="detail-img-box"><img src="${img}" class="detail-img" onerror="if(this.src.includes('drive.google') && '${spawn}'){this.src='${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png';}else{this.style.display='none';}"></div>
             <div class="detail-manuf">${v.manuf}</div>
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px;">
                 <div class="detail-title" style="margin-bottom:0;">${v.model}</div>
