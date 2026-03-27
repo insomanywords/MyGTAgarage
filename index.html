@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.29</title>
+    <title>My GTA Garage v1.60.30</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -391,7 +391,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.29</div>
+        <div class="modal-title">About My GTA Garage v1.60.30</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -516,7 +516,8 @@
         <p id="shareWaitMsg" style="color:#ccc; font-size:0.95rem; line-height:1.5; margin-bottom:20px;">Please wait while we prepare your vehicle card.</p>
         <div id="shareActionDiv" style="display:none; justify-content:center; gap:10px;">
             <button class="btn-sec" onclick="closeModal('shareWaitModal')" style="flex:1;">Cancel</button>
-            <button id="shareFinalBtn" class="btn-pri" style="flex:2;">Share Image</button>
+            <button id="saveSnapshotBtn" class="btn-pri" style="flex:1.5;">Save Image</button>
+            <button id="shareFinalBtn" class="btn-pri" style="flex:1.5;">Share Image</button>
         </div>
     </div>
 </div>
@@ -700,7 +701,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.29 (Current)</strong><br>• Added "Favorites" count to the Garage Stats window.</p>
+            <p><strong>v1.60.30 (Current)</strong><br>• Added a "Save Image" button to the Snapshot Ready modal, allowing users to directly download vehicle cards locally.</p>
+            <p><strong>v1.60.29</strong><br>• Added "Favorites" count to the Garage Stats window.</p>
             <p><strong>v1.60.28</strong><br>• Optimized large vehicle detail card for mobile: implemented a grid layout for action buttons (Copy, Move, Sell, Share) to prevent overflow on small screens.<br>• Fixed blurry badges on the detail card by introducing high-fidelity <code>detail-badge</code> styling with improved font rendering and better wrapping.</p>
             <p><strong>v1.60.27</strong><br>• Improved mobile responsiveness for Add/Edit vehicle modal by stacking Favorite, Weaponized, and HSW checkboxes vertically on small screens to prevent overflow.</p>
             <p><strong>v1.60.26</strong><br>• Fixed "ReferenceError: gisLoadedInit/gapiLoadedInit is not defined" by moving Google library scripts to the bottom of the page, ensuring they load after the initialization functions are defined.</p>
@@ -1917,8 +1919,8 @@
                     useCORS: true 
                 });
 
-                if(actionBtns) actionBtns.style.display = 'flex';
-                if(editBtn) editBtn.style.display = 'flex';
+                if(actionBtns) actionBtns.style.display = '';
+                if(editBtn) editBtn.style.display = '';
                 
                 if (blobUrl) {
                     imgEl.src = originalSrc;
@@ -1936,14 +1938,15 @@
                 document.getElementById('shareWaitMsg').innerText = "Your vehicle card is ready to be shared.";
                 document.getElementById('shareActionDiv').style.display = 'flex';
                 
+                document.getElementById('saveSnapshotBtn').onclick = saveSnapshotLocally;
                 document.getElementById('shareFinalBtn').onclick = executeFinalShare;
 
             } catch (error) {
                 console.error("Error generating image:", error);
                 const actionBtns = document.getElementById('detailActionButtons');
                 const editBtn = document.getElementById('detailEditBtn');
-                if(actionBtns) actionBtns.style.display = 'flex';
-                if(editBtn) editBtn.style.display = 'flex';
+                if(actionBtns) actionBtns.style.display = '';
+                if(editBtn) editBtn.style.display = '';
                 
                 if (blobUrl) {
                     imgEl.src = originalSrc;
@@ -1954,6 +1957,19 @@
                 openAlert("Share Failed", "Could not generate image to share.");
             }
         }, 50);
+    }
+
+    function saveSnapshotLocally() {
+        if (!pendingShareFile) return;
+        const url = URL.createObjectURL(pendingShareFile);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = pendingShareFilename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+        closeModal('shareWaitModal');
     }
 
     async function executeFinalShare() {
