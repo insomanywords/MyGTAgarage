@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.30</title>
+    <title>My GTA Garage v1.60.32</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -321,6 +321,7 @@
         
         <div class="tab-bar">
             <button id="tabBtn_chars" class="tab-btn active" onclick="switchSettingsTab('chars')">Characters</button>
+            <button id="tabBtn_gamertag" class="tab-btn" onclick="switchSettingsTab('gamertag')">Gamertag</button>
             <button id="tabBtn_cloud" class="tab-btn" onclick="switchSettingsTab('cloud')">Google Drive</button>
             <button id="tabBtn_local" class="tab-btn" onclick="switchSettingsTab('local')">Local Data</button>
         </div>
@@ -333,6 +334,35 @@
                 <div style="display:flex; gap:8px; margin-top:15px; padding-top:15px; border-top:1px solid #333;">
                     <input type="text" id="newCharName" placeholder="New Character Name" style="margin-bottom:0; flex:1;">
                     <button class="btn-pri" onclick="addCharacter()" style="flex-shrink:0;">Add</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tabContent_gamertag" class="tab-content">
+            <div class="form-section">
+                <span class="label">Gamertag & Platform</span>
+                <p style="font-size:0.8rem; color:#aaa; margin-top:0;">This information is per-character and used for snapshot shares only.</p>
+                
+                <div style="margin-bottom:15px;">
+                    <span class="label">Gamertag</span>
+                    <input type="text" id="settingsGamertag" placeholder="Enter Gamertag" oninput="saveGamertagSettings()">
+                </div>
+
+                <div style="margin-bottom:15px;">
+                    <span class="label">Platform</span>
+                    <select id="settingsPlatform" onchange="saveGamertagSettings()">
+                        <option value="PC">PC</option>
+                        <option value="Xbox One">Xbox One</option>
+                        <option value="Xbox Series">Xbox Series</option>
+                        <option value="PS4">PS4</option>
+                        <option value="PS5">PS5</option>
+                        <option value="Nintendo Switch">Nintendo Switch</option>
+                    </select>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:10px; margin-top:15px; padding-top:15px; border-top:1px solid #333;">
+                    <input type="checkbox" id="settingsShowGamertag" onchange="saveGamertagSettings()" style="width:auto; margin-bottom:0;">
+                    <label for="settingsShowGamertag" style="margin-bottom:0; font-size:0.9rem; cursor:pointer;">Show on Snapshot</label>
                 </div>
             </div>
         </div>
@@ -391,7 +421,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.30</div>
+        <div class="modal-title">About My GTA Garage v1.60.32</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -404,6 +434,7 @@
                 <li style="margin-bottom: 12px;"><strong>Move Vehicle:</strong> Inside the edit or detail view, click <strong>Move</strong>. Select the destination garage. The app will automatically find the first empty floor and slot. If the destination is completely full, you will be prompted to select a vehicle to swap places with.</li>
                 <li style="margin-bottom: 12px;"><strong>Sell Vehicle:</strong> Click <strong>Sell</strong> in the edit or detail view to simulate selling a car. This removes the car from your garage, logs the transaction (along with the vehicle's Sell Price) in your Sales History, and starts an 18-hour real-time cooldown timer.</li>
                 <li style="margin-bottom: 12px;"><strong>Share Vehicle:</strong> Open a vehicle's detail view and click <strong>Share</strong>. The app will generate a clean snapshot image of the vehicle card that you can instantly send via text, Discord, or save to your device to show off to potential LS Car Meet buyers.</li>
+                <li style="margin-bottom: 12px;"><strong>Gamertag & Platform:</strong> Personalize your shared vehicle snapshots by adding your Gamertag and platform icon (PC, Xbox, PlayStation, Switch). This information is managed per character in the Settings menu and can be toggled on or off for your snapshots.</li>
             </ul>
 
             <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">2. Organization & Search</h4>
@@ -701,7 +732,9 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.30 (Current)</strong><br>• Added a "Save Image" button to the Snapshot Ready modal, allowing users to directly download vehicle cards locally.</p>
+            <p><strong>v1.60.32 (Current)</strong><br>• Improved platform identification on snapshots by displaying the specific platform name alongside the logo (e.g., PS5, Xbox Series) to avoid confusion between identical brand icons.</p>
+            <p><strong>v1.60.31</strong><br>• Added "Gamertag & Platform" settings per character.<br>• Display gamertag and platform icon on shared vehicle card snapshots.<br>• Added option to toggle gamertag visibility on snapshots.</p>
+            <p><strong>v1.60.30</strong><br>• Added a "Save Image" button to the Snapshot Ready modal, allowing users to directly download vehicle cards locally.</p>
             <p><strong>v1.60.29</strong><br>• Added "Favorites" count to the Garage Stats window.</p>
             <p><strong>v1.60.28</strong><br>• Optimized large vehicle detail card for mobile: implemented a grid layout for action buttons (Copy, Move, Sell, Share) to prevent overflow on small screens.<br>• Fixed blurry badges on the detail card by introducing high-fidelity <code>detail-badge</code> styling with improved font rendering and better wrapping.</p>
             <p><strong>v1.60.27</strong><br>• Improved mobile responsiveness for Add/Edit vehicle modal by stacking Favorite, Weaponized, and HSW checkboxes vertically on small screens to prevent overflow.</p>
@@ -1357,6 +1390,7 @@
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         document.getElementById('tabBtn_' + tab).classList.add('active');
         document.getElementById('tabContent_' + tab).classList.add('active');
+        if (tab === 'gamertag') renderGamertagSettings();
     }
 
     // --- CHARACTER MANAGEMENT LOGIC ---
@@ -1364,6 +1398,23 @@
         renderSettingsChars();
         switchSettingsTab('chars');
         openModal('settingsModal');
+    }
+
+    function renderGamertagSettings() {
+        const c = characters.find(x => x.id === activeCharId);
+        if (!c) return;
+        document.getElementById('settingsGamertag').value = c.gamertag || '';
+        document.getElementById('settingsPlatform').value = c.platform || 'PC';
+        document.getElementById('settingsShowGamertag').checked = c.showGamertag === true;
+    }
+
+    function saveGamertagSettings() {
+        const c = characters.find(x => x.id === activeCharId);
+        if (!c) return;
+        c.gamertag = document.getElementById('settingsGamertag').value.trim();
+        c.platform = document.getElementById('settingsPlatform').value;
+        c.showGamertag = document.getElementById('settingsShowGamertag').checked;
+        safeStorage.setItem('gta_chars_v1', JSON.stringify(characters));
     }
 
     function renderSettingsChars() {
@@ -1413,7 +1464,7 @@
         const val = document.getElementById('newCharName').value.trim();
         if(!val) return;
         const newId = 'char_' + Date.now();
-        characters.push({id: newId, name: val});
+        characters.push({id: newId, name: val, gamertag: '', platform: 'PC', showGamertag: false});
         safeStorage.setItem('gta_chars_v1', JSON.stringify(characters));
         document.getElementById('newCharName').value = '';
         renderSettingsChars();
@@ -1913,11 +1964,40 @@
                 if(actionBtns) actionBtns.style.display = 'none';
                 if(editBtn) editBtn.style.display = 'none';
 
+                const char = characters.find(c => c.id === activeCharId);
+                let footerAdded = false;
+                if (char && char.showGamertag && char.gamertag) {
+                    const footer = document.createElement('div');
+                    footer.id = 'snapshotFooter';
+                    footer.style.cssText = 'display:flex; align-items:center; justify-content:center; gap:10px; margin-top:15px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.1); color:#aaa; font-size:0.9rem; font-weight:600;';
+                    
+                    let platformIcon = 'fab fa-windows';
+                    if (char.platform === 'Xbox One' || char.platform === 'Xbox Series') platformIcon = 'fab fa-xbox';
+                    else if (char.platform === 'PS4' || char.platform === 'PS5') platformIcon = 'fab fa-playstation';
+                    else if (char.platform === 'Nintendo Switch') platformIcon = 'fab fa-nintendo-switch';
+
+                    footer.innerHTML = `
+                        <div style="display:flex; align-items:center; gap:6px; color:#fff;">
+                            <i class="${platformIcon}"></i>
+                            <span>${char.platform}</span>
+                        </div>
+                        <span style="opacity:0.2;">|</span>
+                        <span>${char.gamertag}</span>
+                    `;
+                    wrapper.appendChild(footer);
+                    footerAdded = true;
+                }
+
                 const canvas = await html2canvas(wrapper, {
                     backgroundColor: '#1e1e1e',
                     scale: 2,
                     useCORS: true 
                 });
+
+                if (footerAdded) {
+                    const footer = document.getElementById('snapshotFooter');
+                    if (footer) footer.remove();
+                }
 
                 if(actionBtns) actionBtns.style.display = '';
                 if(editBtn) editBtn.style.display = '';
