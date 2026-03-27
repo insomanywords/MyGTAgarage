@@ -6,14 +6,12 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.22</title>
+    <title>My GTA Garage v1.60.29</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
 
-    <script src="https://accounts.google.com/gsi/client" async defer onload="gisLoadedInit()"></script>
-    <script src="https://apis.google.com/js/api.js" async defer onload="gapiLoadedInit()"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
@@ -21,7 +19,7 @@
             --bg: #121212; --card: #1e1e1e; --head: #181818;
             --text: #ffffff; --text-dim: #a0a0a0; --accent: #9b59b6;
             --wep: #ef4444; --f1: #f59e0b; --benny: #3b82f6; --sell: #22c55e; --timer: #f97316;
-            --fav: #e91e63;
+            --fav: #e91e63; --hsw: #a855f7;
             --border: #333; --radius: 8px;
             
             /* Plates */
@@ -144,6 +142,7 @@
         .badge.f { background: var(--f1); border-color: var(--f1); color: #000; }
         .badge.b { background: var(--benny); border-color: var(--benny); }
         .badge.fav { background: var(--fav); border-color: var(--fav); color: #fff; padding: 2px 6px; } 
+        .badge.hsw { background: var(--hsw); border-color: var(--hsw); color: #fff; }
         
         .badge.y { background: var(--pl-yankton); color: #000; border-color: var(--pl-yankton); }
         .badge.l { background: var(--pl-liberty); border-color: var(--pl-liberty); }
@@ -153,6 +152,32 @@
         .badge.e { background: var(--pl-ecola); border-color: var(--pl-ecola); }
         .badge.s { background: var(--pl-sprunk); border-color: var(--pl-sprunk); }
         
+        /* DETAIL BADGES - Clearer and larger for detail view */
+        .detail-badge { 
+            font-size: 0.7rem; padding: 4px 8px; border-radius: 6px; font-weight: 800; 
+            text-transform: uppercase; color: #fff; background: rgba(0,0,0,0.8); 
+            border: 1px solid rgba(255,255,255,0.1); display: inline-block; white-space: nowrap;
+        }
+        .detail-badge.w { background: var(--wep); border-color: var(--wep); }
+        .detail-badge.f { background: var(--f1); border-color: var(--f1); color: #000; }
+        .detail-badge.b { background: var(--benny); border-color: var(--benny); }
+        .detail-badge.fav { background: var(--fav); border-color: var(--fav); color: #fff; }
+        .detail-badge.hsw { background: var(--hsw); border-color: var(--hsw); color: #fff; }
+        
+        .detail-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+            border-top: 1px solid #333;
+            padding-top: 15px;
+        }
+        @media (min-width: 480px) {
+            .detail-actions-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
         .card-info { flex: 1; padding: 8px 12px; min-width: 0; display: flex; flex-direction: column; }
         .card-top { margin-bottom: 4px; padding-right: 75px; } 
         .card-manuf { font-size: 0.65rem; color: var(--accent); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
@@ -189,6 +214,10 @@
         .modal-row { display: flex; gap: 12px; margin-bottom: 15px; flex-direction: column; }
         @media(min-width: 500px) { .modal-row { flex-direction: row; } }
         .modal-row > div { flex: 1; }
+        .checkbox-row { display: flex; gap: 10px; margin-bottom: 15px; flex-direction: column; }
+        @media(min-width: 500px) { .checkbox-row { flex-direction: row; } }
+        .checkbox-row > label { flex: 1; margin-bottom: 0 !important; }
+
         .form-section { background: #252525; padding: 15px; border-radius: 10px; border: 1px solid #333; margin-bottom: 15px; }
         .form-group { margin-bottom: 15px; width: 100%; }
         .label { display: block; color: var(--text-dim); font-size: 0.75rem; margin-bottom: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -210,7 +239,7 @@
 
         /* DASHBOARD */
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
-        @media (min-width: 450px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
+        @media (min-width: 450px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
         .stat-card { background: #252525; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #333; display: flex; flex-direction: column; justify-content: center; }
         .stat-val { font-size: 1.4rem; font-weight: 800; display: block; color: var(--accent); }
         .stat-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; margin-top: 4px; }
@@ -268,6 +297,7 @@
                 <option value="wheels">Group: Wheels</option>
                 <option value="plates">Group: Plates</option>
                 <option value="weaponized">Group: Weaponized</option>
+                <option value="hsw">Group: HSW</option>
                 <option value="fav">Favorites Only</option>
                 <option value="all">View All</option>
             </select>
@@ -361,13 +391,13 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.22</div>
+        <div class="modal-title">About My GTA Garage v1.60.29</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
             <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">1. Vehicle Management</h4>
             <ul style="padding-left:20px; margin-bottom:15px; line-height: 1.6;">
-                <li style="margin-bottom: 12px;"><strong>Add Vehicle:</strong> Click the <strong>+ Add</strong> button on the main screen. Select the Make and Model. Choose the Garage and Floor. Set the slot number, wheels, plates, and toggle Weaponized or Favorite status. You can optionally add financial data including the <strong>LSCM Price</strong> (Vehicle Value) and <strong>Sell Price</strong>.</li>
+                <li style="margin-bottom: 12px;"><strong>Add Vehicle:</strong> Click the <strong>+ Add</strong> button on the main screen. Select the Make and Model. Choose the Garage and Floor. Set the slot number, wheels, plates, and toggle <strong>HSW</strong>, <strong>Weaponized</strong>, or <strong>Favorite</strong> status. You can optionally add financial data including the <strong>LSCM Price</strong> (Vehicle Value) and <strong>Sell Price</strong>.</li>
                 <li style="margin-bottom: 12px;"><strong>Edit Vehicle:</strong> Click the <i class="fas fa-pencil-alt"></i> icon on any vehicle card to modify its details, update its location, change its custom image, or edit notes and financial values.</li>
                 <li style="margin-bottom: 12px;"><strong>Custom Images:</strong> When adding or editing a vehicle, use the "Vehicle Image" section to upload a picture from your device. If you are signed in to Google Drive, the image will be securely uploaded to your character's Drive folder (with a real-time progress bar) and linked automatically.</li>
                 <li style="margin-bottom: 12px;"><strong>Copy/Duplicate:</strong> Open a vehicle's detail view (by clicking on its card) and click <strong>Copy</strong>. This opens the Add window with all the car's details and custom image pre-filled, leaving only the slot number blank for rapid entry of duplicate cars.</li>
@@ -378,7 +408,7 @@
 
             <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">2. Organization & Search</h4>
             <ul style="padding-left:20px; margin-bottom:15px; line-height: 1.6;">
-                <li style="margin-bottom: 12px;"><strong>Grouping:</strong> Use the dropdown menu at the top to group your vehicles by Garage, Brand, Class, Drive type, Wheels, Plates, or Weaponized status. Groups can be collapsed or expanded by clicking their headers. The app automatically remembers your open groups when you edit or save vehicles.</li>
+                <li style="margin-bottom: 12px;"><strong>Grouping:</strong> Use the dropdown menu at the top to group your vehicles by Garage, Brand, Class, Drive type, Wheels, Plates, Weaponized, or HSW status. Groups can be collapsed or expanded by clicking their headers. The app automatically remembers your open groups when you edit or save vehicles.</li>
                 <li style="margin-bottom: 12px;"><strong>Sorting:</strong> When viewing by "Group: Garage", vehicles are automatically sorted by their Slot number (1, 2, 3, etc.). Vehicles without a slot number are placed at the end in the order they were added.</li>
                 <li style="margin-bottom: 12px;"><strong>Search:</strong> Use the search bar to instantly filter your collection by vehicle name, manufacturer, location, or notes. Garage capacities will dynamically update to show the real total usage even while filtering.</li>
                 <li style="margin-bottom: 12px;"><strong>Favorites:</strong> Mark your best cars by toggling the <i class="fas fa-heart" style="color:var(--fav)"></i> Favorite checkbox when adding/editing. Select "Favorites Only" from the view dropdown to display only these vehicles.</li>
@@ -438,7 +468,7 @@
         <h2 style="color:#fff; margin:0 0 10px 0;">Disconnected</h2>
         <p style="color:#ccc; font-size:0.95rem; line-height:1.5; margin-bottom:20px;">Your Google Drive connection has expired or been disconnected. Please sign in again to continue syncing your garage to the cloud.</p>
         <div class="modal-actions">
-            <button class="btn-sec" onclick="closeModal('loggedOutModal'); localStorage.removeItem('gta_cloud_intent'); driveStatus='disconnected';">Dismiss</button>
+            <button class="btn-sec" onclick="closeModal('loggedOutModal'); safeStorage.removeItem('gta_cloud_intent'); driveStatus='disconnected';">Dismiss</button>
             <button class="btn-pri" onclick="closeModal('loggedOutModal'); handleAuthClick()">Sign In</button>
         </div>
     </div>
@@ -456,16 +486,16 @@
     </div>
 </div>
 
-<div id="detailModal" class="modal">
+        <div id="detailModal" class="modal">
     <div class="modal-box">
         <div id="detailContentWrapper" style="padding: 10px; border-radius: 8px; background: var(--card);">
             <div id="detailContent"></div>
         </div>
-        <div id="detailActionButtons" style="display:flex; gap:10px; margin-top:15px; border-top:1px solid #333; padding-top:15px;">
-            <button class="btn-sec" style="flex:1; background:#8e44ad; color:#fff; border:none;" onclick="triggerCopyVehicle()"><i class="fas fa-copy"></i> Copy</button>
-            <button class="btn-sec" style="flex:1; background:#2980b9; color:#fff; border:none;" onclick="triggerMoveVehicle()"><i class="fas fa-exchange-alt"></i> Move</button>
-            <button class="btn-sec" style="flex:1; background:var(--sell); color:#fff; border:none;" onclick="triggerSellVehicle()"><i class="fas fa-dollar-sign"></i> Sell</button>
-            <button class="btn-sec" style="flex:1; background:#f39c12; color:#fff; border:none;" onclick="shareVehicleCard()"><i class="fas fa-share-alt"></i> Share</button>
+        <div id="detailActionButtons" class="detail-actions-grid">
+            <button class="btn-sec" style="background:#8e44ad; color:#fff; border:none;" onclick="triggerCopyVehicle()"><i class="fas fa-copy"></i> Copy</button>
+            <button class="btn-sec" style="background:#2980b9; color:#fff; border:none;" onclick="triggerMoveVehicle()"><i class="fas fa-exchange-alt"></i> Move</button>
+            <button class="btn-sec" style="background:var(--sell); color:#fff; border:none;" onclick="triggerSellVehicle()"><i class="fas fa-dollar-sign"></i> Sell</button>
+            <button class="btn-sec" style="background:#f39c12; color:#fff; border:none;" onclick="shareVehicleCard()"><i class="fas fa-share-alt"></i> Share</button>
         </div>
         <button class="btn-sec" style="width:100%; margin-top:15px;" onclick="closeModal('detailModal')">Close</button>
     </div>
@@ -539,14 +569,18 @@
         </div>
 
         <div class="form-section">
-            <div style="display:flex; gap:10px; margin-bottom:10px;">
-                <label class="wep-toggle" style="flex:1">
+            <div class="checkbox-row">
+                <label class="wep-toggle">
                     <span style="font-weight:700; color:#fff;">Favorite</span>
                     <input type="checkbox" id="inFav">
                 </label>
-                <label class="wep-toggle" style="flex:1">
+                <label class="wep-toggle">
                     <span style="font-weight:700; color:#fff;">Weaponized</span>
                     <input type="checkbox" id="inWep">
+                </label>
+                <label class="wep-toggle">
+                    <span style="font-weight:700; color:#fff;">HSW</span>
+                    <input type="checkbox" id="inHsw">
                 </label>
             </div>
             
@@ -570,13 +604,13 @@
 
         <div class="modal-actions">
             <button class="btn-sec" onclick="closeModal('vehicleModal')">Cancel</button>
-            <button class="btn-primary" onclick="saveVehicleWrapper()">Save</button>
+            <button class="btn-pri" onclick="saveVehicleWrapper()">Save</button>
         </div>
         
         <div id="editActions" style="display:none; margin-top:20px; flex-direction:column; gap:8px; border-top:1px solid #333; padding-top:15px;">
-            <button onclick="startMove()" style="background:#2980b9; color:#fff; width:100%"><i class="fas fa-exchange-alt"></i> Move Vehicle</button>
-            <button onclick="sellVehicle()" style="background:var(--sell); color:#fff; width:100%"><i class="fas fa-dollar-sign"></i> Sell (18h Timer)</button>
-            <button onclick="deleteVehicle()" style="background:var(--wep); color:#fff; width:100%"><i class="fas fa-trash"></i> Delete Permanent</button>
+            <button class="btn-sec" onclick="startMove()" style="background:#2980b9; color:#fff; width:100%"><i class="fas fa-exchange-alt"></i> Move Vehicle</button>
+            <button class="btn-sec" onclick="sellVehicle()" style="background:var(--sell); color:#fff; width:100%"><i class="fas fa-dollar-sign"></i> Sell (18h Timer)</button>
+            <button class="btn-sec" onclick="deleteVehicle()" style="background:var(--wep); color:#fff; width:100%"><i class="fas fa-trash"></i> Delete Permanent</button>
         </div>
     </div>
 </div>
@@ -589,7 +623,7 @@
         <input type="text" id="inNickname" placeholder="Enter nickname..." style="margin-bottom:15px;">
         <div class="modal-actions">
             <button class="btn-sec" onclick="closeModal('nickModal')">Cancel</button>
-            <button class="btn-primary" onclick="saveNickname()">Save Nickname</button>
+            <button class="btn-pri" onclick="saveNickname()">Save Nickname</button>
         </div>
     </div>
 </div>
@@ -599,7 +633,9 @@
         <div class="modal-title">Garage Stats</div>
         <div class="stats-grid">
             <div class="stat-card"><span id="stTotal" class="stat-val">0</span><span class="stat-label">Total</span></div>
+            <div class="stat-card"><span id="stFav" class="stat-val" style="color:var(--fav)">0</span><span class="stat-label">Favorites</span></div>
             <div class="stat-card"><span id="stWep" class="stat-val" style="color:var(--wep)">0</span><span class="stat-label">Weapon</span></div>
+            <div class="stat-card"><span id="stHsw" class="stat-val" style="color:var(--hsw)">0</span><span class="stat-label">HSW</span></div>
             <div class="stat-card"><span id="stF1" class="stat-val" style="color:var(--f1)">0</span><span class="stat-label">F1</span></div>
             <div class="stat-card"><span id="stBenny" class="stat-val" style="color:var(--benny)">0</span><span class="stat-label">Benny</span></div>
         </div>
@@ -652,7 +688,7 @@
         <div class="modal-title">Sales History</div>
         <div id="salesHistoryList" style="max-height:300px; overflow-y:auto; margin-bottom:15px; display:flex; flex-direction:column; gap:8px;">
         </div>
-        <button class="btn-sec" style="width:100%" onclick="closeModal('salesHistoryModal')">Close</button>
+        <button class="btn-pri" style="width:100%" onclick="closeModal('salesHistoryModal')">Close</button>
     </div>
 </div>
 
@@ -664,7 +700,14 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.22 (Current)</strong><br>• Completely removed the lingering <code>crossorigin="anonymous"</code> attribute from the large detail card template. Custom Google Drive images will no longer hit a CORS block and revert to the stock fallback image.</p>
+            <p><strong>v1.60.29 (Current)</strong><br>• Added "Favorites" count to the Garage Stats window.</p>
+            <p><strong>v1.60.28</strong><br>• Optimized large vehicle detail card for mobile: implemented a grid layout for action buttons (Copy, Move, Sell, Share) to prevent overflow on small screens.<br>• Fixed blurry badges on the detail card by introducing high-fidelity <code>detail-badge</code> styling with improved font rendering and better wrapping.</p>
+            <p><strong>v1.60.27</strong><br>• Improved mobile responsiveness for Add/Edit vehicle modal by stacking Favorite, Weaponized, and HSW checkboxes vertically on small screens to prevent overflow.</p>
+            <p><strong>v1.60.26</strong><br>• Fixed "ReferenceError: gisLoadedInit/gapiLoadedInit is not defined" by moving Google library scripts to the bottom of the page, ensuring they load after the initialization functions are defined.</p>
+            <p><strong>v1.60.25</strong><br>• Fixed ID collision risk by implementing a more robust unique ID generation method.<br>• Added "HSW" to the Garage Stats dashboard.<br>• Added "Group by HSW" option to the main view dropdown.<br>• Updated About page to reflect new grouping options.</p>
+            <p><strong>v1.60.24</strong><br>• Added "HSW" (Hao's Special Works) vehicle detail to track upgraded vehicles.<br>• Added HSW checkbox to Add/Edit/Duplicate vehicle windows.<br>• Displayed HSW status as a badge on vehicle cards and a chip on detail views.<br>• Ensured consistent button styling for "Save" actions across the application.</p>
+            <p><strong>v1.60.23</strong><br>• Added safeStorage wrapper to prevent the app from crashing in restricted iframe environments or strict browser privacy modes.<br>• Added robust error handling for JSON parsing of local storage data to prevent corrupted data from breaking the app.<br>• Improved render error handling to display visible error messages instead of failing silently.</p>
+            <p><strong>v1.60.22</strong><br>• Completely removed the lingering <code>crossorigin="anonymous"</code> attribute from the large detail card template. Custom Google Drive images will no longer hit a CORS block and revert to the stock fallback image.</p>
             <p><strong>v1.60.21</strong><br>• Implemented dual-mode authentication strategy. Mobile devices no longer use background timers to refresh tokens, preventing random account picker popups. Replaced with intelligent, proactive refresh validation right before API calls and when the app wakes up.<br>• Removed aggressive forced-logout behavior. Users remain seamlessly signed in locally even if silent token refresh fails.</p>
             <p><strong>v1.60.20</strong><br>• Fixed an issue where the Google account picker would unnecessarily open on mobile whenever the app was brought back from the background by implementing a smart token validation check.<br>• Removed a lingering CORS attribute in the detail modal to stop custom images from reverting to stock images.</p>
             <p><strong>v1.60.19</strong><br>• Implemented dual-mode authentication strategy to prevent mobile account picker popups.</p>
@@ -692,6 +735,14 @@
 <div id="lightbox" onclick="this.style.display='none'"><img id="lbImg"></div>
 
 <script>
+
+    const safeStorage = {
+        getItem: function(k) { try { return window.localStorage.getItem(k); } catch(e) { return null; } },
+        setItem: function(k, v) { try { window.localStorage.setItem(k, v); } catch(e) {} },
+        removeItem: function(k) { try { window.localStorage.removeItem(k); } catch(e) {} },
+        clear: function() { try { window.localStorage.clear(); } catch(e) {} }
+    };
+
     // --- 1. CONFIG & DB ---
     const BASE_URL = "https://raw.githubusercontent.com/insomanywords/MyGTAgarage-images/main/";
     const DB_URL = BASE_URL + "vehicles.json";
@@ -699,8 +750,8 @@
     let masterDB = [];
     
     // --- MULTI-CHARACTER SETUP ---
-    let characters = JSON.parse(localStorage.getItem('gta_chars_v1')) || [{id: 'default', name: 'Character 1'}];
-    let activeCharId = localStorage.getItem('gta_active_char_v1') || 'default';
+    let _c = null; try { _c = JSON.parse(safeStorage.getItem('gta_chars_v1')); } catch(e){} let characters = Array.isArray(_c) ? _c : [{id: 'default', name: 'Character 1'}];
+    let activeCharId = safeStorage.getItem('gta_active_char_v1') || 'default';
 
     function getStorageKeys() {
         let suffix = activeCharId === 'default' ? '' : '_' + activeCharId;
@@ -714,11 +765,11 @@
     }
     
     let keys = getStorageKeys();
-    let vehicles = JSON.parse(localStorage.getItem(keys.v)) || [];
-    let floorNicknames = JSON.parse(localStorage.getItem(keys.n)) || {};
-    let lastSell = parseInt(localStorage.getItem(keys.ls)) || 0;
-    let lastSoldName = localStorage.getItem(keys.lsn) || "None";
-    let salesHistory = JSON.parse(localStorage.getItem(keys.sh)) || [];
+    let _v = null; try { _v = JSON.parse(safeStorage.getItem(keys.v)); } catch(e){} let vehicles = Array.isArray(_v) ? _v : [];
+    let _fn = null; try { _fn = JSON.parse(safeStorage.getItem(keys.n)); } catch(e){} let floorNicknames = (_fn && typeof _fn === 'object' && !Array.isArray(_fn)) ? _fn : {};
+    let lastSell = parseInt(safeStorage.getItem(keys.ls)) || 0;
+    let lastSoldName = safeStorage.getItem(keys.lsn) || "None";
+    let _sh = null; try { _sh = JSON.parse(safeStorage.getItem(keys.sh)); } catch(e){} let salesHistory = Array.isArray(_sh) ? _sh : [];
     
     let editingId = null;
     let timerInt = null;
@@ -775,9 +826,9 @@
             if (t && t.access_token) return t.access_token;
         } catch(e) {}
         
-        let storedStr = localStorage.getItem('gta_gdrive_token');
+        let storedStr = safeStorage.getItem('gta_gdrive_token');
         if (storedStr) {
-            let stored = JSON.parse(storedStr);
+            let stored = null; try { stored = JSON.parse(storedStr); } catch(e) {}
             if (stored && stored.token) return stored.token;
         }
         return null;
@@ -785,9 +836,9 @@
 
     function scheduleTokenRefresh() {
         if (refreshTimeout) clearTimeout(refreshTimeout);
-        let storedStr = localStorage.getItem('gta_gdrive_token');
+        let storedStr = safeStorage.getItem('gta_gdrive_token');
         if (storedStr) {
-            let stored = JSON.parse(storedStr);
+            let stored = null; try { stored = JSON.parse(storedStr); } catch(e) {}
             if (stored && stored.expiresAt) {
                 let timeRemaining = stored.expiresAt - Date.now();
                 let refreshIn = timeRemaining - (5 * 60 * 1000); // 5 mins before expiry
@@ -804,7 +855,7 @@
     }
 
     document.addEventListener('visibilitychange', async () => {
-        if (document.visibilityState === 'visible' && localStorage.getItem('gta_cloud_intent') === 'true') {
+        if (document.visibilityState === 'visible' && safeStorage.getItem('gta_cloud_intent') === 'true') {
             try {
                 await ensureValidToken();
             } catch (e) {
@@ -814,7 +865,7 @@
     });
 
     async function ensureValidToken() {
-        const stored = JSON.parse(localStorage.getItem('gta_gdrive_token'));
+        let stored = null; try { stored = JSON.parse(safeStorage.getItem('gta_gdrive_token')); } catch(e) {}
         if (!stored) return false;
 
         const expiresSoon = stored.expiresAt - Date.now() < (2 * 60 * 1000);
@@ -850,7 +901,7 @@
                 isRefreshingToken = null;
                 if (tokenResponse && tokenResponse.access_token) {
                     refreshFailureCount = 0;
-                    localStorage.setItem('gta_gdrive_token', JSON.stringify({
+                    safeStorage.setItem('gta_gdrive_token', JSON.stringify({
                         token: tokenResponse.access_token,
                         expiresAt: Date.now() + (tokenResponse.expires_in * 1000)
                     }));
@@ -904,7 +955,7 @@
         if (!gapiInited || !gisInited) return;
 
         let token = getActiveToken();
-        let intent = localStorage.getItem('gta_cloud_intent') === 'true';
+        let intent = safeStorage.getItem('gta_cloud_intent') === 'true';
 
         if (token && intent) {
             driveStatus = 'connected';
@@ -942,11 +993,11 @@
     function handleAuthClick() { 
         tokenClient.callback = (tokenResponse) => {
             if (tokenResponse && tokenResponse.access_token) {
-                localStorage.setItem('gta_gdrive_token', JSON.stringify({
+                safeStorage.setItem('gta_gdrive_token', JSON.stringify({
                     token: tokenResponse.access_token,
                     expiresAt: Date.now() + (tokenResponse.expires_in * 1000)
                 }));
-                localStorage.setItem('gta_cloud_intent', 'true');
+                safeStorage.setItem('gta_cloud_intent', 'true');
                 gapi.client.setToken({ access_token: tokenResponse.access_token });
                 driveStatus = 'connected';
                 if (!isMobile) scheduleTokenRefresh();
@@ -960,14 +1011,14 @@
     }
     
     function handleSignoutClick(isManual = true) {
-        const stored = JSON.parse(localStorage.getItem('gta_gdrive_token'));
+        let stored = null; try { stored = JSON.parse(safeStorage.getItem('gta_gdrive_token')); } catch(e) {}
         if (stored && stored.token) {
             try { google.accounts.oauth2.revoke(stored.token); } catch(e){}
         }
         gapi.client.setToken('');
-        localStorage.removeItem('gta_gdrive_token');
+        safeStorage.removeItem('gta_gdrive_token');
         if (isManual) {
-            localStorage.removeItem('gta_cloud_intent');
+            safeStorage.removeItem('gta_cloud_intent');
         }
         hasDoneInitialSync = false;
         driveStatus = 'disconnected';
@@ -1051,7 +1102,7 @@
                 });
                 
                 let cloudData = resGet.result;
-                if(typeof cloudData === 'string') cloudData = JSON.parse(cloudData);
+                if(typeof cloudData === 'string') { try { cloudData = JSON.parse(cloudData); } catch(e) { cloudData = null; } }
                 
                 const localDataStr = JSON.stringify({ vehicles: vehicles, nicknames: floorNicknames, lastSell: lastSell, lastSoldName: lastSoldName, salesHistory: salesHistory });
                 const cloudDataStr = JSON.stringify({ vehicles: cloudData.vehicles || [], nicknames: cloudData.nicknames || {}, lastSell: cloudData.lastSell || 0, lastSoldName: cloudData.lastSoldName || "None", salesHistory: cloudData.salesHistory || [] });
@@ -1232,7 +1283,7 @@
                     params: { alt: 'media' }
                 });
                 let data = resGet.result;
-                if(typeof data === 'string') data = JSON.parse(data);
+                if(typeof data === 'string') { try { data = JSON.parse(data); } catch(e) { data = null; } }
                 vehicles = data.vehicles || [];
                 floorNicknames = data.nicknames || {};
                 lastSell = data.lastSell || 0;
@@ -1319,7 +1370,7 @@
         list.innerHTML = characters.map(c => `
             <div style="display:flex; gap:8px;">
                 <input type="text" id="editChar_${c.id}" value="${c.name}" style="margin-bottom:0; flex:1;">
-                <button class="btn-sec" style="flex-shrink:0; padding:0 12px;" onclick="updateCharName('${c.id}')">Save</button>
+                <button class="btn-pri" style="flex-shrink:0; padding:0 12px;" onclick="updateCharName('${c.id}')">Save</button>
                 ${canDelete ? `<button class="btn-sec" style="flex-shrink:0; padding:0 12px; color: var(--wep); border-color: rgba(239,68,68,0.5);" onclick="deleteCharacter('${c.id}')"><i class="fas fa-trash"></i></button>` : ''}
             </div>
         `).join('');
@@ -1335,7 +1386,7 @@
         if (oldName === newName) return;
 
         c.name = newName;
-        localStorage.setItem('gta_chars_v1', JSON.stringify(characters));
+        safeStorage.setItem('gta_chars_v1', JSON.stringify(characters));
         updateFooterCharName();
 
         let token = getActiveToken();
@@ -1361,7 +1412,7 @@
         if(!val) return;
         const newId = 'char_' + Date.now();
         characters.push({id: newId, name: val});
-        localStorage.setItem('gta_chars_v1', JSON.stringify(characters));
+        safeStorage.setItem('gta_chars_v1', JSON.stringify(characters));
         document.getElementById('newCharName').value = '';
         renderSettingsChars();
         showSuccess("Added", "New character added.");
@@ -1375,14 +1426,14 @@
         openConfirm("Delete Character", `Are you sure you want to delete <strong>${c.name}</strong> and all their vehicles? This cannot be undone.`, async () => {
             const charName = c.name;
             characters = characters.filter(x => x.id !== id);
-            localStorage.setItem('gta_chars_v1', JSON.stringify(characters));
+            safeStorage.setItem('gta_chars_v1', JSON.stringify(characters));
             
             let suffix = id === 'default' ? '' : '_' + id;
-            localStorage.removeItem('gta_vehicles_v1' + suffix);
-            localStorage.removeItem('gta_nicknames_v1' + suffix);
-            localStorage.removeItem('gta_last_sale' + suffix);
-            localStorage.removeItem('gta_last_sold_name' + suffix);
-            localStorage.removeItem('gta_sales_history_v1' + suffix);
+            safeStorage.removeItem('gta_vehicles_v1' + suffix);
+            safeStorage.removeItem('gta_nicknames_v1' + suffix);
+            safeStorage.removeItem('gta_last_sale' + suffix);
+            safeStorage.removeItem('gta_last_sold_name' + suffix);
+            safeStorage.removeItem('gta_sales_history_v1' + suffix);
             
             let token = getActiveToken();
             if (gapiInited && token && driveFolders.root) {
@@ -1421,13 +1472,13 @@
 
     async function switchChar(id) {
         activeCharId = id;
-        localStorage.setItem('gta_active_char_v1', id);
+        safeStorage.setItem('gta_active_char_v1', id);
         keys = getStorageKeys();
-        vehicles = JSON.parse(localStorage.getItem(keys.v)) || [];
-        floorNicknames = JSON.parse(localStorage.getItem(keys.n)) || {};
-        lastSell = parseInt(localStorage.getItem(keys.ls)) || 0;
-        lastSoldName = localStorage.getItem(keys.lsn) || "None";
-        salesHistory = JSON.parse(localStorage.getItem(keys.sh)) || [];
+        let _v2 = null; try { _v2 = JSON.parse(safeStorage.getItem(keys.v)); } catch(e){} vehicles = Array.isArray(_v2) ? _v2 : [];
+        let _fn2 = null; try { _fn2 = JSON.parse(safeStorage.getItem(keys.n)); } catch(e){} floorNicknames = (_fn2 && typeof _fn2 === 'object' && !Array.isArray(_fn2)) ? _fn2 : {};
+        lastSell = parseInt(safeStorage.getItem(keys.ls)) || 0;
+        lastSoldName = safeStorage.getItem(keys.lsn) || "None";
+        let _sh2 = null; try { _sh2 = JSON.parse(safeStorage.getItem(keys.sh)); } catch(e){} salesHistory = Array.isArray(_sh2) ? _sh2 : [];
         updateFooterCharName();
         render();
         updateTimerLogic();
@@ -1459,7 +1510,7 @@
                     } catch(e) { console.error("Cloud delete failed", e); }
                 }
             }
-            localStorage.clear(); location.reload(); 
+            safeStorage.clear(); location.reload(); 
         });
     }
 
@@ -1584,6 +1635,7 @@
 
     // --- RENDER LOGIC ---
     function render() {
+        try {
         let expandedGroups = [];
         let expandedFloors = [];
         document.querySelectorAll('.group-header:not(.collapsed)').forEach(el => {
@@ -1621,6 +1673,7 @@
                 else if (mode === 'wheels') k = v.wheels || 'Stock';
                 else if (mode === 'plates') k = v.plate || 'Standard';
                 else if (mode === 'weaponized') k = v.isWeapon ? 'Weaponized' : 'Standard';
+                else if (mode === 'hsw') k = v.isHsw ? 'HSW Upgraded' : 'Standard';
                 if(!groups[k]) groups[k] = []; groups[k].push(v); 
             });
             Object.keys(groups).sort().forEach(k => {
@@ -1716,6 +1769,7 @@
                 list.appendChild(head); list.appendChild(grid);
             });
         }
+        } catch(e) { console.error('Render error:', e); document.getElementById('vehicle-list').innerHTML = '<div style="color:red;padding:20px;">Error rendering vehicles: ' + e.message + '</div>'; }
     }
 
     function createCard(v) {
@@ -1730,6 +1784,7 @@
         let badges = "";
         if(v.isFav) badges += `<span class="badge fav"><i class="fas fa-heart"></i></span>`; 
         if(v.isWeapon) badges += `<span class="badge w">WEAPONIZED</span> `;
+        if(v.isHsw) badges += `<span class="badge hsw">HSW</span> `;
         if(v.wheels === 'F1') badges += `<span class="badge f">F1</span>`;
         if(v.wheels?.includes('Benny')) badges += `<span class="badge b">BENNY'S</span> `;
         if(v.plate && v.plate !== 'Standard') {
@@ -1757,7 +1812,7 @@
                     <div class="card-manuf">${v.manuf}</div>
                     <div class="card-model">${v.model}</div>
                 </div>
-                <div class="card-chips"><span class="chip"><i class="fas fa-tag"></i> ${displayClass}</span><span class="chip"><i class="fas fa-cog"></i> ${db.drive||v.drive||'-'}</span><span class="chip"><i class="fas fa-user"></i> ${db.seats||v.seats||'2'}</span></div>
+                <div class="card-chips"><span class="chip"><i class="fas fa-tag"></i> ${displayClass}</span><span class="chip"><i class="fas fa-cog"></i> ${db.drive||v.drive||'-'}</span><span class="chip"><i class="fas fa-user"></i> ${db.seats||v.seats||'2'}</span>${v.isHsw ? `<span class="chip"><i class="fas fa-tachometer-alt"></i> HSW</span>` : ''}</div>
                 <div class="card-loc"><i class="fas fa-warehouse"></i><div class="loc-text"><span>${v.loc} <span class="loc-nick">${nickname}</span></span>${v.floor ? `<span class="loc-floor">${v.floor}${v.slot ? ` (Slot ${v.slot})` : ''}</span>` : ''}</div></div>
                 ${notesHtml}
             </div>
@@ -1774,11 +1829,12 @@
         if (v.driveImageId) img = `https://drive.google.com/thumbnail?id=${v.driveImageId}&sz=w1000`;
         
         let badges = "";
-        if(v.isFav) badges += `<span class="badge fav"><i class="fas fa-heart"></i> FAVORITE</span> `;
-        if(v.isWeapon) badges += `<span class="badge w">WEAPONIZED</span> `;
-        if(v.wheels === 'F1') badges += `<span class="badge f">F1 WHEELS</span> `;
-        if(v.wheels?.includes('Benny')) badges += `<span class="badge b">BENNY'S</span> `;
-        if(v.plate && v.plate !== 'Standard') badges += `<span class="badge">${v.plate} PLATE</span>`;
+        if(v.isFav) badges += `<span class="detail-badge fav"><i class="fas fa-heart"></i> FAVORITE</span> `;
+        if(v.isWeapon) badges += `<span class="detail-badge w">WEAPONIZED</span> `;
+        if(v.isHsw) badges += `<span class="detail-badge hsw">HSW UPGRADED</span> `;
+        if(v.wheels === 'F1') badges += `<span class="detail-badge f">F1 WHEELS</span> `;
+        if(v.wheels?.includes('Benny')) badges += `<span class="detail-badge b">BENNY'S</span> `;
+        if(v.plate && v.plate !== 'Standard') badges += `<span class="detail-badge">${v.plate} PLATE</span>`;
         
         let priceHtml = "";
         if(v.lscmPrice || v.sellPrice) {
@@ -1795,8 +1851,8 @@
                 <div class="detail-title" style="margin-bottom:0;">${v.model}</div>
                 <button id="detailEditBtn" class="action-btn" style="color:#fff; background:rgba(255,255,255,0.1); border-radius:6px; margin-left:10px; flex-shrink:0;" onclick="closeModal('detailModal'); editVehicle(${v.id})"><i class="fas fa-pencil-alt"></i></button>
             </div>
-            <div style="margin-bottom:15px;">${badges}</div>
-            <div class="detail-row"><span class="detail-chip"><i class="fas fa-tag"></i> ${(db.class||v.class||'-').replace(/_/g, ' ')}</span><span class="detail-chip"><i class="fas fa-cog"></i> ${db.drive||v.drive||'-'}</span><span class="detail-chip"><i class="fas fa-user"></i> ${db.seats||v.seats||'2'} Seats</span></div>
+            <div style="margin-bottom:15px; display:flex; flex-wrap:wrap; gap:5px;">${badges}</div>
+            <div class="detail-row"><span class="detail-chip"><i class="fas fa-tag"></i> ${(db.class||v.class||'-').replace(/_/g, ' ')}</span><span class="detail-chip"><i class="fas fa-cog"></i> ${db.drive||v.drive||'-'}</span><span class="detail-chip"><i class="fas fa-user"></i> ${db.seats||v.seats||'2'} Seats</span>${v.isHsw ? `<span class="detail-chip"><i class="fas fa-tachometer-alt"></i> HSW</span>` : ''}</div>
             <div class="detail-loc"><div style="font-size:0.8rem; color:#888; margin-bottom:4px;">LOCATION</div><div style="font-weight:bold; font-size:1.1rem; color:#fff;">${v.loc}</div>${v.floor ? `<div style="color:var(--accent); margin-top:2px;">${v.floor} ${v.slot ? `(Slot ${v.slot})` : ''}</div>` : ''}</div>
             ${priceHtml}
             ${v.notes ? `<div class="detail-notes">"${v.notes}"</div>` : ''}
@@ -1976,6 +2032,7 @@
         document.getElementById('inSlot').value = v.slot||"";
         document.getElementById('inWep').checked = v.isWeapon;
         document.getElementById('inFav').checked = v.isFav || false; 
+        document.getElementById('inHsw').checked = v.isHsw || false; 
         document.getElementById('inWheels').value = v.wheels||"Stock";
         document.getElementById('inPlate').value = v.plate||"Standard";
         
@@ -2020,6 +2077,7 @@
         document.getElementById('inSlot').value = ""; // Clear slot number
         document.getElementById('inWep').checked = v.isWeapon;
         document.getElementById('inFav').checked = v.isFav || false; 
+        document.getElementById('inHsw').checked = v.isHsw || false; 
         document.getElementById('inWheels').value = v.wheels||"Stock";
         document.getElementById('inPlate').value = v.plate||"Standard";
         
@@ -2209,10 +2267,11 @@
     function executeSave(manuf, model, loc, floor) {
         const db = masterDB.find(d => d.model === model) || {};
         const car = {
-            id: editingId || Date.now(), manuf, model, loc, floor: floor,
+            id: editingId || (Date.now() + "_" + Math.random().toString(36).substr(2, 9)), manuf, model, loc, floor: floor,
             slot: document.getElementById('inSlot').value,
             isFav: document.getElementById('inFav').checked, 
             isWeapon: document.getElementById('inWep').checked,
+            isHsw: document.getElementById('inHsw').checked,
             wheels: document.getElementById('inWheels').value,
             plate: document.getElementById('inPlate').value,
             lscmPrice: document.getElementById('inLscmPrice').value.replace(/\D/g, ''),
@@ -2228,10 +2287,10 @@
     }
 
     function saveGarage() {
-        localStorage.setItem(keys.v, JSON.stringify(vehicles));
-        localStorage.setItem(keys.ls, lastSell);
-        localStorage.setItem(keys.lsn, lastSoldName);
-        localStorage.setItem(keys.sh, JSON.stringify(salesHistory));
+        safeStorage.setItem(keys.v, JSON.stringify(vehicles));
+        safeStorage.setItem(keys.ls, lastSell);
+        safeStorage.setItem(keys.lsn, lastSoldName);
+        safeStorage.setItem(keys.sh, JSON.stringify(salesHistory));
         render(); updateTimerLogic();
         syncToCloud();
     }
@@ -2264,14 +2323,16 @@
         
         const val = document.getElementById('inNickname').value.trim();
         if(val) floorNicknames[key] = val; else delete floorNicknames[key];
-        localStorage.setItem(keys.n, JSON.stringify(floorNicknames));
+        safeStorage.setItem(keys.n, JSON.stringify(floorNicknames));
         closeModal('nickModal'); render(); syncToCloud();
     }
 
     function openStats() {
         openModal('statsModal');
         document.getElementById('stTotal').innerText = vehicles.length;
+        document.getElementById('stFav').innerText = vehicles.filter(v=>v.isFav).length || 0;
         document.getElementById('stWep').innerText = vehicles.filter(v=>v.isWeapon).length || 0;
+        document.getElementById('stHsw').innerText = vehicles.filter(v=>v.isHsw).length || 0;
         document.getElementById('stF1').innerText = vehicles.filter(v=>v.wheels==='F1').length || 0;
         document.getElementById('stBenny').innerText = vehicles.filter(v=>v.wheels?.includes('Benny')).length || 0;
         const bCounts = {}; vehicles.forEach(v => { const b = v.manuf || 'Unk'; bCounts[b] = (bCounts[b]||0)+1; });
@@ -2450,6 +2511,7 @@
         document.getElementById('inSlot').value = "";
         document.getElementById('inWep').checked = false;
         document.getElementById('inFav').checked = false; 
+        document.getElementById('inHsw').checked = false; 
         document.getElementById('inWheels').value = "Stock";
         document.getElementById('inPlate').value = "Standard";
         
@@ -2468,7 +2530,7 @@
             let t = gapi.client.getToken(); 
             if (t) token = true;
         } catch(e) {}
-        if (!token && localStorage.getItem('gta_gdrive_token')) token = true;
+        if (!token && safeStorage.getItem('gta_gdrive_token')) token = true;
         
         document.getElementById('cloudImgWarn').style.display = (gapiInited && token) ? 'block' : 'none';
         
@@ -2489,7 +2551,7 @@
     function restoreBackup(i) { const f=i.files[0]; if(!f) return; 
         const r=new FileReader(); 
         r.onload=e=>{ 
-            let data = JSON.parse(e.target.result);
+            let data = null; try { data = JSON.parse(e.target.result); } catch(err) { openAlert('Error', 'Invalid backup file'); return; }
             if (Array.isArray(data)) {
                 vehicles = data;
             } else {
@@ -2517,7 +2579,7 @@
                     } catch(e) { console.error("Cloud delete failed", e); }
                 }
             }
-            localStorage.clear(); location.reload(); 
+            safeStorage.clear(); location.reload(); 
         });
     }
     function handleImgError(i, s) { 
@@ -2532,6 +2594,9 @@
     window.onclick = e => { if(e.target.className === 'modal') e.target.style.display = 'none'; }
     function checkCustomModel() { document.getElementById('inModelCustom').style.display = document.getElementById('inModel').value==='Custom'?'block':'none'; }
 </script>
+
+<script src="https://accounts.google.com/gsi/client" async defer onload="gisLoadedInit()"></script>
+<script src="https://apis.google.com/js/api.js" async defer onload="gapiLoadedInit()"></script>
 
 </body>
 </html>
