@@ -6,13 +6,14 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.33</title>
+    <title>My GTA Garage v1.60.40</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         :root {
@@ -60,6 +61,7 @@
         }
 
         .header-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .header-actions .btn-sec i, .header-actions .btn-sec, .header-actions .timer-btn { font-size: 1.2rem; }
 
         @media (max-width: 450px) { h1 { display: none; } .header-logo-img { display: block; } }
 
@@ -245,6 +247,7 @@
         /* DASHBOARD */
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
         @media (min-width: 450px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 600px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
         .stat-card { background: #252525; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #333; display: flex; flex-direction: column; justify-content: center; }
         .stat-val { font-size: 1.4rem; font-weight: 800; display: block; color: var(--accent); }
         .stat-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; margin-top: 4px; }
@@ -283,6 +286,7 @@
         <div class="header-actions">
             <button id="timerBtn" class="timer-btn" onclick="openTimerModal()">💲</button>
             <button class="btn-sec" style="width:44px" onclick="openStats()">📊</button>
+            <button class="btn-sec" style="width:44px" onclick="openPdfExportModal()" title="Export PDF"><i class="fas fa-file-pdf"></i></button>
             <button id="cloudHeaderBtn" class="btn-sec" style="width:44px" onclick="handleHeaderCloudClick()" title="Cloud Sync"><i class="fas fa-cloud" style="color: #aaa;"></i></button>
         </div>
     </header>
@@ -426,9 +430,58 @@
     </div>
 </div>
 
+<div id="pdfExportModal" class="modal">
+    <div class="modal-box">
+        <div class="modal-title">Export to PDF</div>
+        <div class="form-group">
+            <span class="label">Select Garage</span>
+            <select id="pdfGarageSelect" onchange="updatePdfFloorSelect()">
+                <option value="all">All Garages</option>
+            </select>
+        </div>
+        <div class="form-group" id="pdfFloorGroup" style="display:none;">
+            <span class="label">Select Floor</span>
+            <select id="pdfFloorSelect">
+                <option value="all">All Floors</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <span class="label">Export Type</span>
+            <select id="pdfExportType">
+                <option value="small">Small Vehicle Cards</option>
+                <option value="large">Large Detail Cards</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-sec" onclick="closeModal('pdfExportModal')">Cancel</button>
+            <button class="btn-pri" onclick="startPdfExport()">Export to PDF</button>
+        </div>
+    </div>
+</div>
+
+<div id="pdfGeneratingModal" class="modal">
+    <div class="modal-box" style="text-align:center;">
+        <div style="font-size:3rem; margin-bottom:10px;"><i class="fas fa-file-pdf fa-spin" style="color:var(--accent);"></i></div>
+        <h2 style="margin:0 0 10px 0; color:#fff;">Generating PDF...</h2>
+        <p style="color:#ccc; font-size:0.95rem; line-height:1.5;">Please wait while we prepare your collection.</p>
+    </div>
+</div>
+
+<div id="pdfReadyModal" class="modal">
+    <div class="modal-box" style="text-align:center;">
+        <div style="font-size:3rem; margin-bottom:10px;">📄</div>
+        <h2 style="margin:0 0 10px 0; color:#fff;">PDF Ready</h2>
+        <p style="color:#ccc; font-size:0.95rem; line-height:1.5;">Your vehicle collection PDF has been generated.</p>
+        <div class="modal-actions">
+            <button class="btn-sec" onclick="closeModal('pdfReadyModal')">Cancel</button>
+            <button class="btn-pri" id="pdfDownloadBtn">Download</button>
+        </div>
+    </div>
+</div>
+
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.33</div>
+        <div class="modal-title">About My GTA Garage v1.60.40</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -749,7 +802,12 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.33 (Current)</strong><br>• Added "Drift" and "Imani Tech" vehicle options.<br>• New grouping modes for Drift and Imani Tech.<br>• Added Drift and Imani Tech counts to Garage Stats.<br>• Optimized checkbox layout in vehicle modals for better responsiveness on all devices.<br>• Added "Weaponized" status chip to vehicle cards and detail views for better visibility.</p>
+            <p><strong>v1.60.40 (Current)</strong><br>• Fixed missing Weapon, HSW, Drift, and Imani chips on PDF large detail cards.<br>• Corrected aspect ratio distortion for large vehicle cards in PDF export.</p>
+            <p><strong>v1.60.39</strong><br>• Updated PDF large detail cards to a 2-column layout for better space utilization.</p>
+            <p><strong>v1.60.38</strong><br>• Redesigned PDF header with platform logos, text, and gamertag.<br>• Added option to export small vehicle cards or large detail cards to PDF.</p>
+            <p><strong>v1.60.37</strong><br>• Removed edit buttons and external links from PDF vehicle cards for a cleaner look.<br>• Increased header button icon sizes for better visibility.</p>
+            <p><strong>v1.60.36</strong><br>• Enhanced PDF visual design by matching the background color to the dark theme of the app (#1e1e1e).<br>• Improved overall PDF aesthetics for digital viewing.</p>
+            <p><strong>v1.60.33</strong><br>• Added "Drift" and "Imani Tech" vehicle options.<br>• New grouping modes for Drift and Imani Tech.<br>• Added Drift and Imani Tech counts to Garage Stats.<br>• Optimized checkbox layout in vehicle modals for better responsiveness on all devices.<br>• Added "Weaponized" status chip to vehicle cards and detail views for better visibility.</p>
             <p><strong>v1.60.32</strong><br>• Improved platform identification on snapshots by displaying the specific platform name alongside the logo (e.g., PS5, Xbox Series) to avoid confusion between identical brand icons.</p>
             <p><strong>v1.60.31</strong><br>• Added "Gamertag & Platform" settings per character.<br>• Display gamertag and platform icon on shared vehicle card snapshots.<br>• Added option to toggle gamertag visibility on snapshots.</p>
             <p><strong>v1.60.30</strong><br>• Added a "Save Image" button to the Snapshot Ready modal, allowing users to directly download vehicle cards locally.</p>
@@ -2476,6 +2534,251 @@
         document.getElementById('usageTxt').innerText = `${vehicles.length} / ${tCap}`;
         document.getElementById('stEmptySlots').innerText = Math.max(0, tCap - vehicles.length);
         document.getElementById('usageBar').style.width = Math.min((vehicles.length/(tCap||1))*100, 100) + "%";
+    }
+
+    function openPdfExportModal() {
+        const select = document.getElementById('pdfGarageSelect');
+        select.innerHTML = '<option value="all">All Garages</option>';
+        
+        const garages = [...new Set(vehicles.map(v => v.loc))].sort();
+        garages.forEach(g => {
+            const opt = document.createElement('option');
+            opt.value = g;
+            opt.textContent = g;
+            select.appendChild(opt);
+        });
+        
+        updatePdfFloorSelect();
+        openModal('pdfExportModal');
+    }
+
+    function updatePdfFloorSelect() {
+        const gSelect = document.getElementById('pdfGarageSelect');
+        const fSelect = document.getElementById('pdfFloorSelect');
+        const fGroup = document.getElementById('pdfFloorGroup');
+        
+        if (gSelect.value === 'all') {
+            fGroup.style.display = 'none';
+            return;
+        }
+        
+        fGroup.style.display = 'block';
+        fSelect.innerHTML = '<option value="all">All Floors</option>';
+        
+        const floors = [...new Set(vehicles.filter(v => v.loc === gSelect.value).map(v => v.floor || "Main Floor"))].sort();
+        if (floors.length <= 1 && floors[0] === "Main Floor") {
+            fGroup.style.display = 'none';
+            return;
+        }
+        
+        floors.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f;
+            opt.textContent = f;
+            fSelect.appendChild(opt);
+        });
+    }
+
+    async function startPdfExport() {
+        const garage = document.getElementById('pdfGarageSelect').value;
+        const floor = document.getElementById('pdfFloorSelect').value;
+        const exportType = document.getElementById('pdfExportType').value;
+        
+        closeModal('pdfExportModal');
+        openModal('pdfGeneratingModal');
+        
+        let filtered = vehicles;
+        if (garage !== 'all') {
+            filtered = filtered.filter(v => v.loc === garage);
+            if (floor !== 'all') {
+                filtered = filtered.filter(v => (v.floor || "Main Floor") === floor);
+            }
+        }
+        
+        if (filtered.length === 0) {
+            alert("No vehicles found for the selected criteria.");
+            closeModal('pdfGeneratingModal');
+            return;
+        }
+
+        filtered.sort((a, b) => {
+            if (a.loc !== b.loc) return a.loc.localeCompare(b.loc);
+            const fa = a.floor || "Main Floor";
+            const fb = b.floor || "Main Floor";
+            return fa.localeCompare(fb);
+        });
+
+        try {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const margin = 10;
+            
+            const cardWidth = exportType === 'large' ? 92.5 : 90; 
+            const cardHeight = exportType === 'large' ? 110 : 30; 
+            const gap = 5;
+            const cardsPerRow = Math.floor((pageWidth - 2 * margin + gap) / (cardWidth + gap));
+            
+            const addBg = () => {
+                pdf.setFillColor(30, 30, 30); // #1e1e1e
+                pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+            };
+            addBg();
+            
+            const headerImg = await createPdfHeader();
+            const headerHeight = 25; 
+            pdf.addImage(headerImg, 'JPEG', 0, 0, pageWidth, headerHeight);
+            
+            const container = document.createElement('div');
+            container.style.position = 'absolute';
+            container.style.left = '-9999px';
+            container.style.top = '0';
+            container.style.width = exportType === 'large' ? '500px' : '400px'; 
+            document.body.appendChild(container);
+
+            let currentX = margin;
+            let currentY = headerHeight + gap;
+            let cardCount = 0;
+
+            for (const v of filtered) {
+                container.innerHTML = '';
+                const card = exportType === 'large' ? createDetailCard(v) : createCard(v);
+                
+                const actions = card.querySelector('.card-actions-top') || card.querySelector('#detailEditBtn');
+                if (actions) actions.style.display = 'none';
+                
+                card.style.width = exportType === 'large' ? '480px' : '380px';
+                card.style.margin = '0';
+                container.appendChild(card);
+                
+                const canvas = await html2canvas(card, {
+                    backgroundColor: '#1e1e1e',
+                    scale: 2,
+                    logging: false,
+                    useCORS: true
+                });
+                
+                const imgData = canvas.toDataURL('image/jpeg', 0.8);
+                const actualCardHeight = (canvas.height * cardWidth) / canvas.width;
+                
+                if (cardCount > 0 && cardCount % cardsPerRow === 0) {
+                    currentX = margin;
+                    currentY += actualCardHeight + gap;
+                } else if (cardCount > 0) {
+                    currentX += cardWidth + gap;
+                }
+                
+                if (currentY + actualCardHeight > pageHeight - margin) {
+                    pdf.addPage();
+                    addBg();
+                    currentY = margin;
+                    currentX = margin;
+                }
+                
+                pdf.addImage(imgData, 'JPEG', currentX, currentY, cardWidth, actualCardHeight);
+                cardCount++;
+            }
+            
+            document.body.removeChild(container);
+            
+            closeModal('pdfGeneratingModal');
+            openModal('pdfReadyModal');
+            
+            const char = characters.find(c => c.id === activeCharId) || { name: 'Character' };
+            document.getElementById('pdfDownloadBtn').onclick = () => {
+                pdf.save(`GTA_Garage_${char.name}_${new Date().toISOString().slice(0,10)}.pdf`);
+                closeModal('pdfReadyModal');
+            };
+            
+        } catch (err) {
+            console.error("PDF Generation Error:", err);
+            alert("An error occurred while generating the PDF.");
+            closeModal('pdfGeneratingModal');
+        }
+    }
+
+    function createDetailCard(v) {
+        if (!v) return null;
+        const db = masterDB.find(d => d.model === v.model) || {};
+        const spawn = db.spawn || v.spawn || "";
+        let img = spawn ? `${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png` : "";
+        if (v.driveImageId) img = `https://drive.google.com/thumbnail?id=${v.driveImageId}&sz=w1000`;
+
+        let badges = "";
+        if(v.isFav) badges += `<span class="detail-badge fav"><i class="fas fa-heart"></i> FAVORITE</span> `;
+        if(v.isWeapon) badges += `<span class="detail-badge w">WEAPONIZED</span> `;
+        if(v.isHsw) badges += `<span class="detail-badge hsw">HSW UPGRADED</span> `;
+        if(v.isDrift) badges += `<span class="detail-badge drift">DRIFT TUNED</span> `;
+        if(v.isImani) badges += `<span class="detail-badge imani">IMANI TECH</span> `;
+        if(v.wheels === 'F1') badges += `<span class="detail-badge f">F1 WHEELS</span> `;
+        if(v.wheels?.includes('Benny')) badges += `<span class="detail-badge b">BENNY'S</span> `;
+        if(v.plate && v.plate !== 'Standard') badges += `<span class="detail-badge">${v.plate} PLATE</span>`;
+
+        let priceHtml = "";
+        if(v.lscmPrice || v.sellPrice) {
+            priceHtml = `<div style="display:flex; gap:15px; margin-bottom:15px; border-top:1px solid #333; padding-top:15px;">`;
+            if(v.lscmPrice) priceHtml += `<div><div style="font-size:0.75rem; color:#888;">LSCM PRICE</div><div style="color:var(--f1); font-weight:bold;">$${Number(v.lscmPrice).toLocaleString('en-US')}</div></div>`;
+            if(v.sellPrice) priceHtml += `<div><div style="font-size:0.75rem; color:#888;">SELL PRICE</div><div style="color:var(--sell); font-weight:bold;">$${Number(v.sellPrice).toLocaleString('en-US')}</div></div>`;
+            priceHtml += `</div>`;
+        }
+
+        const div = document.createElement('div');
+        div.style.cssText = 'background:#1e1e1e; width:100%; padding:20px; border-radius:12px; border:1px solid #333; color:#fff; font-family:Inter, sans-serif;';
+
+        div.innerHTML = `
+            <div class="detail-img-box" style="height:200px; margin-bottom:15px; background:#000; border-radius:8px; display:flex; align-items:center; justify-content:center; overflow:hidden; border:1px solid #333;"><img src="${img}" class="detail-img" style="max-width:100%; max-height:100%; object-fit:contain;"></div>
+            <div class="detail-manuf" style="color:var(--accent); font-weight:700; text-transform:uppercase; font-size:0.9rem; margin-bottom:5px;">${v.manuf}</div>
+            <div class="detail-title" style="font-size:1.8rem; font-weight:800; margin-bottom:10px; color:#fff;">${v.model}</div>
+            <div style="margin-bottom:15px; display:flex; flex-wrap:wrap; gap:5px;">${badges}</div>
+            <div class="detail-row" style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+                <span class="detail-chip" style="background:#252525; padding:6px 12px; border-radius:6px; font-size:0.85rem; border:1px solid #333; color:#ddd; display:flex; align-items:center; gap:6px;"><i class="fas fa-tag"></i> ${(db.class||v.class||'-').replace(/_/g, ' ')}</span>
+                <span class="detail-chip" style="background:#252525; padding:6px 12px; border-radius:6px; font-size:0.85rem; border:1px solid #333; color:#ddd; display:flex; align-items:center; gap:6px;"><i class="fas fa-cog"></i> ${db.drive||v.drive||'-'}</span>
+                <span class="detail-chip" style="background:#252525; padding:6px 12px; border-radius:6px; font-size:0.85rem; border:1px solid #333; color:#ddd; display:flex; align-items:center; gap:6px;"><i class="fas fa-user"></i> ${db.seats||v.seats||'2'} Seats</span>
+                ${v.isWeapon ? `<span class="detail-chip" style="background:#252525; padding:6px 12px; border-radius:6px; font-size:0.85rem; border:1px solid #333; color:#ddd; display:flex; align-items:center; gap:6px;"><i class="fas fa-crosshairs"></i> Weapon</span>` : ''}
+                ${v.isHsw ? `<span class="detail-chip" style="background:#252525; padding:6px 12px; border-radius:6px; font-size:0.85rem; border:1px solid #333; color:#ddd; display:flex; align-items:center; gap:6px;"><i class="fas fa-tachometer-alt"></i> HSW</span>` : ''}
+                ${v.isDrift ? `<span class="detail-chip" style="background:#252525; padding:6px 12px; border-radius:6px; font-size:0.85rem; border:1px solid #333; color:#ddd; display:flex; align-items:center; gap:6px;"><i class="fas fa-wind"></i> Drift</span>` : ''}
+                ${v.isImani ? `<span class="detail-chip" style="background:#252525; padding:6px 12px; border-radius:6px; font-size:0.85rem; border:1px solid #333; color:#ddd; display:flex; align-items:center; gap:6px;"><i class="fas fa-shield-alt"></i> Imani</span>` : ''}
+            </div>
+            <div class="detail-loc" style="background:#1a1a1a; padding:15px; border-radius:8px; border:1px solid #333; margin-bottom:15px;">
+                <div style="font-size:0.8rem; color:#888; margin-bottom:4px;">LOCATION</div>
+                <div style="font-weight:bold; font-size:1.1rem; color:#fff;">${v.loc}</div>
+                ${v.floor ? `<div style="color:var(--accent); margin-top:2px;">${v.floor} ${v.slot ? `(Slot ${v.slot})` : ''}</div>` : ''}
+            </div>
+            ${priceHtml}
+            ${v.notes ? `<div class="detail-notes" style="background:rgba(233, 30, 99, 0.1); border-left:3px solid var(--fav); padding:15px; border-radius:4px; color:#ddd; font-style:italic; line-height:1.5;">"${v.notes}"</div>` : ''}
+        `;
+        return div;
+    }
+
+    async function createPdfHeader() {
+        const char = characters.find(c => c.id === activeCharId) || { name: 'Character', gamertag: '', platform: 'PC' };
+        const header = document.createElement('div');
+        header.style.cssText = 'background:#1e1e1e; padding:30px; border-bottom:1px solid #333; color:#fff; font-family:Inter, sans-serif; width:1200px; display:flex; justify-content:space-between; align-items:center;';
+        
+        let platformIcon = 'fab fa-windows';
+        if (char.platform === 'Xbox One' || char.platform === 'Xbox Series') platformIcon = 'fab fa-xbox';
+        else if (char.platform === 'PS4' || char.platform === 'PS5') platformIcon = 'fab fa-playstation';
+        else if (char.platform === 'Nintendo Switch') platformIcon = 'fab fa-nintendo-switch';
+
+        header.innerHTML = `
+            <div>
+                <div style="font-size:36px; font-weight:900; color:var(--accent); text-transform:uppercase; letter-spacing:-1px; margin-bottom:4px;">My GTA Garage</div>
+                <div style="font-size:18px; color:#888; font-weight:600;">${char.name}'s Collection</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:20px; background:#252525; padding:15px 30px; border-radius:12px; border:1px solid #333;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i class="${platformIcon}" style="font-size:28px; color:var(--accent);"></i>
+                    <span style="font-weight:800; font-size:20px; text-transform:uppercase;">${char.platform}</span>
+                </div>
+                ${char.gamertag ? `<div style="width:2px; height:30px; background:#444;"></div><div style="font-weight:800; font-size:20px; color:#fff; letter-spacing:0.5px;">${char.gamertag}</div>` : ''}
+            </div>
+        `;
+        
+        document.body.appendChild(header);
+        const canvas = await html2canvas(header, { backgroundColor: '#1e1e1e', scale: 2 });
+        document.body.removeChild(header);
+        return canvas.toDataURL('image/jpeg', 0.9);
     }
 
     function updateTimerLogic() {
