@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.32</title>
+    <title>My GTA Garage v1.60.33</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -20,6 +20,7 @@
             --text: #ffffff; --text-dim: #a0a0a0; --accent: #9b59b6;
             --wep: #ef4444; --f1: #f59e0b; --benny: #3b82f6; --sell: #22c55e; --timer: #f97316;
             --fav: #e91e63; --hsw: #a855f7;
+            --drift: #0ea5e9; --imani: #10b981;
             --border: #333; --radius: 8px;
             
             /* Plates */
@@ -143,6 +144,8 @@
         .badge.b { background: var(--benny); border-color: var(--benny); }
         .badge.fav { background: var(--fav); border-color: var(--fav); color: #fff; padding: 2px 6px; } 
         .badge.hsw { background: var(--hsw); border-color: var(--hsw); color: #fff; }
+        .badge.drift { background: var(--drift); border-color: var(--drift); color: #fff; }
+        .badge.imani { background: var(--imani); border-color: var(--imani); color: #fff; }
         
         .badge.y { background: var(--pl-yankton); color: #000; border-color: var(--pl-yankton); }
         .badge.l { background: var(--pl-liberty); border-color: var(--pl-liberty); }
@@ -163,6 +166,8 @@
         .detail-badge.b { background: var(--benny); border-color: var(--benny); }
         .detail-badge.fav { background: var(--fav); border-color: var(--fav); color: #fff; }
         .detail-badge.hsw { background: var(--hsw); border-color: var(--hsw); color: #fff; }
+        .detail-badge.drift { background: var(--drift); border-color: var(--drift); color: #fff; }
+        .detail-badge.imani { background: var(--imani); border-color: var(--imani); color: #fff; }
         
         .detail-actions-grid {
             display: grid;
@@ -214,9 +219,9 @@
         .modal-row { display: flex; gap: 12px; margin-bottom: 15px; flex-direction: column; }
         @media(min-width: 500px) { .modal-row { flex-direction: row; } }
         .modal-row > div { flex: 1; }
-        .checkbox-row { display: flex; gap: 10px; margin-bottom: 15px; flex-direction: column; }
-        @media(min-width: 500px) { .checkbox-row { flex-direction: row; } }
-        .checkbox-row > label { flex: 1; margin-bottom: 0 !important; }
+        .checkbox-row { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 15px; }
+        @media(min-width: 480px) { .checkbox-row { grid-template-columns: repeat(2, 1fr); } }
+        .checkbox-row > label { margin-bottom: 0 !important; }
 
         .form-section { background: #252525; padding: 15px; border-radius: 10px; border: 1px solid #333; margin-bottom: 15px; }
         .form-group { margin-bottom: 15px; width: 100%; }
@@ -298,6 +303,8 @@
                 <option value="plates">Group: Plates</option>
                 <option value="weaponized">Group: Weaponized</option>
                 <option value="hsw">Group: HSW</option>
+                <option value="drift">Group: Drift</option>
+                <option value="imani">Group: Imani Tech</option>
                 <option value="fav">Favorites Only</option>
                 <option value="all">View All</option>
             </select>
@@ -421,13 +428,13 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.32</div>
+        <div class="modal-title">About My GTA Garage v1.60.33</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
             <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">1. Vehicle Management</h4>
             <ul style="padding-left:20px; margin-bottom:15px; line-height: 1.6;">
-                <li style="margin-bottom: 12px;"><strong>Add Vehicle:</strong> Click the <strong>+ Add</strong> button on the main screen. Select the Make and Model. Choose the Garage and Floor. Set the slot number, wheels, plates, and toggle <strong>HSW</strong>, <strong>Weaponized</strong>, or <strong>Favorite</strong> status. You can optionally add financial data including the <strong>LSCM Price</strong> (Vehicle Value) and <strong>Sell Price</strong>.</li>
+                <li style="margin-bottom: 12px;"><strong>Add Vehicle:</strong> Click the <strong>+ Add</strong> button on the main screen. Select the Make and Model. Choose the Garage and Floor. Set the slot number, wheels, plates, and toggle <strong>HSW</strong>, <strong>Weaponized</strong>, <strong>Drift</strong>, <strong>Imani Tech</strong>, or <strong>Favorite</strong> status. You can optionally add financial data including the <strong>LSCM Price</strong> (Vehicle Value) and <strong>Sell Price</strong>.</li>
                 <li style="margin-bottom: 12px;"><strong>Edit Vehicle:</strong> Click the <i class="fas fa-pencil-alt"></i> icon on any vehicle card to modify its details, update its location, change its custom image, or edit notes and financial values.</li>
                 <li style="margin-bottom: 12px;"><strong>Custom Images:</strong> When adding or editing a vehicle, use the "Vehicle Image" section to upload a picture from your device. If you are signed in to Google Drive, the image will be securely uploaded to your character's Drive folder (with a real-time progress bar) and linked automatically.</li>
                 <li style="margin-bottom: 12px;"><strong>Copy/Duplicate:</strong> Open a vehicle's detail view (by clicking on its card) and click <strong>Copy</strong>. This opens the Add window with all the car's details and custom image pre-filled, leaving only the slot number blank for rapid entry of duplicate cars.</li>
@@ -614,6 +621,14 @@
                     <span style="font-weight:700; color:#fff;">HSW</span>
                     <input type="checkbox" id="inHsw">
                 </label>
+                <label class="wep-toggle">
+                    <span style="font-weight:700; color:#fff;">Drift</span>
+                    <input type="checkbox" id="inDrift">
+                </label>
+                <label class="wep-toggle">
+                    <span style="font-weight:700; color:#fff;">Imani Tech</span>
+                    <input type="checkbox" id="inImani">
+                </label>
             </div>
             
             <div class="modal-row" style="margin-bottom:0;">
@@ -668,6 +683,8 @@
             <div class="stat-card"><span id="stFav" class="stat-val" style="color:var(--fav)">0</span><span class="stat-label">Favorites</span></div>
             <div class="stat-card"><span id="stWep" class="stat-val" style="color:var(--wep)">0</span><span class="stat-label">Weapon</span></div>
             <div class="stat-card"><span id="stHsw" class="stat-val" style="color:var(--hsw)">0</span><span class="stat-label">HSW</span></div>
+            <div class="stat-card"><span id="stDrift" class="stat-val" style="color:var(--drift)">0</span><span class="stat-label">Drift</span></div>
+            <div class="stat-card"><span id="stImani" class="stat-val" style="color:var(--imani)">0</span><span class="stat-label">Imani</span></div>
             <div class="stat-card"><span id="stF1" class="stat-val" style="color:var(--f1)">0</span><span class="stat-label">F1</span></div>
             <div class="stat-card"><span id="stBenny" class="stat-val" style="color:var(--benny)">0</span><span class="stat-label">Benny</span></div>
         </div>
@@ -732,7 +749,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.32 (Current)</strong><br>• Improved platform identification on snapshots by displaying the specific platform name alongside the logo (e.g., PS5, Xbox Series) to avoid confusion between identical brand icons.</p>
+            <p><strong>v1.60.33 (Current)</strong><br>• Added "Drift" and "Imani Tech" vehicle options.<br>• New grouping modes for Drift and Imani Tech.<br>• Added Drift and Imani Tech counts to Garage Stats.<br>• Optimized checkbox layout in vehicle modals for better responsiveness on all devices.<br>• Added "Weaponized" status chip to vehicle cards and detail views for better visibility.</p>
+            <p><strong>v1.60.32</strong><br>• Improved platform identification on snapshots by displaying the specific platform name alongside the logo (e.g., PS5, Xbox Series) to avoid confusion between identical brand icons.</p>
             <p><strong>v1.60.31</strong><br>• Added "Gamertag & Platform" settings per character.<br>• Display gamertag and platform icon on shared vehicle card snapshots.<br>• Added option to toggle gamertag visibility on snapshots.</p>
             <p><strong>v1.60.30</strong><br>• Added a "Save Image" button to the Snapshot Ready modal, allowing users to directly download vehicle cards locally.</p>
             <p><strong>v1.60.29</strong><br>• Added "Favorites" count to the Garage Stats window.</p>
@@ -1727,6 +1745,8 @@
                 else if (mode === 'plates') k = v.plate || 'Standard';
                 else if (mode === 'weaponized') k = v.isWeapon ? 'Weaponized' : 'Standard';
                 else if (mode === 'hsw') k = v.isHsw ? 'HSW Upgraded' : 'Standard';
+                else if (mode === 'drift') k = v.isDrift ? 'Drift Tuned' : 'Standard';
+                else if (mode === 'imani') k = v.isImani ? 'Imani Tech' : 'Standard';
                 if(!groups[k]) groups[k] = []; groups[k].push(v); 
             });
             Object.keys(groups).sort().forEach(k => {
@@ -1838,6 +1858,8 @@
         if(v.isFav) badges += `<span class="badge fav"><i class="fas fa-heart"></i></span>`; 
         if(v.isWeapon) badges += `<span class="badge w">WEAPONIZED</span> `;
         if(v.isHsw) badges += `<span class="badge hsw">HSW</span> `;
+        if(v.isDrift) badges += `<span class="badge drift">DRIFT</span> `;
+        if(v.isImani) badges += `<span class="badge imani">IMANI</span> `;
         if(v.wheels === 'F1') badges += `<span class="badge f">F1</span>`;
         if(v.wheels?.includes('Benny')) badges += `<span class="badge b">BENNY'S</span> `;
         if(v.plate && v.plate !== 'Standard') {
@@ -1865,7 +1887,7 @@
                     <div class="card-manuf">${v.manuf}</div>
                     <div class="card-model">${v.model}</div>
                 </div>
-                <div class="card-chips"><span class="chip"><i class="fas fa-tag"></i> ${displayClass}</span><span class="chip"><i class="fas fa-cog"></i> ${db.drive||v.drive||'-'}</span><span class="chip"><i class="fas fa-user"></i> ${db.seats||v.seats||'2'}</span>${v.isHsw ? `<span class="chip"><i class="fas fa-tachometer-alt"></i> HSW</span>` : ''}</div>
+                <div class="card-chips"><span class="chip"><i class="fas fa-tag"></i> ${displayClass}</span><span class="chip"><i class="fas fa-cog"></i> ${db.drive||v.drive||'-'}</span><span class="chip"><i class="fas fa-user"></i> ${db.seats||v.seats||'2'}</span>${v.isWeapon ? `<span class="chip"><i class="fas fa-crosshairs"></i> Weapon</span>` : ''}${v.isHsw ? `<span class="chip"><i class="fas fa-tachometer-alt"></i> HSW</span>` : ''}${v.isDrift ? `<span class="chip"><i class="fas fa-wind"></i> Drift</span>` : ''}${v.isImani ? `<span class="chip"><i class="fas fa-shield-alt"></i> Imani</span>` : ''}</div>
                 <div class="card-loc"><i class="fas fa-warehouse"></i><div class="loc-text"><span>${v.loc} <span class="loc-nick">${nickname}</span></span>${v.floor ? `<span class="loc-floor">${v.floor}${v.slot ? ` (Slot ${v.slot})` : ''}</span>` : ''}</div></div>
                 ${notesHtml}
             </div>
@@ -1885,6 +1907,8 @@
         if(v.isFav) badges += `<span class="detail-badge fav"><i class="fas fa-heart"></i> FAVORITE</span> `;
         if(v.isWeapon) badges += `<span class="detail-badge w">WEAPONIZED</span> `;
         if(v.isHsw) badges += `<span class="detail-badge hsw">HSW UPGRADED</span> `;
+        if(v.isDrift) badges += `<span class="detail-badge drift">DRIFT TUNED</span> `;
+        if(v.isImani) badges += `<span class="detail-badge imani">IMANI TECH</span> `;
         if(v.wheels === 'F1') badges += `<span class="detail-badge f">F1 WHEELS</span> `;
         if(v.wheels?.includes('Benny')) badges += `<span class="detail-badge b">BENNY'S</span> `;
         if(v.plate && v.plate !== 'Standard') badges += `<span class="detail-badge">${v.plate} PLATE</span>`;
@@ -1905,7 +1929,7 @@
                 <button id="detailEditBtn" class="action-btn" style="color:#fff; background:rgba(255,255,255,0.1); border-radius:6px; margin-left:10px; flex-shrink:0;" onclick="closeModal('detailModal'); editVehicle(${v.id})"><i class="fas fa-pencil-alt"></i></button>
             </div>
             <div style="margin-bottom:15px; display:flex; flex-wrap:wrap; gap:5px;">${badges}</div>
-            <div class="detail-row"><span class="detail-chip"><i class="fas fa-tag"></i> ${(db.class||v.class||'-').replace(/_/g, ' ')}</span><span class="detail-chip"><i class="fas fa-cog"></i> ${db.drive||v.drive||'-'}</span><span class="detail-chip"><i class="fas fa-user"></i> ${db.seats||v.seats||'2'} Seats</span>${v.isHsw ? `<span class="detail-chip"><i class="fas fa-tachometer-alt"></i> HSW</span>` : ''}</div>
+            <div class="detail-row"><span class="detail-chip"><i class="fas fa-tag"></i> ${(db.class||v.class||'-').replace(/_/g, ' ')}</span><span class="detail-chip"><i class="fas fa-cog"></i> ${db.drive||v.drive||'-'}</span><span class="detail-chip"><i class="fas fa-user"></i> ${db.seats||v.seats||'2'} Seats</span>${v.isWeapon ? `<span class="detail-chip"><i class="fas fa-crosshairs"></i> Weapon</span>` : ''}${v.isHsw ? `<span class="detail-chip"><i class="fas fa-tachometer-alt"></i> HSW</span>` : ''}${v.isDrift ? `<span class="detail-chip"><i class="fas fa-wind"></i> Drift</span>` : ''}${v.isImani ? `<span class="detail-chip"><i class="fas fa-shield-alt"></i> Imani</span>` : ''}</div>
             <div class="detail-loc"><div style="font-size:0.8rem; color:#888; margin-bottom:4px;">LOCATION</div><div style="font-weight:bold; font-size:1.1rem; color:#fff;">${v.loc}</div>${v.floor ? `<div style="color:var(--accent); margin-top:2px;">${v.floor} ${v.slot ? `(Slot ${v.slot})` : ''}</div>` : ''}</div>
             ${priceHtml}
             ${v.notes ? `<div class="detail-notes">"${v.notes}"</div>` : ''}
@@ -2129,6 +2153,8 @@
         document.getElementById('inWep').checked = v.isWeapon;
         document.getElementById('inFav').checked = v.isFav || false; 
         document.getElementById('inHsw').checked = v.isHsw || false; 
+        document.getElementById('inDrift').checked = v.isDrift || false; 
+        document.getElementById('inImani').checked = v.isImani || false; 
         document.getElementById('inWheels').value = v.wheels||"Stock";
         document.getElementById('inPlate').value = v.plate||"Standard";
         
@@ -2174,6 +2200,8 @@
         document.getElementById('inWep').checked = v.isWeapon;
         document.getElementById('inFav').checked = v.isFav || false; 
         document.getElementById('inHsw').checked = v.isHsw || false; 
+        document.getElementById('inDrift').checked = v.isDrift || false; 
+        document.getElementById('inImani').checked = v.isImani || false; 
         document.getElementById('inWheels').value = v.wheels||"Stock";
         document.getElementById('inPlate').value = v.plate||"Standard";
         
@@ -2368,6 +2396,8 @@
             isFav: document.getElementById('inFav').checked, 
             isWeapon: document.getElementById('inWep').checked,
             isHsw: document.getElementById('inHsw').checked,
+            isDrift: document.getElementById('inDrift').checked,
+            isImani: document.getElementById('inImani').checked,
             wheels: document.getElementById('inWheels').value,
             plate: document.getElementById('inPlate').value,
             lscmPrice: document.getElementById('inLscmPrice').value.replace(/\D/g, ''),
@@ -2429,6 +2459,8 @@
         document.getElementById('stFav').innerText = vehicles.filter(v=>v.isFav).length || 0;
         document.getElementById('stWep').innerText = vehicles.filter(v=>v.isWeapon).length || 0;
         document.getElementById('stHsw').innerText = vehicles.filter(v=>v.isHsw).length || 0;
+        document.getElementById('stDrift').innerText = vehicles.filter(v=>v.isDrift).length || 0;
+        document.getElementById('stImani').innerText = vehicles.filter(v=>v.isImani).length || 0;
         document.getElementById('stF1').innerText = vehicles.filter(v=>v.wheels==='F1').length || 0;
         document.getElementById('stBenny').innerText = vehicles.filter(v=>v.wheels?.includes('Benny')).length || 0;
         const bCounts = {}; vehicles.forEach(v => { const b = v.manuf || 'Unk'; bCounts[b] = (bCounts[b]||0)+1; });
@@ -2608,6 +2640,8 @@
         document.getElementById('inWep').checked = false;
         document.getElementById('inFav').checked = false; 
         document.getElementById('inHsw').checked = false; 
+        document.getElementById('inDrift').checked = false; 
+        document.getElementById('inImani').checked = false; 
         document.getElementById('inWheels').value = "Stock";
         document.getElementById('inPlate').value = "Standard";
         
