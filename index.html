@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.45</title>
+    <title>My GTA Garage v1.60.47</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -486,7 +486,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.45</div>
+        <div class="modal-title">About My GTA Garage v1.60.46</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -809,7 +809,9 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.45 (Current)</strong><br>• Optimized large vehicle detail card layout for PDF export to prevent row overlapping.<br>• Reduced image height and padding on large cards to ensure 2x2 grid fits perfectly on A4 pages.<br>• Improved vertical spacing and centering for multi-page PDF exports.</p>
+            <p><strong>v1.60.47 (Current)</strong><br>• Fixed "Edit Vehicle" button functionality on both small and large vehicle cards for string-based IDs.<br>• Improved vehicle sorting logic to handle alphanumeric IDs consistently.<br>• Refined vehicle ID comparisons across the application to handle both string and numeric formats.</p>
+            <p><strong>v1.60.46</strong><br>• Implemented dynamic height for large vehicle cards in PDF export.<br>• Added row-based height synchronization to ensure grid alignment while saving space.<br>• Optimized PDF generation loop for better multi-page handling with variable card sizes.</p>
+            <p><strong>v1.60.45</strong><br>• Optimized large vehicle detail card layout for PDF export to prevent row overlapping.<br>• Reduced image height and padding on large cards to ensure 2x2 grid fits perfectly on A4 pages.<br>• Improved vertical spacing and centering for multi-page PDF exports.</p>
             <p><strong>v1.60.44</strong><br>• Fixed horizontal aspect ratio distortion for large vehicle cards and images in PDF export by using dynamic height calculation.</p>
             <p><strong>v1.60.42</strong><br>• Added real-time progress bars and percentage indicators to PDF and Snapshot generation modals.<br>• Added a performance note to the PDF Export window regarding generation times.<br>• Optimized generation logic to provide smoother UI updates during heavy processing.</p>
             <p><strong>v1.60.41</strong><br>• Fixed custom images not showing in PDF export using blob logic.<br>• Updated large vehicle detail PDF layout to 2x2 centered grid with headers on every page.<br>• Corrected vehicle image aspect ratio on small PDF cards.</p>
@@ -1883,7 +1885,7 @@
                             const numA = isNaN(valA) ? Infinity : valA;
                             const numB = isNaN(valB) ? Infinity : valB;
                             if (numA !== numB) return numA - numB;
-                            return a.id - b.id;
+                            return String(a.id).localeCompare(String(b.id));
                         });
                         
                         floorGroups[fKey].forEach(v => {
@@ -1968,13 +1970,13 @@
                 <div class="card-loc"><i class="fas fa-warehouse"></i><div class="loc-text"><span>${v.loc} <span class="loc-nick">${nickname}</span></span>${v.floor ? `<span class="loc-floor">${v.floor}${v.slot ? ` (Slot ${v.slot})` : ''}</span>` : ''}</div></div>
                 ${notesHtml}
             </div>
-            <div class="card-actions-top">${spawn ? `<a href="${gtaUrl}" target="_blank" class="action-btn gtacars-link" onclick="event.stopPropagation()"><i class="fas fa-external-link-alt"></i></a>` : ''}<button class="action-btn" onclick="event.stopPropagation(); editVehicle(${v.id})"><i class="fas fa-pencil-alt"></i></button></div>`;
+            <div class="card-actions-top">${spawn ? `<a href="${gtaUrl}" target="_blank" class="action-btn gtacars-link" onclick="event.stopPropagation()"><i class="fas fa-external-link-alt"></i></a>` : ''}<button class="action-btn" onclick="event.stopPropagation(); editVehicle('${v.id}')"><i class="fas fa-pencil-alt"></i></button></div>`;
         return div;
     }
     
     function openDetailModal(id) {
         currentDetailViewId = id;
-        const v = vehicles.find(c => c.id === id); if(!v) return;
+        const v = vehicles.find(c => c.id == id); if(!v) return;
         const db = masterDB.find(d => d.model === v.model) || {};
         const spawn = db.spawn || v.spawn || "";
         let img = spawn ? `${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png` : "";
@@ -2003,7 +2005,7 @@
             <div class="detail-manuf">${v.manuf}</div>
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px;">
                 <div class="detail-title" style="margin-bottom:0;">${v.model}</div>
-                <button id="detailEditBtn" class="action-btn" style="color:#fff; background:rgba(255,255,255,0.1); border-radius:6px; margin-left:10px; flex-shrink:0;" onclick="closeModal('detailModal'); editVehicle(${v.id})"><i class="fas fa-pencil-alt"></i></button>
+                <button id="detailEditBtn" class="action-btn" style="color:#fff; background:rgba(255,255,255,0.1); border-radius:6px; margin-left:10px; flex-shrink:0;" onclick="closeModal('detailModal'); editVehicle('${v.id}')"><i class="fas fa-pencil-alt"></i></button>
             </div>
             <div style="margin-bottom:15px; display:flex; flex-wrap:wrap; gap:5px;">${badges}</div>
             <div class="detail-row"><span class="detail-chip"><i class="fas fa-tag"></i> ${(db.class||v.class||'-').replace(/_/g, ' ')}</span><span class="detail-chip"><i class="fas fa-cog"></i> ${db.drive||v.drive||'-'}</span><span class="detail-chip"><i class="fas fa-user"></i> ${db.seats||v.seats||'2'} Seats</span>${v.isWeapon ? `<span class="detail-chip"><i class="fas fa-crosshairs"></i> Weapon</span>` : ''}${v.isHsw ? `<span class="detail-chip"><i class="fas fa-tachometer-alt"></i> HSW</span>` : ''}${v.isDrift ? `<span class="detail-chip"><i class="fas fa-wind"></i> Drift</span>` : ''}${v.isImani ? `<span class="detail-chip"><i class="fas fa-shield-alt"></i> Imani</span>` : ''}</div>
@@ -2016,7 +2018,7 @@
     }
 
     async function shareVehicleCard() {
-        const v = vehicles.find(c => c.id === currentDetailViewId);
+        const v = vehicles.find(c => c.id == currentDetailViewId);
         if (!v) return;
 
         const wrapper = document.getElementById('detailContentWrapper');
@@ -2229,7 +2231,7 @@
     }
 
     function editVehicle(id) {
-        editingId = id; const v = vehicles.find(c=>c.id===id); if(!v) return;
+        editingId = id; const v = vehicles.find(c=>c.id==id); if(!v) return;
         document.getElementById('modalTitle').innerText = "Edit Vehicle";
         document.getElementById('editActions').style.display = 'flex';
         document.getElementById('inManuf').value = v.manuf;
@@ -2275,7 +2277,7 @@
     }
     
     function copyVehicle(id) {
-        const v = vehicles.find(c=>c.id===id); if(!v) return;
+        const v = vehicles.find(c=>c.id==id); if(!v) return;
         editingId = null; // Important: null means we are adding a NEW vehicle
         document.getElementById('modalTitle').innerText = "Duplicate Vehicle";
         document.getElementById('editActions').style.display = 'none';
@@ -2679,8 +2681,12 @@
 
             let cardCount = 0;
             let currentY = headerHeight + gap;
+            let rowMaxHeight = 0;
+            let rowCards = [];
 
             const totalVehicles = filtered.length;
+            const totalGridWidth = 2 * cardWidth + gap;
+            const startX = (pageWidth - totalGridWidth) / 2;
 
             for (let i = 0; i < totalVehicles; i++) {
                 const v = filtered[i];
@@ -2724,7 +2730,6 @@
                 if (actions) actions.style.display = 'none';
                 
                 card.style.width = exportType === 'large' ? '480px' : '380px';
-                if (exportType === 'large') card.style.minHeight = '640px';
                 card.style.margin = '0';
                 container.appendChild(card);
                 
@@ -2738,32 +2743,30 @@
                 const imgData = canvas.toDataURL('image/jpeg', 0.8);
                 const actualCardHeight = (canvas.height * cardWidth) / canvas.width;
                 
-                let drawX, drawY;
-
                 if (exportType === 'large') {
-                    const pageCardIndex = cardCount % 4;
-                    const col = pageCardIndex % 2;
-                    const row = Math.floor(pageCardIndex / 2);
-                    
-                    const totalGridWidth = 2 * cardWidth + gap;
-                    const totalGridHeight = 2 * cardHeight + gap;
-                    
-                    const startX = (pageWidth - totalGridWidth) / 2;
-                    const startY = headerHeight + (pageHeight - headerHeight - margin - totalGridHeight) / 2;
-                    
-                    drawX = startX + col * (cardWidth + gap);
-                    drawY = startY + row * (cardHeight + gap);
-                    
-                    if (cardCount > 0 && cardCount % 4 === 0) {
-                        pdf.addPage();
-                        addBg();
-                        pdf.addImage(headerImg, 'JPEG', 0, 0, pageWidth, headerHeight);
-                        drawX = startX + col * (cardWidth + gap);
-                        drawY = startY + row * (cardHeight + gap);
+                    rowCards.push({ imgData, height: actualCardHeight });
+                    rowMaxHeight = Math.max(rowMaxHeight, actualCardHeight);
+
+                    if (rowCards.length === 2 || i === totalVehicles - 1) {
+                        if (currentY + rowMaxHeight > pageHeight - margin) {
+                            pdf.addPage();
+                            addBg();
+                            pdf.addImage(headerImg, 'JPEG', 0, 0, pageWidth, headerHeight);
+                            currentY = headerHeight + gap;
+                        }
+
+                        rowCards.forEach((rc, idx) => {
+                            const drawX = startX + idx * (cardWidth + gap);
+                            pdf.addImage(rc.imgData, 'JPEG', drawX, currentY, cardWidth, rc.height);
+                        });
+
+                        currentY += rowMaxHeight + gap;
+                        rowCards = [];
+                        rowMaxHeight = 0;
                     }
                 } else {
                     const col = cardCount % cardsPerRow;
-                    drawX = margin + col * (cardWidth + gap);
+                    let drawX = margin + col * (cardWidth + gap);
                     
                     if (cardCount > 0 && col === 0) {
                         currentY += actualCardHeight + gap;
@@ -2776,10 +2779,8 @@
                         currentY = headerHeight + gap;
                         drawX = margin;
                     }
-                    drawY = currentY;
+                    pdf.addImage(imgData, 'JPEG', drawX, currentY, cardWidth, actualCardHeight);
                 }
-                
-                pdf.addImage(imgData, 'JPEG', drawX, drawY, cardWidth, actualCardHeight);
                 cardCount++;
                 if (blobUrl) URL.revokeObjectURL(blobUrl);
             }
