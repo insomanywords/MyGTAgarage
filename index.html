@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.49</title>
+    <title>My GTA Garage v1.60.51</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -507,7 +507,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.49</div>
+        <div class="modal-title">About My GTA Garage v1.60.51</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -515,12 +515,10 @@
             <ul style="padding-left:20px; margin-bottom:15px; line-height: 1.6;">
                 <li style="margin-bottom: 12px;"><strong>Add Vehicle:</strong> Click the <strong>+ Add</strong> button on the main screen. Select the Make and Model. Choose the Garage and Floor. Set the slot number, wheels, plates, and toggle <strong>HSW</strong>, <strong>Weaponized</strong>, <strong>Drift</strong>, <strong>Imani Tech</strong>, or <strong>Favorite</strong> status. You can optionally add financial data including the <strong>LSCM Price</strong> (Vehicle Value) and <strong>Sell Price</strong>.</li>
                 <li style="margin-bottom: 12px;"><strong>Edit Vehicle:</strong> Click the <i class="fas fa-pencil-alt"></i> icon on any vehicle card to modify its details, update its location, change its custom image, or edit notes and financial values.</li>
-                <li style="margin-bottom: 12px;"><strong>Custom Images:</strong> When adding or editing a vehicle, use the "Vehicle Image" section to upload a picture from your device. If you are signed in to Google Drive, the image will be securely uploaded to your character's Drive folder (with a real-time progress bar) and linked automatically.</li>
+                <li style="margin-bottom: 12px;"><strong>Custom Images:</strong> When adding or editing a vehicle, use the "Vehicle Image" section to upload a picture from your device. If you are signed in to Google Drive, the image will be securely uploaded to your character's Drive folder (with a real-time progress bar) and linked automatically. You can also delete existing custom images from Google Drive directly from this menu to free up space or replace them.</li>
                 <li style="margin-bottom: 12px;"><strong>Copy/Duplicate:</strong> Open a vehicle's detail view (by clicking on its card) and click <strong>Copy</strong>. This opens the Add window with all the car's details and custom image pre-filled, leaving only the slot number blank for rapid entry of duplicate cars.</li>
                 <li style="margin-bottom: 12px;"><strong>Move Vehicle:</strong> Inside the edit or detail view, click <strong>Move</strong>. Select the destination garage. The app will automatically find the first empty floor and slot. If the destination is completely full, you will be prompted to select a vehicle to swap places with.</li>
                 <li style="margin-bottom: 12px;"><strong>Sell Vehicle:</strong> Click <strong>Sell</strong> in the edit or detail view to simulate selling a car. This removes the car from your garage, logs the transaction (along with the vehicle's Sell Price) in your Sales History, and starts an 18-hour real-time cooldown timer.</li>
-                <li style="margin-bottom: 12px;"><strong>Share Vehicle:</strong> Open a vehicle's detail view and click <strong>Share</strong>. The app will generate a clean snapshot image of the vehicle card that you can instantly send via text, Discord, or save to your device to show off to potential LS Car Meet buyers.</li>
-                <li style="margin-bottom: 12px;"><strong>Gamertag & Platform:</strong> Personalize your shared vehicle snapshots by adding your Gamertag and platform icon (PC, Xbox, PlayStation, Switch). This information is managed per character in the Settings menu and can be toggled on or off for your snapshots.</li>
             </ul>
 
             <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">2. Organization & Search</h4>
@@ -538,7 +536,14 @@
                 <li style="margin-bottom: 12px;"><strong>Capacity Tracking:</strong> The app actively tracks your garage capacities. It hides floors that are full in the Add menu, warns you if a garage has no space left, and shows real-time usage (e.g., 5/10) on every floor header.</li>
             </ul>
 
-            <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">4. Data & Cloud Sync</h4>
+            <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">4. Sharing & Export</h4>
+            <ul style="padding-left:20px; margin-bottom:15px; line-height: 1.6;">
+                <li style="margin-bottom: 12px;"><strong>Share Vehicle:</strong> Open a vehicle's detail view and click <strong>Share</strong>. The app will generate a clean snapshot image of the vehicle card that you can instantly send via text, Discord, or save to your device to show off to potential LS Car Meet buyers.</li>
+                <li style="margin-bottom: 12px;"><strong>PDF Export:</strong> Click the <i class="fas fa-file-pdf"></i> PDF button in the header to export your entire collection or filtered groups into a professional PDF document. Choose between compact cards or large detail views with full specs and images.</li>
+                <li style="margin-bottom: 12px;"><strong>Gamertag & Platform:</strong> Personalize your shared vehicle snapshots and PDF exports by adding your Gamertag and platform icon (PC, Xbox, PlayStation, Switch). This information is managed per character in the Settings menu and can be toggled on or off.</li>
+            </ul>
+
+            <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">5. Data & Cloud Sync</h4>
             <ul style="padding-left:20px; margin-bottom:15px; line-height: 1.6;">
                 <li style="margin-bottom: 12px;"><strong>Character Management:</strong> Manage multiple, completely isolated vehicle collections per character via the Settings menu. You can add, rename, or delete characters. Renaming a character locally will automatically rename their corresponding Cloud folder.</li>
                 <li style="margin-bottom: 12px;"><strong>Google Drive Sync:</strong> Sign in via the "Google Drive" tab in Settings. The app automatically creates a "My GTA Garage" folder and auto-syncs your database to the cloud after every change. Custom car images are also stored securely in your Drive.</li>
@@ -660,9 +665,12 @@
         <div class="form-section">
             <span class="label">Vehicle Image</span>
             <div style="display:flex; flex-direction:column; gap:10px;">
-                <select id="inDriveImageSelect" style="font-size:0.85rem;" onchange="document.getElementById('inDriveImageId').value = this.value; document.getElementById('inCustomImage').value='';"></select>
+                <div style="display:flex; gap:5px;">
+                    <select id="inDriveImageSelect" style="font-size:0.85rem; flex:1;" onchange="document.getElementById('inDriveImageId').value = this.value; document.getElementById('inCustomImage').value=''; updateDeleteBtn();"></select>
+                    <button id="btnDeleteDriveImg" class="btn-sec" style="display:none; padding:0 10px; color:var(--sell); border-color:var(--sell);" onclick="confirmDeleteDriveImg()"><i class="fas fa-trash"></i></button>
+                </div>
                 <span style="color:#aaa; font-size:0.75rem; text-align:center; font-weight:bold;">- OR UPLOAD NEW -</span>
-                <input type="file" id="inCustomImage" accept="image/*" style="font-size:0.8rem; padding:8px; background:#1a1a1a;" onchange="document.getElementById('inDriveImageSelect').value=''; document.getElementById('inDriveImageId').value='';">
+                <input type="file" id="inCustomImage" accept="image/*" style="font-size:0.8rem; padding:8px; background:#1a1a1a;" onchange="document.getElementById('inDriveImageSelect').value=''; document.getElementById('inDriveImageId').value=''; updateDeleteBtn();">
                 <input type="hidden" id="inDriveImageId">
             </div>
             <p id="cloudImgWarn" style="display:none; font-size:0.75rem; color:var(--sell); margin-top:5px; margin-bottom:0;"><i class="fas fa-cloud-upload-alt"></i> Will sync to Google Drive on Save</p>
@@ -830,7 +838,9 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.49 (Current)</strong><br>• Fixed custom vehicle images being cut off on PDF exports by switching to "contain" scaling.<br>• Matched large vehicle card image box height to the main application view (250px) for better visual consistency.<br>• Improved image rendering logic for both small and large vehicle cards in PDF exports.</p>
+            <p><strong>v1.60.51 (Current)</strong><br>• Added ability to delete custom vehicle images from Google Drive directly from the Add/Edit/Duplicate windows.<br>• Implemented confirmation and success modals for image deletion.<br>• Automatically updates all vehicles using a deleted image to revert to default.</p>
+            <p><strong>v1.60.50</strong><br>• Reorganized the "About" page for better clarity, grouping sharing and export features into their own section.<br>• Added detailed "PDF Export" documentation to the About page.<br>• Updated Gamertag and Platform information to reflect their impact on both snapshots and PDF exports.</p>
+            <p><strong>v1.60.49</strong><br>• Fixed custom vehicle images being cut off on PDF exports by switching to "contain" scaling.<br>• Matched large vehicle card image box height to the main application view (250px) for better visual consistency.<br>• Improved image rendering logic for both small and large vehicle cards in PDF exports.</p>
             <p><strong>v1.60.48</strong><br>• Added "Group By" and "Group Value" filters to the PDF export window.<br>• Users can now export specific groups of vehicles (e.g., by Brand, Class, or Wheels) just like the main app view.<br>• Improved PDF export flexibility with nested filtering options.</p>
             <p><strong>v1.60.47</strong><br>• Fixed "Edit Vehicle" button functionality on both small and large vehicle cards for string-based IDs.<br>• Improved vehicle sorting logic to handle alphanumeric IDs consistently.<br>• Refined vehicle ID comparisons across the application to handle both string and numeric formats.</p>
             <p><strong>v1.60.46</strong><br>• Implemented dynamic height for large vehicle cards in PDF export.<br>• Added row-based height synchronization to ensure grid alignment while saving space.<br>• Optimized PDF generation loop for better multi-page handling with variable card sizes.</p>
@@ -1448,12 +1458,18 @@
         sel.innerHTML = '<option value="">-- Use Default / Upload New --</option>';
         
         let token = getActiveToken();
-        if (!gapiInited || !token) return;
+        if (!gapiInited || !token) {
+            updateDeleteBtn();
+            return;
+        }
         
         if (!driveFolders.images) {
-            try { await ensureDriveStructure(); } catch(e) { console.error("Error ensuring drive structure", e); return; }
+            try { await ensureDriveStructure(); } catch(e) { console.error("Error ensuring drive structure", e); updateDeleteBtn(); return; }
         }
-        if (!driveFolders.images) return;
+        if (!driveFolders.images) {
+            updateDeleteBtn();
+            return;
+        }
         
         try {
             const query = `'${driveFolders.images}' in parents and trashed=false`;
@@ -1469,6 +1485,73 @@
                 });
             }
         } catch(e) { console.error("Error fetching image list", e); }
+        updateDeleteBtn();
+    }
+
+    function updateDeleteBtn() {
+        const sel = document.getElementById('inDriveImageSelect');
+        const btn = document.getElementById('btnDeleteDriveImg');
+        if (!btn) return;
+        if (sel.value && sel.value !== "") {
+            btn.style.display = 'block';
+        } else {
+            btn.style.display = 'none';
+        }
+    }
+
+    function confirmDeleteDriveImg() {
+        const sel = document.getElementById('inDriveImageSelect');
+        if (!sel.value) return;
+        const fileName = sel.options[sel.selectedIndex].text;
+        openConfirm("Delete Image?", `Permanently delete "${fileName}" from Google Drive? This cannot be undone.`, performDeleteDriveImg);
+    }
+
+    async function performDeleteDriveImg() {
+        const fileId = document.getElementById('inDriveImageSelect').value;
+        if (!fileId) return;
+        
+        document.getElementById('uploadWaitTitle').innerText = "Deleting Image...";
+        document.getElementById('uploadWaitMsg').innerText = "Removing file from Google Drive.";
+        document.getElementById('uploadProgressContainer').style.display = 'none';
+        document.getElementById('uploadProgressText').style.display = 'none';
+        openModal('uploadWaitModal');
+        
+        try {
+            await driveApiRequest({
+                path: '/drive/v3/files/' + fileId,
+                method: 'DELETE'
+            });
+            
+            // Remove from select
+            const sel = document.getElementById('inDriveImageSelect');
+            for (let i = 0; i < sel.options.length; i++) {
+                if (sel.options[i].value === fileId) {
+                    sel.remove(i);
+                    break;
+                }
+            }
+            
+            // Clear inputs
+            document.getElementById('inDriveImageId').value = '';
+            document.getElementById('inDriveImageSelect').value = '';
+            updateDeleteBtn();
+            
+            closeModal('uploadWaitModal');
+            showSuccess("Image Deleted", "The custom image has been successfully removed from your Google Drive.");
+            
+            vehicles.forEach(v => {
+                if (v.driveImageId === fileId) {
+                    v.driveImageId = '';
+                }
+            });
+            saveGarage();
+            render();
+            
+        } catch(e) {
+            console.error("Error deleting image", e);
+            closeModal('uploadWaitModal');
+            openAlert("Error", "Failed to delete image from Google Drive.");
+        }
     }
 
     async function uploadImageToDrive(file, spawnName) {
@@ -2291,6 +2374,7 @@
         if (gapiInited && token) {
             loadDriveImagesForSelect().then(() => {
                 document.getElementById('inDriveImageSelect').value = v.driveImageId || '';
+                updateDeleteBtn();
             });
         } else {
             document.getElementById('inDriveImageSelect').innerHTML = '<option value="">-- Use Default / Upload New --</option>';
@@ -2338,6 +2422,7 @@
         if (gapiInited && token) {
             loadDriveImagesForSelect().then(() => {
                 document.getElementById('inDriveImageSelect').value = v.driveImageId || '';
+                updateDeleteBtn();
             });
         } else {
             document.getElementById('inDriveImageSelect').innerHTML = '<option value="">-- Use Default / Upload New --</option>';
