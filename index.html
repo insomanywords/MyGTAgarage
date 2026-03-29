@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.47</title>
+    <title>My GTA Garage v1.60.49</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -434,6 +434,27 @@
     <div class="modal-box">
         <div class="modal-title">Export to PDF</div>
         <div class="form-group">
+            <span class="label">Group By</span>
+            <select id="pdfGroupBy" onchange="updatePdfGroupValueSelect()">
+                <option value="none">None (Standard Garage Order)</option>
+                <option value="manuf">Brand</option>
+                <option value="class">Class</option>
+                <option value="drive">Drive</option>
+                <option value="wheels">Wheels</option>
+                <option value="plates">Plates</option>
+                <option value="weaponized">Weaponized</option>
+                <option value="hsw">HSW</option>
+                <option value="drift">Drift</option>
+                <option value="imani">Imani Tech</option>
+            </select>
+        </div>
+        <div class="form-group" id="pdfGroupValueGroup" style="display:none;">
+            <span class="label">Select Group Value</span>
+            <select id="pdfGroupValueSelect">
+                <option value="all">All Groups</option>
+            </select>
+        </div>
+        <div class="form-group">
             <span class="label">Select Garage</span>
             <select id="pdfGarageSelect" onchange="updatePdfFloorSelect()">
                 <option value="all">All Garages</option>
@@ -486,7 +507,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.46</div>
+        <div class="modal-title">About My GTA Garage v1.60.49</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -584,7 +605,7 @@
 
         <div id="detailModal" class="modal">
     <div class="modal-box">
-        <div id="detailContentWrapper" style="padding: 10px; border-radius: 8px; background: var(--card);">
+        <div id="detailContentWrapper" style="padding: 10px; border-radius: 12px; background: var(--card); border: 1px solid #333; overflow: hidden;">
             <div id="detailContent"></div>
         </div>
         <div id="detailActionButtons" class="detail-actions-grid">
@@ -809,7 +830,9 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.47 (Current)</strong><br>• Fixed "Edit Vehicle" button functionality on both small and large vehicle cards for string-based IDs.<br>• Improved vehicle sorting logic to handle alphanumeric IDs consistently.<br>• Refined vehicle ID comparisons across the application to handle both string and numeric formats.</p>
+            <p><strong>v1.60.49 (Current)</strong><br>• Fixed custom vehicle images being cut off on PDF exports by switching to "contain" scaling.<br>• Matched large vehicle card image box height to the main application view (250px) for better visual consistency.<br>• Improved image rendering logic for both small and large vehicle cards in PDF exports.</p>
+            <p><strong>v1.60.48</strong><br>• Added "Group By" and "Group Value" filters to the PDF export window.<br>• Users can now export specific groups of vehicles (e.g., by Brand, Class, or Wheels) just like the main app view.<br>• Improved PDF export flexibility with nested filtering options.</p>
+            <p><strong>v1.60.47</strong><br>• Fixed "Edit Vehicle" button functionality on both small and large vehicle cards for string-based IDs.<br>• Improved vehicle sorting logic to handle alphanumeric IDs consistently.<br>• Refined vehicle ID comparisons across the application to handle both string and numeric formats.</p>
             <p><strong>v1.60.46</strong><br>• Implemented dynamic height for large vehicle cards in PDF export.<br>• Added row-based height synchronization to ensure grid alignment while saving space.<br>• Optimized PDF generation loop for better multi-page handling with variable card sizes.</p>
             <p><strong>v1.60.45</strong><br>• Optimized large vehicle detail card layout for PDF export to prevent row overlapping.<br>• Reduced image height and padding on large cards to ensure 2x2 grid fits perfectly on A4 pages.<br>• Improved vertical spacing and centering for multi-page PDF exports.</p>
             <p><strong>v1.60.44</strong><br>• Fixed horizontal aspect ratio distortion for large vehicle cards and images in PDF export by using dynamic height calculation.</p>
@@ -1952,7 +1975,7 @@
         const nickname = floorNicknames[floorKey] ? `(${floorNicknames[floorKey]})` : "";
 
         // Use background image for PDF to avoid aspect ratio issues with object-fit
-        const imgStyle = blobUrl ? `background-image:url(${img}); background-size:cover; background-position:center;` : '';
+        const imgStyle = blobUrl ? `background-image:url(${img}); background-size:contain; background-position:center; background-repeat:no-repeat;` : '';
         const imgTag = blobUrl ? `<div class="card-img" style="${imgStyle} width:100%; height:100%;"></div>` : `<img class="card-img" src="${img}" onerror="handleImgError(this, '${spawn}')">`;
 
         div.innerHTML = `
@@ -2575,6 +2598,8 @@
     }
 
     function openPdfExportModal() {
+        document.getElementById('pdfGroupBy').value = 'none';
+        updatePdfGroupValueSelect();
         const select = document.getElementById('pdfGarageSelect');
         select.innerHTML = '<option value="all">All Garages</option>';
         
@@ -2588,6 +2613,43 @@
         
         updatePdfFloorSelect();
         openModal('pdfExportModal');
+    }
+
+    function updatePdfGroupValueSelect() {
+        const mode = document.getElementById('pdfGroupBy').value;
+        const vSelect = document.getElementById('pdfGroupValueSelect');
+        const vGroup = document.getElementById('pdfGroupValueGroup');
+        
+        if (mode === 'none') {
+            vGroup.style.display = 'none';
+            return;
+        }
+        
+        vGroup.style.display = 'block';
+        vSelect.innerHTML = '<option value="all">All Groups</option>';
+        
+        const groups = new Set();
+        vehicles.forEach(v => {
+            let k = "Unknown";
+            const db = masterDB.find(d => d.model === v.model) || {};
+            if (mode === 'manuf') k = v.manuf;
+            else if (mode === 'class') k = (db.class || v.class || 'Unknown').replace(/_/g, ' ');
+            else if (mode === 'drive') k = db.drive || v.drive || 'Unknown';
+            else if (mode === 'wheels') k = v.wheels || 'Stock';
+            else if (mode === 'plates') k = v.plate || 'Standard';
+            else if (mode === 'weaponized') k = v.isWeapon ? 'Weaponized' : 'Standard';
+            else if (mode === 'hsw') k = v.isHsw ? 'HSW Upgraded' : 'Standard';
+            else if (mode === 'drift') k = v.isDrift ? 'Drift Tuned' : 'Standard';
+            else if (mode === 'imani') k = v.isImani ? 'Imani Tech' : 'Standard';
+            groups.add(k);
+        });
+        
+        [...groups].sort().forEach(k => {
+            const opt = document.createElement('option');
+            opt.value = k;
+            opt.textContent = k;
+            vSelect.appendChild(opt);
+        });
     }
 
     function updatePdfFloorSelect() {
@@ -2621,6 +2683,8 @@
         const garage = document.getElementById('pdfGarageSelect').value;
         const floor = document.getElementById('pdfFloorSelect').value;
         const exportType = document.getElementById('pdfExportType').value;
+        const groupBy = document.getElementById('pdfGroupBy').value;
+        const groupValue = document.getElementById('pdfGroupValueSelect').value;
         
         closeModal('pdfExportModal');
         openModal('pdfGeneratingModal');
@@ -2630,6 +2694,25 @@
         if (progressText) progressText.innerText = '0%';
         
         let filtered = vehicles;
+        
+        // Apply Group By filter
+        if (groupBy !== 'none' && groupValue !== 'all') {
+            filtered = filtered.filter(v => {
+                let k = "Unknown";
+                const db = masterDB.find(d => d.model === v.model) || {};
+                if (groupBy === 'manuf') k = v.manuf;
+                else if (groupBy === 'class') k = (db.class || v.class || 'Unknown').replace(/_/g, ' ');
+                else if (groupBy === 'drive') k = db.drive || v.drive || 'Unknown';
+                else if (groupBy === 'wheels') k = v.wheels || 'Stock';
+                else if (groupBy === 'plates') k = v.plate || 'Standard';
+                else if (groupBy === 'weaponized') k = v.isWeapon ? 'Weaponized' : 'Standard';
+                else if (groupBy === 'hsw') k = v.isHsw ? 'HSW Upgraded' : 'Standard';
+                else if (groupBy === 'drift') k = v.isDrift ? 'Drift Tuned' : 'Standard';
+                else if (groupBy === 'imani') k = v.isImani ? 'Imani Tech' : 'Standard';
+                return k === groupValue;
+            });
+        }
+
         if (garage !== 'all') {
             filtered = filtered.filter(v => v.loc === garage);
             if (floor !== 'all') {
@@ -2643,12 +2726,39 @@
             return;
         }
 
-        filtered.sort((a, b) => {
-            if (a.loc !== b.loc) return a.loc.localeCompare(b.loc);
-            const fa = a.floor || "Main Floor";
-            const fb = b.floor || "Main Floor";
-            return fa.localeCompare(fb);
-        });
+        // Sorting logic
+        if (groupBy !== 'none') {
+            filtered.sort((a, b) => {
+                let ka = "Unknown", kb = "Unknown";
+                const dba = masterDB.find(d => d.model === a.model) || {};
+                const dbb = masterDB.find(d => d.model === b.model) || {};
+                
+                if (groupBy === 'manuf') { ka = a.manuf; kb = b.manuf; }
+                else if (groupBy === 'class') { ka = (dba.class || a.class || 'Unknown'); kb = (dbb.class || b.class || 'Unknown'); }
+                else if (groupBy === 'drive') { ka = dba.drive || a.drive || 'Unknown'; kb = dbb.drive || b.drive || 'Unknown'; }
+                else if (groupBy === 'wheels') { ka = a.wheels || 'Stock'; kb = b.wheels || 'Stock'; }
+                else if (groupBy === 'plates') { ka = a.plate || 'Standard'; kb = b.plate || 'Standard'; }
+                else if (groupBy === 'weaponized') { ka = a.isWeapon ? 'Weaponized' : 'Standard'; kb = b.isWeapon ? 'Weaponized' : 'Standard'; }
+                else if (groupBy === 'hsw') { ka = a.isHsw ? 'HSW Upgraded' : 'Standard'; kb = b.isHsw ? 'HSW Upgraded' : 'Standard'; }
+                else if (groupBy === 'drift') { ka = a.isDrift ? 'Drift Tuned' : 'Standard'; kb = b.isDrift ? 'Drift Tuned' : 'Standard'; }
+                else if (groupBy === 'imani') { ka = a.isImani ? 'Imani Tech' : 'Standard'; kb = b.isImani ? 'Imani Tech' : 'Standard'; }
+                
+                if (ka !== kb) return ka.localeCompare(kb);
+                if (a.loc !== b.loc) return a.loc.localeCompare(b.loc);
+                const fa = a.floor || "Main Floor";
+                const fb = b.floor || "Main Floor";
+                if (fa !== fb) return fa.localeCompare(fb);
+                return (parseInt(a.slot)||0) - (parseInt(b.slot)||0);
+            });
+        } else {
+            filtered.sort((a, b) => {
+                if (a.loc !== b.loc) return a.loc.localeCompare(b.loc);
+                const fa = a.floor || "Main Floor";
+                const fb = b.floor || "Main Floor";
+                if (fa !== fb) return fa.localeCompare(fb);
+                return (parseInt(a.slot)||0) - (parseInt(b.slot)||0);
+            });
+        }
 
         try {
             const { jsPDF } = window.jspdf;
@@ -2835,11 +2945,11 @@
         div.style.cssText = 'background:#1e1e1e; width:100%; padding:15px; border-radius:12px; border:1px solid #333; color:#fff; font-family:Inter, sans-serif;';
 
         // Use background image for PDF to avoid aspect ratio issues with object-fit
-        const imgStyle = blobUrl ? `background-image:url(${img}); background-size:cover; background-position:center;` : '';
+        const imgStyle = blobUrl ? `background-image:url(${img}); background-size:contain; background-position:center; background-repeat:no-repeat;` : '';
         const imgTag = blobUrl ? `<div class="detail-img" style="${imgStyle} width:100%; height:100%;"></div>` : `<img src="${img}" class="detail-img" style="max-width:100%; max-height:100%; object-fit:contain;">`;
 
         div.innerHTML = `
-            <div class="detail-img-box" style="height:160px; margin-bottom:10px; background:#000; border-radius:8px; display:flex; align-items:center; justify-content:center; overflow:hidden; border:1px solid #333;">
+            <div class="detail-img-box" style="height:250px; margin-bottom:10px; background:#000; border-radius:8px; display:flex; align-items:center; justify-content:center; overflow:hidden; border:1px solid #333;">
                 ${imgTag}
             </div>
             <div class="detail-manuf" style="color:var(--accent); font-weight:700; text-transform:uppercase; font-size:0.8rem; margin-bottom:2px;">${v.manuf}</div>
