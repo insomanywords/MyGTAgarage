@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.51</title>
+    <title>My GTA Garage v1.60.52</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -507,7 +507,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.51</div>
+        <div class="modal-title">About My GTA Garage v1.60.52</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -838,7 +838,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.51 (Current)</strong><br>• Added ability to delete custom vehicle images from Google Drive directly from the Add/Edit/Duplicate windows.<br>• Implemented confirmation and success modals for image deletion.<br>• Automatically updates all vehicles using a deleted image to revert to default.</p>
+            <p><strong>v1.60.52 (Current)</strong><br>• Fixed "Garage Full" warning incorrectly appearing when editing a vehicle already in a full garage.<br>• Restricted "Garage Full" alerts to only trigger during "Add" or "Duplicate" operations, allowing more flexibility when editing existing vehicles.</p>
+            <p><strong>v1.60.51</strong><br>• Added ability to delete custom vehicle images from Google Drive directly from the Add/Edit/Duplicate windows.<br>• Implemented confirmation and success modals for image deletion.<br>• Automatically updates all vehicles using a deleted image to revert to default.</p>
             <p><strong>v1.60.50</strong><br>• Reorganized the "About" page for better clarity, grouping sharing and export features into their own section.<br>• Added detailed "PDF Export" documentation to the About page.<br>• Updated Gamertag and Platform information to reflect their impact on both snapshots and PDF exports.</p>
             <p><strong>v1.60.49</strong><br>• Fixed custom vehicle images being cut off on PDF exports by switching to "contain" scaling.<br>• Matched large vehicle card image box height to the main application view (250px) for better visual consistency.<br>• Improved image rendering logic for both small and large vehicle cards in PDF exports.</p>
             <p><strong>v1.60.48</strong><br>• Added "Group By" and "Group Value" filters to the PDF export window.<br>• Users can now export specific groups of vehicles (e.g., by Brand, Class, or Wheels) just like the main app view.<br>• Improved PDF export flexibility with nested filtering options.</p>
@@ -2448,9 +2449,9 @@
         const cleanName = v.split(" (")[0]; 
         const cl = Object.keys(CAPACITIES).find(m => cleanName.includes(m)) || "DEFAULT";
         const maxCap = CAPACITIES[cl];
-        const currentCount = vehicles.filter(veh => veh.loc === v && veh.id !== editingId).length;
+        const currentCount = vehicles.filter(veh => veh.loc === v && veh.id != editingId).length;
 
-        if (currentCount >= maxCap) {
+        if (!editingId && currentCount >= maxCap) {
             openAlert("Garage Full", `The location <strong>${v}</strong> is full (${currentCount}/${maxCap}).<br>Please select a different garage.`);
             document.getElementById('inLoc').value = ""; 
             floorRow.style.display = 'none';
@@ -2469,16 +2470,16 @@
 
             floors.forEach(f => {
                 const fCap = getFloorCap(v, f);
-                const fCount = vehicles.filter(veh => veh.loc === v && veh.floor === f && veh.id !== editingId).length;
+                const fCount = vehicles.filter(veh => veh.loc === v && veh.floor === f && veh.id != editingId).length;
                 const isCurrentSpot = (editingId && vehicles.find(veh => veh.id == editingId && veh.loc === v && veh.floor === f));
                 
-                if (fCount < fCap || isCurrentSpot) {
+                if (editingId || fCount < fCap || isCurrentSpot) {
                     dl.innerHTML += `<option value="${f}">${f} (${fCount}/${fCap})</option>`;
                     visibleFloors++;
                 }
             });
 
-            if (visibleFloors === 0) {
+            if (!editingId && visibleFloors === 0) {
                 openAlert("Garage Full", `All floors in <strong>${v}</strong> are full.`);
                 document.getElementById('inLoc').value = "";
                 floorRow.style.display = 'none';
