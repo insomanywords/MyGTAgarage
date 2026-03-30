@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.53</title>
+    <title>My GTA Garage v1.60.55</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -287,7 +287,7 @@
             <button id="timerBtn" class="timer-btn" onclick="openTimerModal()">💲</button>
             <button class="btn-sec" style="width:44px" onclick="openStats()">📊</button>
             <button class="btn-sec" style="width:44px" onclick="openPdfExportModal()" title="Export PDF"><i class="fas fa-file-pdf"></i></button>
-            <button id="cloudHeaderBtn" class="btn-sec" style="width:44px" onclick="handleHeaderCloudClick()" title="Cloud Sync"><i class="fas fa-cloud" style="color: #aaa;"></i></button>
+            <button id="cloudHeaderBtn" class="btn-sec" style="width:44px" onclick="handleHeaderCloudClick()" title="Cloud Sync"><i class="fas fa-plug" style="color: #aaa;"></i></button>
         </div>
     </header>
 
@@ -384,6 +384,7 @@
                 <button id="btnGLogin" class="btn-pri" style="width:100%; margin-bottom:10px;" onclick="handleAuthClick()">Sign in with Google</button>
                 <button id="btnGLogout" class="btn-sec" style="width:100%; display:none; margin-bottom:10px;" onclick="handleSignoutClick(true)">Sign Out</button>
                 <div id="cloudStatus" style="color:#aaa; font-size:0.85rem; text-align:center; margin-bottom:10px;">Not signed in.</div>
+                <div id="lastSyncDisplay" style="color:#888; font-size:0.75rem; text-align:center; margin-bottom:10px; display:none;"></div>
                 
                 <div id="cloudActions" style="display:none; border-top:1px solid #333; padding-top:15px; margin-top:5px;">
                     <button class="btn-sec" style="width:100%; margin-bottom:10px; border-color:var(--accent); color:var(--accent);" onclick="manualCloudBackup()">Create Manual Cloud Backup</button>
@@ -507,7 +508,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.53</div>
+        <div class="modal-title">About My GTA Garage v1.60.55</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -839,7 +840,9 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.53 (Current)</strong><br>• Added a new plate option for "LS Car Meet" plates.</p>
+            <p><strong>v1.60.55 (Current)</strong><br>• Updated Cloud Sync status indicator in the header with new icons (🔌 for offline) and tooltips.<br>• Added "Last Synced" timestamp in parentheses to the Google Drive settings tab.<br>• Added automatic sync status updates when the browser goes online or offline.</p>
+            <p><strong>v1.60.54</strong><br>• Updated Cloud Sync status indicator in the header with new icons and tooltips.<br>• Added "Last Synced" timestamp to the Google Drive settings tab.<br>• Improved real-time sync status tracking.</p>
+            <p><strong>v1.60.53</strong><br>• Added a new plate option for "LS Car Meet" plates.</p>
             <p><strong>v1.60.52</strong><br>• Fixed "Garage Full" warning incorrectly appearing when editing a vehicle already in a full garage.<br>• Restricted "Garage Full" alerts to only trigger during "Add" or "Duplicate" operations, allowing more flexibility when editing existing vehicles.</p>
             <p><strong>v1.60.51</strong><br>• Added ability to delete custom vehicle images from Google Drive directly from the Add/Edit/Duplicate windows.<br>• Implemented confirmation and success modals for image deletion.<br>• Automatically updates all vehicles using a deleted image to revert to default.</p>
             <p><strong>v1.60.50</strong><br>• Reorganized the "About" page for better clarity, grouping sharing and export features into their own section.<br>• Added detailed "PDF Export" documentation to the About page.<br>• Updated Gamertag and Platform information to reflect their impact on both snapshots and PDF exports.</p>
@@ -920,7 +923,8 @@
             n: 'gta_nicknames_v1' + suffix,
             ls: 'gta_last_sale' + suffix,
             lsn: 'gta_last_sold_name' + suffix,
-            sh: 'gta_sales_history_v1' + suffix
+            sh: 'gta_sales_history_v1' + suffix,
+            lst: 'gta_last_sync' + suffix
         };
     }
     
@@ -930,6 +934,7 @@
     let lastSell = parseInt(safeStorage.getItem(keys.ls)) || 0;
     let lastSoldName = safeStorage.getItem(keys.lsn) || "None";
     let _sh = null; try { _sh = JSON.parse(safeStorage.getItem(keys.sh)); } catch(e){} let salesHistory = Array.isArray(_sh) ? _sh : [];
+    let lastSyncTime = safeStorage.getItem(keys.lst) || null;
     
     let editingId = null;
     let timerInt = null;
@@ -1143,11 +1148,84 @@
         if (!btn) return;
         const icon = btn.querySelector('i');
         let token = getActiveToken();
-        if (gapiInited && token) {
-            icon.style.color = 'var(--sell)'; // Green 
+        
+        let iconClass = 'fas fa-plug';
+        let color = '#aaa';
+        let statusText = 'Offline';
+        let emoji = '🔌';
+
+        if (!navigator.onLine) {
+            iconClass = 'fas fa-plug';
+            color = '#aaa';
+            statusText = 'Offline';
+            emoji = '🔌';
+        } else if (isAutoSyncing) {
+            iconClass = 'fas fa-sync fa-spin';
+            color = 'var(--drift)';
+            statusText = 'Syncing...';
+            emoji = '⏳';
+        } else if (gapiInited && token) {
+            if (driveStatus === 'expired') {
+                iconClass = 'fas fa-exclamation-triangle';
+                color = 'var(--f1)';
+                statusText = 'Needs Attention (Session Expired)';
+                emoji = '⚠️';
+            } else {
+                iconClass = 'fas fa-check-circle';
+                color = 'var(--sell)';
+                statusText = 'Synced';
+                emoji = '✅';
+            }
         } else {
-            icon.style.color = '#aaa'; // Gray
+            iconClass = 'fas fa-plug';
+            color = '#aaa';
+            statusText = 'Offline';
+            emoji = '🔌';
         }
+
+        icon.className = iconClass;
+        icon.style.color = color;
+        
+        let title = `${emoji} - ${statusText}`;
+        if (lastSyncTime) {
+            title += `\nLast Synced: ${formatLastSync(lastSyncTime)}`;
+        }
+        btn.title = title;
+        
+        // Also update settings display if open
+        const lastSyncDisp = document.getElementById('lastSyncDisplay');
+        if (lastSyncDisp) {
+            if (lastSyncTime) {
+                lastSyncDisp.innerText = `(${formatLastSync(lastSyncTime)})`;
+                lastSyncDisp.style.display = 'block';
+            } else {
+                lastSyncDisp.style.display = 'none';
+            }
+        }
+    }
+
+    function formatLastSync(ts) {
+        if (!ts) return "Never";
+        const d = new Date(parseInt(ts));
+        const now = Date.now();
+        const diffMs = now - d;
+        const diffMins = Math.floor(diffMs / 60000);
+        
+        const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        
+        let agoStr = "";
+        if (diffMins < 1) agoStr = "just now";
+        else if (diffMins === 1) agoStr = "1 minute ago";
+        else if (diffMins < 60) agoStr = `${diffMins} minutes ago`;
+        else {
+            const diffHours = Math.floor(diffMins / 60);
+            if (diffHours === 1) agoStr = "1 hour ago";
+            else if (diffHours < 24) agoStr = `${diffHours} hours ago`;
+            else agoStr = `${Math.floor(diffHours / 24)} days ago`;
+        }
+        
+        return `${dateStr} - ${timeStr} - ${agoStr}`;
     }
     
     function handleAuthClick() { 
@@ -1182,12 +1260,15 @@
         }
         hasDoneInitialSync = false;
         driveStatus = 'disconnected';
+        lastSyncTime = null;
+        safeStorage.removeItem(keys.lst);
         if (refreshTimeout) clearTimeout(refreshTimeout);
         
         document.getElementById('btnGLogin').style.display = 'block';
         document.getElementById('btnGLogout').style.display = 'none';
         document.getElementById('cloudActions').style.display = 'none';
         document.getElementById('cloudStatus').innerText = 'Not signed in.';
+        document.getElementById('lastSyncDisplay').style.display = 'none';
         driveFolders = { root: null, char: null, db: null, images: null };
         updateCloudHeaderIcon();
     }
@@ -1271,7 +1352,10 @@
                 let hasCloud = cloudData.vehicles && cloudData.vehicles.length > 0;
                 
                 if (localDataStr === cloudDataStr) {
+                    lastSyncTime = Date.now();
+                    safeStorage.setItem(keys.lst, lastSyncTime);
                     document.getElementById('cloudStatus').innerText = 'Signed in. Folders mapped. Auto-sync active. (In Sync)';
+                    updateCloudHeaderIcon();
                 } else if (!hasLocal && hasCloud) {
                     applyCloudData(cloudData);
                     document.getElementById('cloudStatus').innerText = 'Signed in. Auto-pulled from Cloud.';
@@ -1367,8 +1451,12 @@
 
     async function syncToCloud() {
         let token = getActiveToken();
-        if (isAutoSyncing || !token || !driveFolders.db || !navigator.onLine) return;
+        if (isAutoSyncing || !token || !driveFolders.db || !navigator.onLine) {
+            updateCloudHeaderIcon();
+            return;
+        }
         isAutoSyncing = true;
+        updateCloudHeaderIcon();
         document.getElementById('cloudStatus').innerText = 'Signed in. Syncing...';
         try {
             const data = { vehicles: vehicles, nicknames: floorNicknames, lastSell: lastSell, lastSoldName: lastSoldName, salesHistory: salesHistory };
@@ -1392,12 +1480,21 @@
             } else {
                 await createDriveFile(fileName, driveFolders.db, fileContent);
             }
+            lastSyncTime = Date.now();
+            safeStorage.setItem(keys.lst, lastSyncTime);
             document.getElementById('cloudStatus').innerText = 'Signed in. Folders mapped. Auto-sync active. (Synced just now)';
         } catch(e) { console.error(e); }
         isAutoSyncing = false;
+        updateCloudHeaderIcon();
     }
     
-    window.addEventListener('online', () => { if(getActiveToken()) syncToCloud(); });
+    window.addEventListener('online', () => { 
+        updateCloudHeaderIcon();
+        if(getActiveToken()) syncToCloud(); 
+    });
+    window.addEventListener('offline', () => { 
+        updateCloudHeaderIcon(); 
+    });
 
     async function manualCloudBackup() {
         let token = getActiveToken();
