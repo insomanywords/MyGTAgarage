@@ -6,7 +6,14 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.55</title>
+    <title>My GTA Garage v1.61.0</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.svg">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="GTA Garage">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="GTA Garage">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -326,6 +333,18 @@
     <a onclick="openModal('aboutModal')">About</a>
 </footer>
 
+<div id="updateModal" class="modal">
+    <div class="modal-box" style="text-align:center; padding:30px;">
+        <div style="font-size:3rem; margin-bottom:20px;">🚀</div>
+        <div class="modal-title">Update Available!</div>
+        <p style="color:#ccc; margin-bottom:25px; line-height:1.6;">A new version of My GTA Garage is ready. Update now to get the latest features and improvements.</p>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <button class="btn-pri" style="width:100%;" onclick="window.location.reload()">Update Now</button>
+            <button class="btn-sec" style="width:100%;" onclick="closeModal('updateModal')">Later</button>
+        </div>
+    </div>
+</div>
+
 <div id="settingsModal" class="modal">
     <div class="modal-box">
         <div class="modal-title">Settings</div>
@@ -508,7 +527,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.55</div>
+        <div class="modal-title">About My GTA Garage v1.61.0</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -840,8 +859,10 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.55 (Current)</strong><br>• Updated Cloud Sync status indicator in the header with new icons (🔌 for offline) and tooltips.<br>• Added "Last Synced" timestamp in parentheses to the Google Drive settings tab.<br>• Added automatic sync status updates when the browser goes online or offline.</p>
-            <p><strong>v1.60.54</strong><br>• Updated Cloud Sync status indicator in the header with new icons and tooltips.<br>• Added "Last Synced" timestamp to the Google Drive settings tab.<br>• Improved real-time sync status tracking.</p>
+            <p><strong>v1.61.0 (Current)</strong><br>• Implemented full PWA (Progressive Web App) functionality.<br>• Added "Add to Home Screen" support with custom manifest and icons.<br>• Added Service Worker for offline support and instant loading.<br>• Implemented smart image caching for GitHub and Google Drive images.<br>• Added "Update Available" modal notification system.</p>
+            <p><strong>v1.60.57</strong><br>• Improved PDF image rendering by switching to background-image for all small vehicle cards, ensuring consistent aspect ratio across all environments.<br>• Fixed a rendering bug where stock images could appear stretched in certain PDF viewers.</p>
+            <p><strong>v1.60.56</strong><br>• Fixed aspect ratio of stock images on small vehicle cards in PDF exports.<br>• Improved spacing and alignment of small vehicle cards in PDF exports to match large card logic.</p>
+            <p><strong>v1.60.55</strong><br>• Updated Cloud Sync status indicator in the header with new icons (🔌 for offline) and tooltips.<br>• Added "Last Synced" timestamp in parentheses to the Google Drive settings tab.<br>• Added automatic sync status updates when the browser goes online or offline.</p>
             <p><strong>v1.60.53</strong><br>• Added a new plate option for "LS Car Meet" plates.</p>
             <p><strong>v1.60.52</strong><br>• Fixed "Garage Full" warning incorrectly appearing when editing a vehicle already in a full garage.<br>• Restricted "Garage Full" alerts to only trigger during "Add" or "Duplicate" operations, allowing more flexibility when editing existing vehicles.</p>
             <p><strong>v1.60.51</strong><br>• Added ability to delete custom vehicle images from Google Drive directly from the Add/Edit/Duplicate windows.<br>• Implemented confirmation and success modals for image deletion.<br>• Automatically updates all vehicles using a deleted image to revert to default.</p>
@@ -2122,7 +2143,7 @@
         } catch(e) { console.error('Render error:', e); document.getElementById('vehicle-list').innerHTML = '<div style="color:red;padding:20px;">Error rendering vehicles: ' + e.message + '</div>'; }
     }
 
-    function createCard(v, blobUrl = null) {
+    function createCard(v, blobUrl = null, isPdf = false) {
         if (!v) return null; 
         const db = masterDB.find(d => d.model === v.model) || {};
         const spawn = db.spawn || v.spawn || "";
@@ -2158,8 +2179,8 @@
         const nickname = floorNicknames[floorKey] ? `(${floorNicknames[floorKey]})` : "";
 
         // Use background image for PDF to avoid aspect ratio issues with object-fit
-        const imgStyle = blobUrl ? `background-image:url(${img}); background-size:contain; background-position:center; background-repeat:no-repeat;` : '';
-        const imgTag = blobUrl ? `<div class="card-img" style="${imgStyle} width:100%; height:100%;"></div>` : `<img class="card-img" src="${img}" onerror="handleImgError(this, '${spawn}')">`;
+        const imgStyle = (blobUrl || isPdf) ? `background-image:url(${img}); background-size:contain; background-position:center; background-repeat:no-repeat;` : '';
+        const imgTag = (blobUrl || isPdf) ? `<div class="card-img" style="${imgStyle} width:100%; height:100%;"></div>` : `<img class="card-img" src="${img}" onerror="handleImgError(this, '${spawn}')">`;
 
         div.innerHTML = `
             <div class="card-img-box" onclick="event.stopPropagation(); openLb('${img}')">
@@ -2980,7 +3001,7 @@
             let rowCards = [];
 
             const totalVehicles = filtered.length;
-            const totalGridWidth = 2 * cardWidth + gap;
+            const totalGridWidth = cardsPerRow * cardWidth + (cardsPerRow - 1) * gap;
             const startX = (pageWidth - totalGridWidth) / 2;
 
             for (let i = 0; i < totalVehicles; i++) {
@@ -3019,7 +3040,7 @@
                 }
 
                 container.innerHTML = '';
-                const card = exportType === 'large' ? createDetailCard(v, blobUrl) : createCard(v, blobUrl);
+                const card = exportType === 'large' ? createDetailCard(v, blobUrl) : createCard(v, blobUrl, true);
                 
                 const actions = card.querySelector('.card-actions-top') || card.querySelector('#detailEditBtn');
                 if (actions) actions.style.display = 'none';
@@ -3038,43 +3059,25 @@
                 const imgData = canvas.toDataURL('image/jpeg', 0.8);
                 const actualCardHeight = (canvas.height * cardWidth) / canvas.width;
                 
-                if (exportType === 'large') {
-                    rowCards.push({ imgData, height: actualCardHeight });
-                    rowMaxHeight = Math.max(rowMaxHeight, actualCardHeight);
+                rowCards.push({ imgData, height: actualCardHeight });
+                rowMaxHeight = Math.max(rowMaxHeight, actualCardHeight);
 
-                    if (rowCards.length === 2 || i === totalVehicles - 1) {
-                        if (currentY + rowMaxHeight > pageHeight - margin) {
-                            pdf.addPage();
-                            addBg();
-                            pdf.addImage(headerImg, 'JPEG', 0, 0, pageWidth, headerHeight);
-                            currentY = headerHeight + gap;
-                        }
-
-                        rowCards.forEach((rc, idx) => {
-                            const drawX = startX + idx * (cardWidth + gap);
-                            pdf.addImage(rc.imgData, 'JPEG', drawX, currentY, cardWidth, rc.height);
-                        });
-
-                        currentY += rowMaxHeight + gap;
-                        rowCards = [];
-                        rowMaxHeight = 0;
-                    }
-                } else {
-                    const col = cardCount % cardsPerRow;
-                    let drawX = margin + col * (cardWidth + gap);
-                    
-                    if (cardCount > 0 && col === 0) {
-                        currentY += actualCardHeight + gap;
-                    }
-
-                    if (currentY + actualCardHeight > pageHeight - margin) {
+                if (rowCards.length === cardsPerRow || i === totalVehicles - 1) {
+                    if (currentY + rowMaxHeight > pageHeight - margin) {
                         pdf.addPage();
                         addBg();
                         pdf.addImage(headerImg, 'JPEG', 0, 0, pageWidth, headerHeight);
                         currentY = headerHeight + gap;
-                        drawX = margin;
                     }
-                    pdf.addImage(imgData, 'JPEG', drawX, currentY, cardWidth, actualCardHeight);
+
+                    rowCards.forEach((rc, idx) => {
+                        const drawX = startX + idx * (cardWidth + gap);
+                        pdf.addImage(rc.imgData, 'JPEG', drawX, currentY, cardWidth, rc.height);
+                    });
+
+                    currentY += rowMaxHeight + gap;
+                    rowCards = [];
+                    rowMaxHeight = 0;
                 }
                 cardCount++;
                 if (blobUrl) URL.revokeObjectURL(blobUrl);
@@ -3435,6 +3438,22 @@
     }
     window.onclick = e => { if(e.target.className === 'modal') e.target.style.display = 'none'; }
     function checkCustomModel() { document.getElementById('inModelCustom').style.display = document.getElementById('inModel').value==='Custom'?'block':'none'; }
+
+    // PWA SERVICE WORKER REGISTRATION
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').then((reg) => {
+                reg.addEventListener('updatefound', () => {
+                    const newWorker = reg.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            openModal('updateModal');
+                        }
+                    });
+                });
+            }).catch(err => console.error("SW Registration failed:", err));
+        });
+    }
 </script>
 
 <script src="https://accounts.google.com/gsi/client" async defer onload="gisLoadedInit()"></script>
