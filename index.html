@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.60.52</title>
+    <title>My GTA Garage v1.60.53</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -507,7 +507,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.60.52</div>
+        <div class="modal-title">About My GTA Garage v1.60.53</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -724,6 +724,7 @@
                 <div><span class="label">Wheels</span><select id="inWheels"><option value="Stock">Stock</option><option value="F1">F1 Wheels</option><option value="Benny">Benny's</option></select></div>
                 <div><span class="label">Plate</span><select id="inPlate">
                     <option value="Standard">Standard</option><option value="Yankton">Yankton</option>
+                    <option value="LS Car Meet">LS Car Meet</option>
                     <option value="Liberty City">Liberty City</option><option value="Panic">Panic</option>
                     <option value="Pounders">Pounders</option><option value="Las Venturas">Las Venturas</option>
                     <option value="E-Cola">E-Cola</option><option value="Sprunk">Sprunk</option>
@@ -838,7 +839,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.60.52 (Current)</strong><br>• Fixed "Garage Full" warning incorrectly appearing when editing a vehicle already in a full garage.<br>• Restricted "Garage Full" alerts to only trigger during "Add" or "Duplicate" operations, allowing more flexibility when editing existing vehicles.</p>
+            <p><strong>v1.60.53 (Current)</strong><br>• Added a new plate option for "LS Car Meet" plates.</p>
+            <p><strong>v1.60.52</strong><br>• Fixed "Garage Full" warning incorrectly appearing when editing a vehicle already in a full garage.<br>• Restricted "Garage Full" alerts to only trigger during "Add" or "Duplicate" operations, allowing more flexibility when editing existing vehicles.</p>
             <p><strong>v1.60.51</strong><br>• Added ability to delete custom vehicle images from Google Drive directly from the Add/Edit/Duplicate windows.<br>• Implemented confirmation and success modals for image deletion.<br>• Automatically updates all vehicles using a deleted image to revert to default.</p>
             <p><strong>v1.60.50</strong><br>• Reorganized the "About" page for better clarity, grouping sharing and export features into their own section.<br>• Added detailed "PDF Export" documentation to the About page.<br>• Updated Gamertag and Platform information to reflect their impact on both snapshots and PDF exports.</p>
             <p><strong>v1.60.49</strong><br>• Fixed custom vehicle images being cut off on PDF exports by switching to "contain" scaling.<br>• Matched large vehicle card image box height to the main application view (250px) for better visual consistency.<br>• Improved image rendering logic for both small and large vehicle cards in PDF exports.</p>
@@ -2213,7 +2215,7 @@
                 }
 
                 const canvas = await html2canvas(wrapper, {
-                    backgroundColor: '#1e1e1e',
+                    backgroundColor: null,
                     scale: 2,
                     useCORS: true 
                 });
