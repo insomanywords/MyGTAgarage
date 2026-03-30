@@ -1,0 +1,17 @@
+{
+  "name": "My GTA Garage",
+  "short_name": "GTA Garage",
+  "description": "The ultimate tool for GTA Online car collectors.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#121212",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
