@@ -1,9 +1,9 @@
-const CACHE_NAME = 'gta-garage-v1.61.0';
+const CACHE_NAME = 'gta-garage-v1.61.1';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon.svg'
+  './',
+  './index.html',
+  './manifest.json',
+  './icon.svg'
 ];
 
 self.addEventListener('install', (event) => {
