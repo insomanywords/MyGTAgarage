@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.61.1</title>
+    <title>My GTA Garage v1.61.2</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -80,8 +80,14 @@
         
         .search-wrapper { position: relative; width: 100%; }
         .search-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-dim); pointer-events: none; }
-        .search-wrapper input { padding-left: 38px !important; padding-right: 35px !important; width: 100%; height: 44px; }
-        .clear-search { position: absolute; right: 0; top: 0; height: 100%; width: 40px; display: none; align-items: center; justify-content: center; color: var(--text-dim); cursor: pointer; }
+        .search-wrapper input { padding-left: 38px !important; padding-right: 82px !important; width: 100%; height: 44px; }
+        .filter-btn-search { 
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%); 
+            color: var(--text-dim); cursor: pointer; z-index: 5; 
+            width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+        }
+        .filter-btn-search:hover { color: var(--accent); }
+        .clear-search { position: absolute; right: 42px; top: 0; height: 100%; width: 40px; display: none; align-items: center; justify-content: center; color: var(--text-dim); cursor: pointer; }
 
         .filter-row { display: flex; gap: 8px; width: 100%; }
         #viewMode { flex-grow: 1; width: auto; min-width: 0; }
@@ -302,6 +308,7 @@
         <div class="search-wrapper">
             <i class="fas fa-search"></i>
             <input type="text" id="searchInput" placeholder="Search collection..." onkeyup="render()">
+            <div class="filter-btn-search" id="advFilterBtn" onclick="openAdvFilter()" title="Advanced Filter"><i class="fas fa-sliders-h"></i></div>
             <div class="clear-search" id="clearSearch" onclick="clearSearch()">✕</div>
         </div>
         <div class="filter-row">
@@ -442,6 +449,79 @@
     </div>
 </div>
 
+<div id="advFilterModal" class="modal">
+    <div class="modal-box">
+        <div class="modal-title">Advanced Filter</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px;">
+            <div>
+                <label class="input-label">Garage</label>
+                <select id="advGarage" onchange="updateAdvFloorOptions()"></select>
+            </div>
+            <div>
+                <label class="input-label">Floor</label>
+                <select id="advFloor"></select>
+            </div>
+            <div>
+                <label class="input-label">Brand</label>
+                <select id="advBrand"></select>
+            </div>
+            <div>
+                <label class="input-label">Class</label>
+                <select id="advClass"></select>
+            </div>
+            <div>
+                <label class="input-label">Drive Type</label>
+                <select id="advDrive"></select>
+            </div>
+            <div>
+                <label class="input-label">Wheels</label>
+                <select id="advWheels"></select>
+            </div>
+            <div>
+                <label class="input-label">Plate</label>
+                <select id="advPlate"></select>
+            </div>
+            <div>
+                <label class="input-label">Weaponized</label>
+                <select id="advWeapon">
+                    <option value="">All</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+            <div>
+                <label class="input-label">HSW</label>
+                <select id="advHsw">
+                    <option value="">All</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+            <div>
+                <label class="input-label">Drift</label>
+                <select id="advDrift">
+                    <option value="">All</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+            <div>
+                <label class="input-label">Imani Tech</label>
+                <select id="advImani">
+                    <option value="">All</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button class="btn-pri" style="flex:1" onclick="applyAdvFilter()">Apply Filter</button>
+            <button class="btn-sec" style="flex:1" onclick="resetAdvFilter()">Reset</button>
+        </div>
+        <button class="btn-sec" style="width:100%; margin-top:10px;" onclick="closeModal('advFilterModal')">Cancel</button>
+    </div>
+</div>
+
 <div id="charModal" class="modal">
     <div class="modal-box">
         <div class="modal-title">Select Character</div>
@@ -527,7 +607,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.61.1</div>
+        <div class="modal-title">About My GTA Garage v1.61.2</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -545,7 +625,7 @@
             <ul style="padding-left:20px; margin-bottom:15px; line-height: 1.6;">
                 <li style="margin-bottom: 12px;"><strong>Grouping:</strong> Use the dropdown menu at the top to group your vehicles by Garage, Brand, Class, Drive type, Wheels, Plates, Weaponized, or HSW status. Groups can be collapsed or expanded by clicking their headers. The app automatically remembers your open groups when you edit or save vehicles.</li>
                 <li style="margin-bottom: 12px;"><strong>Sorting:</strong> When viewing by "Group: Garage", vehicles are automatically sorted by their Slot number (1, 2, 3, etc.). Vehicles without a slot number are placed at the end in the order they were added.</li>
-                <li style="margin-bottom: 12px;"><strong>Search:</strong> Use the search bar to instantly filter your collection by vehicle name, manufacturer, location, or notes. Garage capacities will dynamically update to show the real total usage even while filtering.</li>
+                <li style="margin-bottom: 12px;"><strong>Search & Advanced Filter:</strong> Use the search bar to instantly filter your collection by vehicle name, manufacturer, location, or notes. Click the <i class="fas fa-sliders-h"></i> <strong>Advanced Filter</strong> button inside the search bar to filter by specific Garage, Floor, Brand, Class, Drive type, Wheels, Plates, or special statuses (HSW, Weaponized, etc.) in any combination.</li>
                 <li style="margin-bottom: 12px;"><strong>Favorites:</strong> Mark your best cars by toggling the <i class="fas fa-heart" style="color:var(--fav)"></i> Favorite checkbox when adding/editing. Select "Favorites Only" from the view dropdown to display only these vehicles.</li>
             </ul>
 
@@ -859,7 +939,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.61.1 (Current)</strong><br>• Fixed PWA 404 error on GitHub Pages by using relative paths in manifest and service worker.</p>
+            <p><strong>v1.61.2 (Current)</strong><br>• Added Advanced Filtering system to search by Garage, Floor, Brand, Class, and more.<br>• Added Advanced Filter button to the search bar.<br>• Improved search results view when filtering is active.<br>• Fixed Google Drive sync error auto-refresh logic.</p>
+            <p><strong>v1.61.1</strong><br>• Fixed PWA 404 error on GitHub Pages by using relative paths in manifest and service worker.</p>
             <p><strong>v1.61.0</strong><br>• Implemented full PWA (Progressive Web App) functionality.<br>• Added "Add to Home Screen" support with custom manifest and icons.<br>• Added Service Worker for offline support and instant loading.<br>• Implemented smart image caching for GitHub and Google Drive images.<br>• Added "Update Available" modal notification system.</p>
             <p><strong>v1.60.57</strong><br>• Improved PDF image rendering by switching to background-image for all small vehicle cards, ensuring consistent aspect ratio across all environments.<br>• Fixed a rendering bug where stock images could appear stretched in certain PDF viewers.</p>
             <p><strong>v1.60.56</strong><br>• Fixed aspect ratio of stock images on small vehicle cards in PDF exports.<br>• Improved spacing and alignment of small vehicle cards in PDF exports to match large card logic.</p>
@@ -952,6 +1033,10 @@
     
     let keys = getStorageKeys();
     let _v = null; try { _v = JSON.parse(safeStorage.getItem(keys.v)); } catch(e){} let vehicles = Array.isArray(_v) ? _v : [];
+    let advFilter = {
+        garage: '', floor: '', brand: '', class: '', drive: '',
+        wheels: '', plate: '', weaponized: null, hsw: null, drift: null, imani: null
+    };
     let _fn = null; try { _fn = JSON.parse(safeStorage.getItem(keys.n)); } catch(e){} let floorNicknames = (_fn && typeof _fn === 'object' && !Array.isArray(_fn)) ? _fn : {};
     let lastSell = parseInt(safeStorage.getItem(keys.ls)) || 0;
     let lastSoldName = safeStorage.getItem(keys.lsn) || "None";
@@ -1431,10 +1516,23 @@
             try {
                 await ensureDriveStructure();
                 await checkInitialSync();
+                // Clear the auto-refresh flag if sync succeeds
+                sessionStorage.removeItem('driveSyncAutoRefresh');
             } catch(e) { 
                 console.error(e); 
                 document.getElementById('cloudStatus').innerText = 'Error setting up Drive folders.'; 
                 hasDoneInitialSync = false;
+                
+                // Auto-refresh logic
+                const autoRefreshDone = sessionStorage.getItem('driveSyncAutoRefresh');
+                if (!autoRefreshDone) {
+                    sessionStorage.setItem('driveSyncAutoRefresh', 'true');
+                    window.location.reload();
+                } else {
+                    // Error persists after refresh
+                    alert("Error setting up Drive folders. If this persists, please manually logout and log back in to reset the connection.");
+                    sessionStorage.removeItem('driveSyncAutoRefresh'); // Reset for next time
+                }
             }
         } else {
              if (document.getElementById('cloudStatus').innerText.includes("Not signed in")) {
@@ -2016,7 +2114,37 @@
         });
 
         const list = document.getElementById('vehicle-list'), term = document.getElementById('searchInput').value.toLowerCase(), mode = document.getElementById('viewMode').value;
-        let filtered = vehicles.filter(v => (v.model+v.manuf+v.loc+(v.notes||'')).toLowerCase().includes(term));
+        
+        const isAdvFiltering = Object.values(advFilter).some(val => val !== '' && val !== null);
+        
+        let filtered = vehicles.filter(v => {
+            const termMatch = (v.model+v.manuf+v.loc+(v.notes||'')).toLowerCase().includes(term);
+            if (!termMatch) return false;
+
+            if (advFilter.garage && v.loc !== advFilter.garage) return false;
+            if (advFilter.floor && (v.floor || "Main Floor") !== advFilter.floor) return false;
+            if (advFilter.brand && v.manuf !== advFilter.brand) return false;
+            
+            const db = masterDB.find(d => d.model === v.model) || {};
+            const vClass = (db.class || v.class || 'Unknown').replace(/_/g, ' ');
+            if (advFilter.class && vClass !== advFilter.class) return false;
+            
+            const vDrive = db.drive || v.drive || 'Unknown';
+            if (advFilter.drive && vDrive !== advFilter.drive) return false;
+            
+            const vWheels = v.wheels || 'Stock';
+            if (advFilter.wheels && vWheels !== advFilter.wheels) return false;
+            
+            const vPlate = v.plate || 'Standard';
+            if (advFilter.plate && vPlate !== advFilter.plate) return false;
+
+            if (advFilter.weaponized !== null && v.isWeapon !== advFilter.weaponized) return false;
+            if (advFilter.hsw !== null && v.isHsw !== advFilter.hsw) return false;
+            if (advFilter.drift !== null && v.isDrift !== advFilter.drift) return false;
+            if (advFilter.imani !== null && v.isImani !== advFilter.imani) return false;
+
+            return true;
+        });
         
         if (mode === 'fav') { filtered = filtered.filter(v => v.isFav); }
 
@@ -2024,7 +2152,7 @@
         document.getElementById('clearSearch').style.display = term.length > 0 ? 'flex' : 'none';
         list.innerHTML = "";
 
-        if(mode === 'all' || mode === 'fav') {
+        if(mode === 'all' || mode === 'fav' || isAdvFiltering) {
             const grid = document.createElement('div'); grid.className = 'vehicle-grid';
             filtered.forEach(v => {
                 const card = createCard(v);
@@ -3437,6 +3565,117 @@
         if(!i.retry && s) { i.retry=1; i.src=`${BASE_URL}vehicles/${s.charAt(0).toUpperCase()+s.slice(1).toLowerCase()}.png`; } 
         else { i.style.display='none'; if(i.nextElementSibling) i.nextElementSibling.style.display='block'; } 
     }
+
+    // ADVANCED FILTER FUNCTIONS
+    function openAdvFilter() {
+        populateAdvFilterOptions();
+        openModal('advFilterModal');
+    }
+
+    function populateAdvFilterOptions() {
+        const garageSelect = document.getElementById('advGarage');
+        const brandSelect = document.getElementById('advBrand');
+        const classSelect = document.getElementById('advClass');
+        const driveSelect = document.getElementById('advDrive');
+        const wheelsSelect = document.getElementById('advWheels');
+        const plateSelect = document.getElementById('advPlate');
+
+        const garages = [...new Set(vehicles.map(v => v.loc))].sort();
+        const brands = [...new Set(vehicles.map(v => v.manuf))].sort();
+        const classes = [...new Set(vehicles.map(v => {
+            const db = masterDB.find(d => d.model === v.model) || {};
+            return (db.class || v.class || 'Unknown').replace(/_/g, ' ');
+        }))].sort();
+        const drives = [...new Set(vehicles.map(v => {
+            const db = masterDB.find(d => d.model === v.model) || {};
+            return db.drive || v.drive || 'Unknown';
+        }))].sort();
+        const wheels = [...new Set(vehicles.map(v => v.wheels || 'Stock'))].sort();
+        const plates = [...new Set(vehicles.map(v => v.plate || 'Standard'))].sort();
+
+        fillSelect(garageSelect, garages, advFilter.garage);
+        fillSelect(brandSelect, brands, advFilter.brand);
+        fillSelect(classSelect, classes, advFilter.class);
+        fillSelect(driveSelect, drives, advFilter.drive);
+        fillSelect(wheelsSelect, wheels, advFilter.wheels);
+        fillSelect(plateSelect, plates, advFilter.plate);
+
+        updateAdvFloorOptions();
+        
+        // Set tri-state selects
+        setTriState('advWeapon', advFilter.weaponized);
+        setTriState('advHsw', advFilter.hsw);
+        setTriState('advDrift', advFilter.drift);
+        setTriState('advImani', advFilter.imani);
+    }
+
+    function fillSelect(el, items, currentVal) {
+        el.innerHTML = '<option value="">All</option>';
+        items.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item;
+            opt.innerText = item;
+            if (item === currentVal) opt.selected = true;
+            el.appendChild(opt);
+        });
+    }
+
+    function updateAdvFloorOptions() {
+        const garage = document.getElementById('advGarage').value;
+        const floorSelect = document.getElementById('advFloor');
+        if (!garage) {
+            floorSelect.innerHTML = '<option value="">All</option>';
+            floorSelect.disabled = true;
+            return;
+        }
+        floorSelect.disabled = false;
+        const floors = [...new Set(vehicles.filter(v => v.loc === garage).map(v => v.floor || "Main Floor"))].sort();
+        fillSelect(floorSelect, floors, advFilter.floor);
+    }
+
+    function setTriState(id, val) {
+        const el = document.getElementById(id);
+        if (val === true) el.value = 'yes';
+        else if (val === false) el.value = 'no';
+        else el.value = '';
+    }
+
+    function getTriState(id) {
+        const val = document.getElementById(id).value;
+        if (val === 'yes') return true;
+        if (val === 'no') return false;
+        return null;
+    }
+
+    function applyAdvFilter() {
+        advFilter.garage = document.getElementById('advGarage').value;
+        advFilter.floor = document.getElementById('advFloor').value;
+        advFilter.brand = document.getElementById('advBrand').value;
+        advFilter.class = document.getElementById('advClass').value;
+        advFilter.drive = document.getElementById('advDrive').value;
+        advFilter.wheels = document.getElementById('advWheels').value;
+        advFilter.plate = document.getElementById('advPlate').value;
+        advFilter.weaponized = getTriState('advWeapon');
+        advFilter.hsw = getTriState('advHsw');
+        advFilter.drift = getTriState('advDrift');
+        advFilter.imani = getTriState('advImani');
+
+        closeModal('advFilterModal');
+        const isFiltering = Object.values(advFilter).some(v => v !== '' && v !== null);
+        document.getElementById('advFilterBtn').style.color = isFiltering ? 'var(--accent)' : 'var(--text-dim)';
+        render();
+    }
+
+    function resetAdvFilter() {
+        advFilter = {
+            garage: '', floor: '', brand: '', class: '', drive: '',
+            wheels: '', plate: '', weaponized: null, hsw: null, drift: null, imani: null
+        };
+        document.getElementById('advFilterBtn').style.color = 'var(--text-dim)';
+        closeModal('advFilterModal');
+        render();
+    }
+
     window.onclick = e => { if(e.target.className === 'modal') e.target.style.display = 'none'; }
     function checkCustomModel() { document.getElementById('inModelCustom').style.display = document.getElementById('inModel').value==='Custom'?'block':'none'; }
 
