@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.62.3</title>
+    <title>My GTA Garage v1.62.4</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -679,7 +679,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.62.2</div>
+        <div class="modal-title">About My GTA Garage v1.62.4</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -817,6 +817,14 @@
         <div style="font-size:3rem; margin-bottom:10px;"><i id="uploadWaitIcon" class="fas fa-spinner fa-spin" style="color: var(--accent);"></i></div>
         <h2 id="uploadWaitTitle" style="color:#fff; margin:0 0 10px 0;">Uploading Image...</h2>
         <p id="uploadWaitMsg" style="color:#ccc; font-size:0.95rem; line-height:1.5; margin-bottom:0;">Please wait while your image is securely saved to Google Drive.</p>
+    </div>
+</div>
+
+<div id="publicSnapshotWaitModal" class="modal" style="z-index: 1300;">
+    <div class="modal-box" style="text-align:center;">
+        <div style="font-size:3rem; margin-bottom:10px;"><i class="fas fa-spinner fa-spin" style="color: var(--accent);"></i></div>
+        <h2 style="color:#fff; margin:0 0 10px 0;">Creating Public Snapshot...</h2>
+        <p id="publicSnapshotWaitMsg" style="color:#ccc; font-size:0.95rem; line-height:1.5; margin-bottom:0;">Please wait while your snapshot is generated and permissions are updated.</p>
     </div>
 </div>
 
@@ -1044,7 +1052,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.62.3 (Current)</strong><br>• Fixed "Failed to fetch" error on public shareable links by implementing a CORS proxy fallback for unauthenticated users.<br>• Improved reliability of loading shared garage snapshots from Google Drive.<br>• Ensured "Share Garage" button in Garage Tools correctly copies the themed public link.<br>• Replaced standard browser alerts with custom themed toast notifications for all clipboard actions.</p>
+            <p><strong>v1.62.4 (Current)</strong><br>• Changed public snapshot creation notification to a modal.<br>• Added a progress modal window during public snapshot creation.<br>• Updated proxy fallback chain for shared snapshots.</p>
+            <p><strong>v1.62.3</strong><br>• Attempted fix for public share link loading.</p>
             <p><strong>v1.62.2</strong><br>• Fixed public share link loading for unauthenticated users with a fallback download method using the direct download endpoint.<br>• Replaced standard browser alerts with a custom themed toast notification system.<br>• Improved clipboard copying reliability with a dual-method system (Clipboard API + fallback).<br>• Fixed "Share Garage" button in Garage Tools with background pre-fetching.</p>
             <p><strong>v1.62.1</strong><br>• Fixed public share link loading for unauthenticated users with a fallback download method.<br>• Replaced standard browser alerts with a custom themed toast notification system.<br>• Improved clipboard copying reliability with a dual-method system (Clipboard API + fallback).<br>• Fixed "Share Garage" button in Garage Tools with background pre-fetching.</p>
             <p><strong>v1.62.0</strong><br>• Added "Share Garage" button to Garage Tools for instant public link copying.<br>• Implemented vehicle deep-linking: Share direct links to specific cars in your collection.<br>• Added "Share Choice" modal to vehicle detail cards with Snapshot and Link options.<br>• Improved "View Only Mode" security by hiding all modification buttons and adding safety guards.<br>• Fixed UI rendering issues in normal mode caused by template literal syntax in static HTML.</p>
@@ -3989,13 +3998,18 @@
         closeModal('publicShareConfirmModal');
         const shareStatus = document.getElementById('shareStatus');
         shareStatus.innerText = 'Creating public snapshot...';
+        
+        document.getElementById('publicSnapshotWaitMsg').innerText = 'Please wait while your snapshot is generated and permissions are updated.';
+        openModal('publicSnapshotWaitModal');
 
         try {
             await ensureDriveStructure();
             
+            document.getElementById('publicSnapshotWaitMsg').innerText = 'Ensuring "Public Shares" folder exists...';
             // 1. Ensure "Public Shares" folder exists
             publicShareFolderId = await findOrCreateFolder('Public Shares', driveFolders.char);
             
+            document.getElementById('publicSnapshotWaitMsg').innerText = 'Setting folder permissions...';
             // 2. Set folder permission to public
             await driveApiRequest({
                 path: `/drive/v3/files/${publicShareFolderId}/permissions`,
@@ -4006,6 +4020,7 @@
             // 3. Handle images folder if requested
             const includeImages = document.getElementById('includeCustomImages').checked;
             if (includeImages) {
+                document.getElementById('publicSnapshotWaitMsg').innerText = 'Setting image folder permissions...';
                 await driveApiRequest({
                     path: `/drive/v3/files/${driveFolders.images}/permissions`,
                     method: 'POST',
@@ -4013,6 +4028,7 @@
                 });
             }
 
+            document.getElementById('publicSnapshotWaitMsg').innerText = 'Preparing snapshot data...';
             // 4. Create/Update JSON file
             const charName = characters.find(c => c.id === activeCharId)?.name || 'Character';
             const fileName = `${charName}_Public_Snapshot.json`;
@@ -4030,6 +4046,7 @@
                 })
             };
 
+            document.getElementById('publicSnapshotWaitMsg').innerText = 'Checking for existing snapshot...';
             // Check if file exists
             const query = `name='${fileName}' and '${publicShareFolderId}' in parents and trashed=false`;
             const fileRes = await driveApiRequest({
@@ -4040,6 +4057,7 @@
 
             let fileId;
             if (fileRes.result.files && fileRes.result.files.length > 0) {
+                document.getElementById('publicSnapshotWaitMsg').innerText = 'Updating existing snapshot...';
                 fileId = fileRes.result.files[0].id;
                 await driveApiRequest({
                     path: `/upload/drive/v3/files/${fileId}?uploadType=media`,
@@ -4047,6 +4065,7 @@
                     body: JSON.stringify(snapshotData)
                 });
             } else {
+                document.getElementById('publicSnapshotWaitMsg').innerText = 'Creating new snapshot...';
                 const createRes = await driveApiRequest({
                     path: '/upload/drive/v3/files?uploadType=multipart',
                     method: 'POST',
@@ -4056,6 +4075,7 @@
                 fileId = createRes.result.id;
             }
 
+            document.getElementById('publicSnapshotWaitMsg').innerText = 'Finalizing file permissions...';
             // 5. Ensure file itself is public
             await driveApiRequest({
                 path: `/drive/v3/files/${fileId}/permissions`,
@@ -4065,10 +4085,13 @@
 
             publicShareFileId = fileId;
             await checkPublicPermissions();
-            alert('Public snapshot created successfully!');
+            
+            closeModal('publicSnapshotWaitModal');
+            showSuccess('Success', 'Public snapshot created successfully!');
 
         } catch (e) {
             console.error(e);
+            closeModal('publicSnapshotWaitModal');
             alert('Error creating public snapshot: ' + e.message);
             shareStatus.innerText = 'Error creating snapshot.';
         }
@@ -4240,11 +4263,10 @@
                 data = res.result;
             } else {
                 // FALLBACK: Use the direct download link for public files when not logged in
-                // This avoids the need for an API key required by the v3 API endpoint
                 const url = `https://drive.google.com/uc?id=${fileId}&export=download`;
                 
                 try {
-                    // Try direct fetch first (might work in some environments or if CORS is relaxed)
+                    // Try direct fetch first
                     const res = await fetch(url);
                     if (res.ok) {
                         data = await res.json();
@@ -4252,31 +4274,57 @@
                         throw new Error('Direct fetch failed');
                     }
                 } catch (fetchErr) {
-                    // CORS or other error, try proxy
-                    console.log('Direct fetch failed, trying proxy...', fetchErr);
-                    // Using AllOrigins proxy to bypass CORS
-                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-                    const proxyRes = await fetch(proxyUrl);
-                    if (proxyRes.ok) {
-                        const proxyData = await proxyRes.json();
-                        if (proxyData.contents) {
-                            try {
-                                data = JSON.parse(proxyData.contents);
-                            } catch (parseErr) {
-                                console.error('Failed to parse proxy content:', parseErr);
-                                throw new Error('Invalid data format received from proxy');
-                            }
+                    console.log('Direct fetch failed, trying Proxy 1...', fetchErr);
+                    
+                    try {
+                        // Try Proxy 1: api.codetabs.com (Raw response)
+                        const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${url}`;
+                        const proxyRes = await fetch(proxyUrl);
+                        if (proxyRes.ok) {
+                            data = await proxyRes.json();
                         } else {
-                            throw new Error('Proxy returned empty content');
+                            throw new Error('Proxy 1 failed');
                         }
-                    } else {
-                        // Try one more time with the API endpoint just in case
-                        const apiUrl = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
-                        const apiRes = await fetch(apiUrl);
-                        if (apiRes.ok) {
-                            data = await apiRes.json();
-                        } else {
-                            throw new Error('Failed to fetch shared data. It might not be public or the link is invalid.');
+                    } catch (proxy1Err) {
+                        console.log('Proxy 1 failed, trying Proxy 2...', proxy1Err);
+                        
+                        try {
+                            // Try Proxy 2: corsproxy.io (Raw response)
+                            const proxyUrl2 = `https://corsproxy.io/?${url}`;
+                            const proxyRes2 = await fetch(proxyUrl2);
+                            if (proxyRes2.ok) {
+                                data = await proxyRes2.json();
+                            } else {
+                                throw new Error('Proxy 2 failed');
+                            }
+                        } catch (proxy2Err) {
+                            console.log('Proxy 2 failed, trying Proxy 3...', proxy2Err);
+                            
+                            try {
+                                // Try Proxy 3: allorigins.win (Wrapped response)
+                                const proxyUrl3 = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+                                const proxyRes3 = await fetch(proxyUrl3);
+                                if (proxyRes3.ok) {
+                                    const proxyData3 = await proxyRes3.json();
+                                    if (proxyData3.contents) {
+                                        data = JSON.parse(proxyData3.contents);
+                                    } else {
+                                        throw new Error('Proxy 3 returned empty');
+                                    }
+                                } else {
+                                    throw new Error('Proxy 3 failed');
+                                }
+                            } catch (proxy3Err) {
+                                console.log('Proxy 3 failed, trying API fallback...', proxy3Err);
+                                // Final attempt: API endpoint
+                                const apiUrl = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
+                                const apiRes = await fetch(apiUrl);
+                                if (apiRes.ok) {
+                                    data = await apiRes.json();
+                                } else {
+                                    throw new Error('All fetch attempts failed. The file might not be public or the link is invalid.');
+                                }
+                            }
                         }
                     }
                 }
