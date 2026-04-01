@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.61.4</title>
+    <title>My GTA Garage v1.62.0</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -290,6 +290,10 @@
 <body>
 
 <div class="sticky-top-wrapper">
+    <div id="viewOnlyIndicator" style="display:none; background:var(--accent); color:#fff; text-align:center; font-size:0.7rem; font-weight:bold; padding:4px 0; text-transform:uppercase; letter-spacing:1px; position: relative;">
+        View Only Mode
+        <button onclick="exitViewOnlyMode()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #fff; color: var(--accent); border: none; border-radius: 4px; padding: 2px 8px; font-size: 0.6rem; font-weight: bold; cursor: pointer; text-transform: uppercase;">Return to My Garage</button>
+    </div>
     <header>
         <div class="header-info">
             <img src="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23121212%22 rx=%2220%22/><text y=%2250%22 x=%2250%22 dy=%22.35em%22 text-anchor=%22middle%22 fill=%22%239b59b6%22 font-family=%22sans-serif%22 font-weight=%22bold%22 font-size=%2260%22>G</text></svg>" class="header-logo-img">
@@ -360,6 +364,7 @@
             <button id="tabBtn_chars" class="tab-btn active" onclick="switchSettingsTab('chars')">Characters</button>
             <button id="tabBtn_gamertag" class="tab-btn" onclick="switchSettingsTab('gamertag')">Gamertag</button>
             <button id="tabBtn_cloud" class="tab-btn" onclick="switchSettingsTab('cloud')">Google Drive</button>
+            <button id="tabBtn_share" class="tab-btn" onclick="switchSettingsTab('share')">Share Settings</button>
             <button id="tabBtn_local" class="tab-btn" onclick="switchSettingsTab('local')">Local Data</button>
         </div>
 
@@ -415,6 +420,37 @@
                 <div id="cloudActions" style="display:none; border-top:1px solid #333; padding-top:15px; margin-top:5px;">
                     <button class="btn-sec" style="width:100%; margin-bottom:10px; border-color:var(--accent); color:var(--accent);" onclick="manualCloudBackup()">Create Manual Cloud Backup</button>
                     <button class="btn-sec" style="width:100%;" onclick="restoreCloudBackup()">Restore from Cloud Backup</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tabContent_share" class="tab-content">
+            <div class="form-section">
+                <span class="label">Public Sharing</span>
+                <p style="font-size:0.8rem; color:#aaa; margin-top:0;">Create a public snapshot of your current character's garage to share with others.</p>
+                
+                <div id="shareStatus" style="color:#aaa; font-size:0.85rem; margin-bottom:10px;">Checking permission status...</div>
+                
+                <div id="shareActions" style="display:none;">
+                    <button class="btn-pri" style="width:100%; margin-bottom:10px;" onclick="confirmPublicSnapshot()">Create Public Snapshot</button>
+                    
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+                        <input type="checkbox" id="includeCustomImages" style="width:auto; margin-bottom:0;">
+                        <label for="includeCustomImages" style="margin-bottom:0; font-size:0.9rem; cursor:pointer;">Include custom images in public shares</label>
+                    </div>
+
+                    <div id="publicShareLinkSection" style="display:none; margin-bottom:15px; padding:10px; background:rgba(155,89,182,0.1); border:1px solid var(--accent); border-radius:var(--radius);">
+                        <span class="label" style="font-size:0.75rem; color:var(--accent);">Shareable Link:</span>
+                        <div style="display:flex; gap:5px; margin-top:5px;">
+                            <input type="text" id="publicShareLink" readonly style="margin-bottom:0; font-size:0.8rem; flex:1;">
+                            <button class="btn-sec" onclick="copyShareLink()" style="padding:0 10px;"><i class="fa-solid fa-copy"></i></button>
+                        </div>
+                    </div>
+
+                    <button class="btn-sec" style="width:100%; color:var(--wep); border-color:rgba(239,68,68,0.5);" onclick="removePublicPermissions()">Remove Public Permissions</button>
+                </div>
+                <div id="shareLoginPrompt" style="display:none; text-align:center; color:#888; font-size:0.9rem;">
+                    Please sign in with Google to use public sharing.
                 </div>
             </div>
         </div>
@@ -607,7 +643,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.61.4</div>
+        <div class="modal-title">About My GTA Garage v1.62.0</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -632,14 +668,15 @@
             <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">3. Garage Tools</h4>
             <ul style="padding-left:20px; margin-bottom:15px; line-height: 1.6;">
                 <li style="margin-bottom: 12px;"><strong>Floor Nicknames:</strong> In the Add/Edit window, click the "Edit Nickname" button next to the Floor selector to assign a custom name to that specific garage floor (e.g., "JDM Floor", "Supercars"). These nicknames will appear on the group headers in the main view.</li>
-                <li style="margin-bottom: 12px;"><strong>Garage Tools:</strong> Click the <i class="fas fa-tools"></i> <strong>Tools</strong> button next to the view dropdown to access advanced garage management features, such as <strong>Swap Entire Garages</strong>, which allows you to instantly swap the entire contents of two different garages.</li>
+                <li style="margin-bottom: 12px;"><strong>Garage Tools:</strong> Click the <i class="fas fa-tools"></i> <strong>Tools</strong> button next to the view dropdown to access advanced garage management features, such as <strong>Swap Entire Garages</strong>, or the <strong>Share Garage</strong> button to instantly copy your public collection link.</li>
                 <li style="margin-bottom: 12px;"><strong>Capacity Tracking:</strong> The app actively tracks your garage capacities. It hides floors that are full in the Add menu, warns you if a garage has no space left, and shows real-time usage (e.g., 5/10) on every floor header.</li>
             </ul>
 
             <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">4. Sharing & Export</h4>
             <ul style="padding-left:20px; margin-bottom:15px; line-height: 1.6;">
-                <li style="margin-bottom: 12px;"><strong>Share Vehicle:</strong> Open a vehicle's detail view and click <strong>Share</strong>. The app will generate a clean snapshot image of the vehicle card that you can instantly send via text, Discord, or save to your device to show off to potential LS Car Meet buyers.</li>
+                <li style="margin-bottom: 12px;"><strong>Share Vehicle:</strong> Open a vehicle's detail view and click <strong>Share</strong>. You can choose to generate a clean <strong>Snapshot</strong> image of the vehicle card, or create a direct <strong>Link</strong> that opens the app in View Only Mode and immediately displays that specific car.</li>
                 <li style="margin-bottom: 12px;"><strong>PDF Export:</strong> Click the <i class="fas fa-file-pdf"></i> PDF button in the header to export your entire collection or filtered groups into a professional PDF document. Choose between compact cards or large detail views with full specs and images.</li>
+                <li style="margin-bottom: 12px;"><strong>Public Sharing:</strong> Go to <strong>Settings > Share Settings</strong> to create a public, time-stamped JSON snapshot of your entire garage on Google Drive. You can share the provided link with others, allowing them to view your collection in a read-only "View Only Mode" without affecting your local data. You can also choose to include your custom images in these public shares.</li>
                 <li style="margin-bottom: 12px;"><strong>Gamertag & Platform:</strong> Personalize your shared vehicle snapshots and PDF exports by adding your Gamertag and platform icon (PC, Xbox, PlayStation, Switch). This information is managed per character in the Settings menu and can be toggled on or off.</li>
             </ul>
 
@@ -714,12 +751,28 @@
             <div id="detailContent"></div>
         </div>
         <div id="detailActionButtons" class="detail-actions-grid">
-            <button class="btn-sec" style="background:#8e44ad; color:#fff; border:none;" onclick="triggerCopyVehicle()"><i class="fas fa-copy"></i> Copy</button>
-            <button class="btn-sec" style="background:#2980b9; color:#fff; border:none;" onclick="triggerMoveVehicle()"><i class="fas fa-exchange-alt"></i> Move</button>
-            <button class="btn-sec" style="background:var(--sell); color:#fff; border:none;" onclick="triggerSellVehicle()"><i class="fas fa-dollar-sign"></i> Sell</button>
-            <button class="btn-sec" style="background:#f39c12; color:#fff; border:none;" onclick="shareVehicleCard()"><i class="fas fa-share-alt"></i> Share</button>
+            <button id="btnDetailCopy" class="btn-sec" style="background:#8e44ad; color:#fff; border:none;" onclick="triggerCopyVehicle()"><i class="fas fa-copy"></i> Copy</button>
+            <button id="btnDetailMove" class="btn-sec" style="background:#2980b9; color:#fff; border:none;" onclick="triggerMoveVehicle()"><i class="fas fa-exchange-alt"></i> Move</button>
+            <button id="btnDetailSell" class="btn-sec" style="background:var(--sell); color:#fff; border:none;" onclick="triggerSellVehicle()"><i class="fas fa-dollar-sign"></i> Sell</button>
+            <button class="btn-sec" style="background:#f39c12; color:#fff; border:none;" onclick="openModal('shareChoiceModal')"><i class="fas fa-share-alt"></i> Share</button>
         </div>
         <button class="btn-sec" style="width:100%; margin-top:15px;" onclick="closeModal('detailModal')">Close</button>
+    </div>
+</div>
+
+<div id="shareChoiceModal" class="modal" style="z-index: 1250;">
+    <div class="modal-box" style="text-align:center;">
+        <div class="modal-title">Share Vehicle</div>
+        <p style="color:#ccc; font-size:0.95rem; margin-bottom:20px;">Choose how you want to share this vehicle.</p>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <button class="btn-pri" onclick="closeModal('shareChoiceModal'); shareVehicleCard();">
+                <i class="fas fa-image"></i> Snapshot
+            </button>
+            <button class="btn-pri" style="background:#8e44ad;" onclick="shareVehicleLink()">
+                <i class="fas fa-link"></i> Link
+            </button>
+        </div>
+        <button class="btn-sec" style="width:100%; margin-top:15px;" onclick="closeModal('shareChoiceModal')">Cancel</button>
     </div>
 </div>
 
@@ -841,13 +894,13 @@
 
         <div class="modal-actions">
             <button class="btn-sec" onclick="closeModal('vehicleModal')">Cancel</button>
-            <button class="btn-pri" onclick="saveVehicleWrapper()">Save</button>
+            <button id="btnSaveVehicle" class="btn-pri" onclick="saveVehicleWrapper()">Save</button>
         </div>
         
         <div id="editActions" style="display:none; margin-top:20px; flex-direction:column; gap:8px; border-top:1px solid #333; padding-top:15px;">
-            <button class="btn-sec" onclick="startMove()" style="background:#2980b9; color:#fff; width:100%"><i class="fas fa-exchange-alt"></i> Move Vehicle</button>
-            <button class="btn-sec" onclick="sellVehicle()" style="background:var(--sell); color:#fff; width:100%"><i class="fas fa-dollar-sign"></i> Sell (18h Timer)</button>
-            <button class="btn-sec" onclick="deleteVehicle()" style="background:var(--wep); color:#fff; width:100%"><i class="fas fa-trash"></i> Delete Permanent</button>
+            <button id="btnMoveVehicle" class="btn-sec" onclick="startMove()" style="background:#2980b9; color:#fff; width:100%"><i class="fas fa-exchange-alt"></i> Move Vehicle</button>
+            <button id="btnSellVehicle" class="btn-sec" onclick="sellVehicle()" style="background:var(--sell); color:#fff; width:100%"><i class="fas fa-dollar-sign"></i> Sell (18h Timer)</button>
+            <button id="btnDeleteVehicle" class="btn-sec" onclick="deleteVehicle()" style="background:var(--wep); color:#fff; width:100%"><i class="fas fa-trash"></i> Delete Permanent</button>
         </div>
     </div>
 </div>
@@ -938,6 +991,9 @@
             <button class="btn-sec" style="width:100%; justify-content: flex-start;" onclick="closeModal('garageToolsModal'); openSwapAllModal();">
                 <i class="fas fa-exchange-alt"></i> Swap Entire Garage
             </button>
+            <button class="btn-sec" style="width:100%; justify-content: flex-start; background: var(--accent); color: #fff; border: none;" onclick="shareGarageFromTools()">
+                <i class="fas fa-share-alt"></i> Share Garage
+            </button>
             <!-- Future tools can be added here -->
         </div>
         <button class="btn-pri" style="width:100%; margin-top:20px;" onclick="closeModal('garageToolsModal')">Close</button>
@@ -952,7 +1008,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.61.4 (Current)</strong><br>• Reverted Google Drive token refresh logic to improve session recovery.<br>• Improved error handling for cloud folder setup to prevent premature error messages.</p>
+            <p><strong>v1.62.0 (Current)</strong><br>• Added "Share Garage" button to Garage Tools for instant public link copying.<br>• Implemented vehicle deep-linking: Share direct links to specific cars in your collection.<br>• Added "Share Choice" modal to vehicle detail cards with Snapshot and Link options.<br>• Improved "View Only Mode" security by hiding all modification buttons and adding safety guards.<br>• Fixed UI rendering issues in normal mode caused by template literal syntax in static HTML.</p>
+            <p><strong>v1.61.4</strong><br>• Implemented Public Sharing feature: Create time-stamped JSON snapshots of your garage on Google Drive.<br>• Added "Share Settings" tab to settings modal for managing public permissions and links.<br>• Added "View Only Mode" for viewing shared garage snapshots without modifying local data.<br>• Reverted Google Drive token refresh logic to improve session recovery.<br>• Improved error handling for cloud folder setup to prevent premature error messages.</p>
             <p><strong>v1.61.3</strong><br>• Added "Garage Tools" menu to consolidate advanced management features.<br>• Moved "Swap Entire Garage" tool into the new Garage Tools menu.<br>• Added export criteria details to the PDF header for better collection tracking.</p>
             <p><strong>v1.61.2</strong><br>• Added Advanced Filtering system to search by Garage, Floor, Brand, Class, and more.<br>• Added Advanced Filter button to the search bar.<br>• Improved search results view when filtering is active.<br>• Fixed Google Drive sync error auto-refresh logic.</p>
             <p><strong>v1.61.1</strong><br>• Fixed PWA 404 error on GitHub Pages by using relative paths in manifest and service worker.</p>
@@ -1013,6 +1070,28 @@
     </div>
 </div>
 
+<div id="publicShareConfirmModal" class="modal">
+    <div class="modal-box">
+        <div class="modal-title">Enable Public Sharing?</div>
+        <p style="font-size:0.9rem; color:#ccc; line-height:1.6;">
+            This will create a public snapshot of your garage. The following changes will be made:
+        </p>
+        <ul style="font-size:0.85rem; color:#aaa; padding-left:20px; line-height:1.6;">
+            <li>A "Public Shares" folder will be created in your Google Drive.</li>
+            <li>The "Public Shares" folder will be set to <strong>Public</strong> (anyone with the link can view).</li>
+            <li id="confirmImagesMsg" style="display:none;">Your "images" folder will be set to <strong>Public</strong> to allow others to see your custom vehicle photos.</li>
+            <li>A public JSON file containing your vehicle data will be created.</li>
+        </ul>
+        <p style="font-size:0.85rem; color:#888; margin-top:15px; font-style:italic;">
+            You can remove these public permissions at any time from the Share Settings tab.
+        </p>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button class="btn-pri" style="flex:1;" onclick="createPublicSnapshot()">Enable & Create</button>
+            <button class="btn-sec" style="flex:1;" onclick="closeModal('publicShareConfirmModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
 <div id="lightbox" onclick="this.style.display='none'"><img id="lbImg"></div>
 
 <script>
@@ -1048,6 +1127,11 @@
     
     let keys = getStorageKeys();
     let _v = null; try { _v = JSON.parse(safeStorage.getItem(keys.v)); } catch(e){} let vehicles = Array.isArray(_v) ? _v : [];
+    
+    let isViewOnly = false;
+    let sharedData = null;
+    let publicShareFolderId = null;
+    let publicShareFileId = null;
     let advFilter = {
         garage: '', floor: '', brand: '', class: '', drive: '',
         wheels: '', plate: '', weaponized: null, hsw: null, drift: null, imani: null
@@ -1620,6 +1704,27 @@
             } else {
                 await createDriveFile(fileName, driveFolders.db, fileContent);
             }
+
+            // Sync public share if enabled
+            if (publicShareFileId) {
+                const charName = characters.find(c => c.id === activeCharId)?.name || 'Character';
+                const includeImages = document.getElementById('includeCustomImages').checked;
+                const snapshotData = {
+                    isPublicShare: true,
+                    timestamp: new Date().toISOString(),
+                    characterName: charName,
+                    vehicles: vehicles.map(v => {
+                        const vCopy = { ...v };
+                        if (!includeImages) delete vCopy.customImg;
+                        return vCopy;
+                    })
+                };
+                await driveApiRequest({
+                    path: `/upload/drive/v3/files/${publicShareFileId}?uploadType=media`,
+                    method: 'PATCH',
+                    body: JSON.stringify(snapshotData)
+                });
+            }
             lastSyncTime = Date.now();
             safeStorage.setItem(keys.lst, lastSyncTime);
             document.getElementById('cloudStatus').innerText = 'Signed in. Folders mapped. Auto-sync active. (Synced just now)';
@@ -1637,6 +1742,7 @@
     });
 
     async function manualCloudBackup() {
+        if (isViewOnly) return;
         let token = getActiveToken();
         if (!token || !driveFolders.db) return openAlert("Error", "Not connected to Drive.");
         const data = JSON.stringify({ vehicles, nicknames: floorNicknames, lastSell, lastSoldName, salesHistory });
@@ -1646,6 +1752,7 @@
     }
 
     async function restoreCloudBackup() {
+        if (isViewOnly) return;
         let token = getActiveToken();
         if (!token || !driveFolders.db) return openAlert("Error", "Not connected to Drive.");
         const query = `'${driveFolders.db}' in parents and mimeType='application/json' and trashed=false`;
@@ -1826,6 +1933,7 @@
         document.getElementById('tabBtn_' + tab).classList.add('active');
         document.getElementById('tabContent_' + tab).classList.add('active');
         if (tab === 'gamertag') renderGamertagSettings();
+        if (tab === 'share') checkPublicPermissions();
     }
 
     // --- CHARACTER MANAGEMENT LOGIC ---
@@ -1865,6 +1973,7 @@
     }
 
     async function updateCharName(id) {
+        if (isViewOnly) return;
         const newName = document.getElementById('editChar_' + id).value.trim();
         if(!newName) return;
         const c = characters.find(x => x.id === id);
@@ -1896,6 +2005,7 @@
     }
 
     function addCharacter() {
+        if (isViewOnly) return;
         const val = document.getElementById('newCharName').value.trim();
         if(!val) return;
         const newId = 'char_' + Date.now();
@@ -1907,6 +2017,7 @@
     }
 
     function deleteCharacter(id) {
+        if (isViewOnly) return;
         if (characters.length <= 1) return;
         const c = characters.find(x => x.id === id);
         if (!c) return;
@@ -1985,6 +2096,7 @@
     }
 
     function factoryReset() { 
+        if (isViewOnly) return;
         openConfirm("Factory Reset", "This will wipe all local data. Continue?", async () => {
             let token = getActiveToken();
             if (gapiInited && token && driveFolders.root) {
@@ -2107,6 +2219,17 @@
             }
         });
         if (migrated) saveGarage();
+
+        // Check for shared link
+        const urlParams = new URLSearchParams(window.location.search);
+        const shareId = urlParams.get('share');
+        const vId = urlParams.get('v');
+        if (shareId) {
+            await loadSharedSnapshot(shareId);
+            if (vId) {
+                setTimeout(() => openDetailModal(vId), 200);
+            }
+        }
 
         render(); 
         updateTimerLogic();
@@ -2346,7 +2469,7 @@
                 <div class="card-loc"><i class="fas fa-warehouse"></i><div class="loc-text"><span>${v.loc} <span class="loc-nick">${nickname}</span></span>${v.floor ? `<span class="loc-floor">${v.floor}${v.slot ? ` (Slot ${v.slot})` : ''}</span>` : ''}</div></div>
                 ${notesHtml}
             </div>
-            <div class="card-actions-top">${spawn ? `<a href="${gtaUrl}" target="_blank" class="action-btn gtacars-link" onclick="event.stopPropagation()"><i class="fas fa-external-link-alt"></i></a>` : ''}<button class="action-btn" onclick="event.stopPropagation(); editVehicle('${v.id}')"><i class="fas fa-pencil-alt"></i></button></div>`;
+            <div class="card-actions-top">${spawn ? `<a href="${gtaUrl}" target="_blank" class="action-btn gtacars-link" onclick="event.stopPropagation()"><i class="fas fa-external-link-alt"></i></a>` : ''}${!isViewOnly ? `<button class="action-btn" onclick="event.stopPropagation(); editVehicle('${v.id}')"><i class="fas fa-pencil-alt"></i></button>` : ''}</div>`;
         return div;
     }
     
@@ -2381,7 +2504,7 @@
             <div class="detail-manuf">${v.manuf}</div>
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px;">
                 <div class="detail-title" style="margin-bottom:0;">${v.model}</div>
-                <button id="detailEditBtn" class="action-btn" style="color:#fff; background:rgba(255,255,255,0.1); border-radius:6px; margin-left:10px; flex-shrink:0;" onclick="closeModal('detailModal'); editVehicle('${v.id}')"><i class="fas fa-pencil-alt"></i></button>
+                ${!isViewOnly ? `<button id="detailEditBtn" class="action-btn" style="color:#fff; background:rgba(255,255,255,0.1); border-radius:6px; margin-left:10px; flex-shrink:0;" onclick="closeModal('detailModal'); editVehicle('${v.id}')"><i class="fas fa-pencil-alt"></i></button>` : ''}
             </div>
             <div style="margin-bottom:15px; display:flex; flex-wrap:wrap; gap:5px;">${badges}</div>
             <div class="detail-row"><span class="detail-chip"><i class="fas fa-tag"></i> ${(db.class||v.class||'-').replace(/_/g, ' ')}</span><span class="detail-chip"><i class="fas fa-cog"></i> ${db.drive||v.drive||'-'}</span><span class="detail-chip"><i class="fas fa-user"></i> ${db.seats||v.seats||'2'} Seats</span>${v.isWeapon ? `<span class="detail-chip"><i class="fas fa-crosshairs"></i> Weapon</span>` : ''}${v.isHsw ? `<span class="detail-chip"><i class="fas fa-tachometer-alt"></i> HSW</span>` : ''}${v.isDrift ? `<span class="detail-chip"><i class="fas fa-wind"></i> Drift</span>` : ''}${v.isImani ? `<span class="detail-chip"><i class="fas fa-shield-alt"></i> Imani</span>` : ''}</div>
@@ -2592,21 +2715,25 @@
     }
 
     function triggerCopyVehicle() {
+        if (isViewOnly) return;
         closeModal('detailModal');
         copyVehicle(currentDetailViewId);
     }
     function triggerMoveVehicle() {
+        if (isViewOnly) return;
         closeModal('detailModal');
         editingId = currentDetailViewId;
         startMove();
     }
     function triggerSellVehicle() {
+        if (isViewOnly) return;
         closeModal('detailModal');
         editingId = currentDetailViewId;
         sellVehicle();
     }
 
     function editVehicle(id) {
+        if (isViewOnly) return;
         editingId = id; const v = vehicles.find(c=>c.id==id); if(!v) return;
         document.getElementById('modalTitle').innerText = "Edit Vehicle";
         document.getElementById('editActions').style.display = 'flex';
@@ -2787,6 +2914,7 @@
     }
 
     async function saveVehicleWrapper() {
+        if (isViewOnly) return;
         const fileInput = document.getElementById('inCustomImage');
         const db = masterDB.find(d => d.model === document.getElementById('inModel').value) || {};
         const spawnName = db.spawn || document.getElementById('inModel').value || 'custom';
@@ -2841,6 +2969,7 @@
     }
 
     function saveVehicle() {
+        if (isViewOnly) return;
         const manuf = document.getElementById('inManuf').value;
         let model = document.getElementById('inModel').value;
         if(model === 'Custom') model = document.getElementById('inModelCustom').value;
@@ -2887,6 +3016,7 @@
     }
 
     function saveGarage() {
+        if (isViewOnly) return;
         safeStorage.setItem(keys.v, JSON.stringify(vehicles));
         safeStorage.setItem(keys.ls, lastSell);
         safeStorage.setItem(keys.lsn, lastSoldName);
@@ -3429,6 +3559,7 @@
     }
 
     function sellVehicle() { 
+        if (isViewOnly) return;
         const cd = 18 * 3600000;
         const timeSinceLastSell = Date.now() - lastSell;
         if (lastSell > 0 && timeSinceLastSell < cd) {
@@ -3454,11 +3585,18 @@
         }); 
     }
     
-    function deleteVehicle() { openConfirm("Delete Vehicle", "This action cannot be undone. Delete?", () => { vehicles=vehicles.filter(v=>v.id!=editingId); saveGarage(); closeModal('vehicleModal'); }); }
-    function startMove() { movingId = editingId; document.getElementById('moveCarName').innerText = vehicles.find(v=>v.id==editingId).model; openModal('moveModal'); closeModal('vehicleModal'); }
+    function deleteVehicle() { 
+        if (isViewOnly) return;
+        openConfirm("Delete Vehicle", "This action cannot be undone. Delete?", () => { vehicles=vehicles.filter(v=>v.id!=editingId); saveGarage(); closeModal('vehicleModal'); }); 
+    }
+    function startMove() { 
+        if (isViewOnly) return;
+        movingId = editingId; document.getElementById('moveCarName').innerText = vehicles.find(v=>v.id==editingId).model; openModal('moveModal'); closeModal('vehicleModal'); 
+    }
     function checkMoveCap() { const d = document.getElementById('moveDest').value, cl = Object.keys(CAPACITIES).find(m => d.includes(m)) || "DEFAULT"; if(vehicles.filter(v=>v.loc===d).length >= CAPACITIES[cl]) { document.getElementById('moveSwapUI').style.display='block'; document.getElementById('moveSwapTarget').innerHTML = vehicles.filter(v=>v.loc===d).map(v=>`<option value="${v.id}">${v.model}</option>`).join(''); } else document.getElementById('moveSwapUI').style.display='none'; }
     
     function commitMove() { 
+        if (isViewOnly) return;
         openConfirm("Confirm Move", "Move vehicle to new location?", () => {
             const d = document.getElementById('moveDest').value, carA = vehicles.find(v=>v.id==movingId);
             let msg = `Moved <strong>${carA.model}</strong> to ${d}.`;
@@ -3489,6 +3627,7 @@
     }
 
     function performSwapAll() {
+        if (isViewOnly) return;
         const f = document.getElementById('saFrom').value, t = document.getElementById('saTo').value;
         if(!f || !t || f === t) return openAlert("Error", "Select different garages");
         openConfirm("Swap Garage Contents", `Swap all vehicles between ${f} and ${t}?`, () => {
@@ -3521,6 +3660,7 @@
     function closeTimerModal() { closeModal('timerModal'); if(timerInt) clearInterval(timerInt); }
     
     function openAddModal() { 
+        if (isViewOnly) return;
         editingId = null; 
         document.getElementById('modalTitle').innerText = "Add Vehicle";
         document.getElementById('editActions').style.display = 'none';
@@ -3571,7 +3711,9 @@
     function openSwapAllModal() { openModal('swapAllModal'); }
     function openLb(s) { document.getElementById('lbImg').src=s; openModal('lightbox'); }
     function downloadBackup() { const b=new Blob([JSON.stringify(vehicles)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`gta_garage.json`; a.click(); }
-    function restoreBackup(i) { const f=i.files[0]; if(!f) return; 
+    function restoreBackup(i) {
+        if (isViewOnly) return;
+        const f=i.files[0]; if(!f) return; 
         const r=new FileReader(); 
         r.onload=e=>{ 
             let data = null; try { data = JSON.parse(e.target.result); } catch(err) { openAlert('Error', 'Invalid backup file'); return; }
@@ -3587,23 +3729,6 @@
             saveGarage(); location.reload(); 
         }; 
         r.readAsText(f); 
-    }
-    function factoryReset() { 
-        openConfirm("Factory Reset", "This will wipe all local data. Continue?", async () => {
-            let token = getActiveToken();
-            if (gapiInited && token && driveFolders.root) {
-                if (window.confirm("Do you also want to completely delete your 'My GTA Garage' folder from Google Drive?")) {
-                    try {
-                        await driveApiRequest({
-                            path: `/drive/v3/files/${driveFolders.root}`,
-                            method: 'DELETE'
-                        });
-                        driveFolders.root = null;
-                    } catch(e) { console.error("Cloud delete failed", e); }
-                }
-            }
-            safeStorage.clear(); location.reload(); 
-        });
     }
     function handleImgError(i, s) { 
         if (i.src.includes('drive.google')) { 
@@ -3727,6 +3852,355 @@
 
     window.onclick = e => { if(e.target.className === 'modal') e.target.style.display = 'none'; }
     function checkCustomModel() { document.getElementById('inModelCustom').style.display = document.getElementById('inModel').value==='Custom'?'block':'none'; }
+
+    // --- PUBLIC SHARING LOGIC ---
+    async function checkPublicPermissions() {
+        const shareStatus = document.getElementById('shareStatus');
+        const shareActions = document.getElementById('shareActions');
+        const shareLoginPrompt = document.getElementById('shareLoginPrompt');
+        const linkSection = document.getElementById('publicShareLinkSection');
+        const linkInput = document.getElementById('publicShareLink');
+
+        if (driveStatus !== 'connected') {
+            shareStatus.innerText = 'Not signed in to Google Drive.';
+            shareActions.style.display = 'none';
+            shareLoginPrompt.style.display = 'block';
+            return;
+        }
+
+        shareStatus.innerText = 'Checking permissions...';
+        shareActions.style.display = 'block';
+        shareLoginPrompt.style.display = 'none';
+
+        try {
+            await ensureDriveStructure();
+            
+            // Find "Public Shares" folder
+            publicShareFolderId = await getFolderIdByName('Public Shares', driveFolders.char);
+            
+            let isPublic = false;
+            let imagesPublic = false;
+
+            if (publicShareFolderId) {
+                const perms = await driveApiRequest({
+                    path: `/drive/v3/files/${publicShareFolderId}/permissions`,
+                    method: 'GET'
+                });
+                isPublic = perms.result.permissions.some(p => p.type === 'anyone' && p.role === 'reader');
+                
+                // Find existing snapshot
+                const charName = characters.find(c => c.id === activeCharId)?.name || 'Character';
+                const fileName = `${charName}_Public_Snapshot.json`;
+                const query = `name='${fileName}' and '${publicShareFolderId}' in parents and trashed=false`;
+                const fileRes = await driveApiRequest({
+                    path: '/drive/v3/files',
+                    method: 'GET',
+                    params: { q: query, fields: 'files(id)' }
+                });
+                if (fileRes.result.files && fileRes.result.files.length > 0) {
+                    publicShareFileId = fileRes.result.files[0].id;
+                    const shareLink = `${window.location.origin}${window.location.pathname}?share=${publicShareFileId}`;
+                    linkInput.value = shareLink;
+                    linkSection.style.display = 'block';
+                } else {
+                    linkSection.style.display = 'none';
+                }
+            } else {
+                linkSection.style.display = 'none';
+            }
+
+            // Check images folder
+            const imgPerms = await driveApiRequest({
+                path: `/drive/v3/files/${driveFolders.images}/permissions`,
+                method: 'GET'
+            });
+            imagesPublic = imgPerms.result.permissions.some(p => p.type === 'anyone' && p.role === 'reader');
+
+            if (isPublic) {
+                shareStatus.innerHTML = `<span style="color:var(--sell);">Public sharing is active.</span>`;
+                if (imagesPublic) {
+                    shareStatus.innerHTML += `<br><span style="color:var(--sell); font-size:0.75rem;">Custom images are public.</span>`;
+                }
+            } else if (publicShareFileId) {
+                shareStatus.innerHTML = `<span style="color:var(--wep);">Permissions issue: Snapshot exists but folder is private.</span><br><button class="btn-pri" style="margin-top:5px; font-size:0.75rem; padding:4px 8px;" onclick="createPublicSnapshot()">Fix Permissions</button>`;
+            } else {
+                shareStatus.innerText = 'Public sharing is not enabled.';
+            }
+
+        } catch (e) {
+            console.error(e);
+            shareStatus.innerText = 'Error checking permissions.';
+        }
+    }
+
+    function confirmPublicSnapshot() {
+        const includeImages = document.getElementById('includeCustomImages').checked;
+        document.getElementById('confirmImagesMsg').style.display = includeImages ? 'list-item' : 'none';
+        openModal('publicShareConfirmModal');
+    }
+
+    async function createPublicSnapshot() {
+        closeModal('publicShareConfirmModal');
+        const shareStatus = document.getElementById('shareStatus');
+        shareStatus.innerText = 'Creating public snapshot...';
+
+        try {
+            await ensureDriveStructure();
+            
+            // 1. Ensure "Public Shares" folder exists
+            publicShareFolderId = await findOrCreateFolder('Public Shares', driveFolders.char);
+            
+            // 2. Set folder permission to public
+            await driveApiRequest({
+                path: `/drive/v3/files/${publicShareFolderId}/permissions`,
+                method: 'POST',
+                body: { role: 'reader', type: 'anyone' }
+            });
+
+            // 3. Handle images folder if requested
+            const includeImages = document.getElementById('includeCustomImages').checked;
+            if (includeImages) {
+                await driveApiRequest({
+                    path: `/drive/v3/files/${driveFolders.images}/permissions`,
+                    method: 'POST',
+                    body: { role: 'reader', type: 'anyone' }
+                });
+            }
+
+            // 4. Create/Update JSON file
+            const charName = characters.find(c => c.id === activeCharId)?.name || 'Character';
+            const fileName = `${charName}_Public_Snapshot.json`;
+            
+            // Prepare data
+            const snapshotData = {
+                isPublicShare: true,
+                timestamp: new Date().toISOString(),
+                characterName: charName,
+                vehicles: vehicles.map(v => {
+                    const vCopy = { ...v };
+                    if (!includeImages) delete vCopy.customImg;
+                    if (!includeImages) delete vCopy.driveImageId;
+                    return vCopy;
+                })
+            };
+
+            // Check if file exists
+            const query = `name='${fileName}' and '${publicShareFolderId}' in parents and trashed=false`;
+            const fileRes = await driveApiRequest({
+                path: '/drive/v3/files',
+                method: 'GET',
+                params: { q: query, fields: 'files(id)' }
+            });
+
+            let fileId;
+            if (fileRes.result.files && fileRes.result.files.length > 0) {
+                fileId = fileRes.result.files[0].id;
+                await driveApiRequest({
+                    path: `/upload/drive/v3/files/${fileId}?uploadType=media`,
+                    method: 'PATCH',
+                    body: JSON.stringify(snapshotData)
+                });
+            } else {
+                const createRes = await driveApiRequest({
+                    path: '/upload/drive/v3/files?uploadType=multipart',
+                    method: 'POST',
+                    headers: { 'Content-Type': 'multipart/related; boundary=-------314159265358979323846' },
+                    body: createMultipartBody(fileName, 'application/json', [publicShareFolderId], JSON.stringify(snapshotData))
+                });
+                fileId = createRes.result.id;
+            }
+
+            // 5. Ensure file itself is public
+            await driveApiRequest({
+                path: `/drive/v3/files/${fileId}/permissions`,
+                method: 'POST',
+                body: { role: 'reader', type: 'anyone' }
+            });
+
+            publicShareFileId = fileId;
+            await checkPublicPermissions();
+            alert('Public snapshot created successfully!');
+
+        } catch (e) {
+            console.error(e);
+            alert('Error creating public snapshot: ' + e.message);
+            shareStatus.innerText = 'Error creating snapshot.';
+        }
+    }
+
+    async function removePublicPermissions() {
+        const shareStatus = document.getElementById('shareStatus');
+        shareStatus.innerText = 'Removing public permissions...';
+
+        try {
+            await ensureDriveStructure();
+            
+            // Helper to remove 'anyone' permissions
+            const removeAnyonePerms = async (fileId) => {
+                const perms = await driveApiRequest({
+                    path: `/drive/v3/files/${fileId}/permissions`,
+                    method: 'GET'
+                });
+                const anyonePerms = perms.result.permissions.filter(p => p.type === 'anyone');
+                for (let p of anyonePerms) {
+                    await driveApiRequest({
+                        path: `/drive/v3/files/${fileId}/permissions/${p.id}`,
+                        method: 'DELETE'
+                    });
+                }
+            };
+
+            if (publicShareFolderId) {
+                await removeAnyonePerms(publicShareFolderId);
+            }
+            await removeAnyonePerms(driveFolders.images);
+
+            await checkPublicPermissions();
+            alert('Public permissions removed. Your data is now private.');
+
+        } catch (e) {
+            console.error(e);
+            alert('Error removing permissions: ' + e.message);
+            shareStatus.innerText = 'Error removing permissions.';
+        }
+    }
+
+    function shareGarageFromTools() {
+        if (publicShareFileId) {
+            copyShareLink();
+            closeModal('garageToolsModal');
+        } else {
+            closeModal('garageToolsModal');
+            openSettings();
+            switchSettingsTab('share');
+        }
+    }
+
+    function copyShareLink() {
+        const linkInput = document.getElementById('publicShareLink');
+        linkInput.select();
+        document.execCommand('copy');
+        alert('Shareable link copied to clipboard!');
+    }
+
+    function createMultipartBody(filename, contentType, parents, body) {
+        const boundary = '-------314159265358979323846';
+        const delimiter = "\r\n--" + boundary + "\r\n";
+        const close_delim = "\r\n--" + boundary + "--";
+
+        const metadata = {
+            name: filename,
+            mimeType: contentType,
+            parents: parents
+        };
+
+        return delimiter +
+            'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+            JSON.stringify(metadata) +
+            delimiter +
+            'Content-Type: ' + contentType + '\r\n\r\n' +
+            body +
+            close_delim;
+    }
+
+    function shareVehicleLink() {
+        if (publicShareFileId) {
+            const shareLink = `${window.location.origin}${window.location.pathname}?share=${publicShareFileId}&v=${currentDetailViewId}`;
+            
+            const tempInput = document.createElement('input');
+            tempInput.value = shareLink;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            
+            alert('Vehicle share link copied to clipboard!');
+            closeModal('shareChoiceModal');
+        } else {
+            closeModal('shareChoiceModal');
+            closeModal('detailModal');
+            openSettings();
+            switchSettingsTab('share');
+        }
+    }
+
+    async function loadSharedSnapshot(fileId) {
+        try {
+            const url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
+            let data;
+            
+            // If logged in, use driveApiRequest for better reliability
+            if (driveStatus === 'connected') {
+                const res = await driveApiRequest({
+                    path: `/drive/v3/files/${fileId}`,
+                    method: 'GET',
+                    params: { alt: 'media' }
+                });
+                data = res.result;
+            } else {
+                const res = await fetch(url);
+                if (res.ok) {
+                    data = await res.json();
+                } else {
+                    throw new Error('Failed to fetch shared data. It might not be public or the link is invalid.');
+                }
+            }
+
+            if (data && data.isPublicShare) {
+                enterViewOnlyMode(data);
+                publicShareFileId = fileId; // Store it so they can share links further
+            } else {
+                alert('The link does not point to a valid public snapshot.');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error loading shared snapshot: ' + e.message);
+        }
+    }
+
+    function enterViewOnlyMode(data) {
+        isViewOnly = true;
+        sharedData = data;
+        vehicles = data.vehicles || [];
+        
+        document.getElementById('viewOnlyIndicator').style.display = 'block';
+        document.getElementById('headerCount').innerText = vehicles.length;
+        
+        // Hide "Add Vehicle" button
+        const addBtn = document.querySelector('button[onclick="openAddModal()"]');
+        if (addBtn) addBtn.style.display = 'none';
+        
+        // Hide "Garage Tools" button
+        const toolsBtn = document.querySelector('button[onclick="openModal(\'garageToolsModal\')"]');
+        if (toolsBtn) toolsBtn.style.display = 'none';
+
+        // Hide "Timer" button
+        const timerBtn = document.getElementById('timerBtn');
+        if (timerBtn) timerBtn.style.display = 'none';
+
+        // Disable "Google Drive" tab in settings
+        const cloudTab = document.getElementById('tabBtn_cloud');
+        if (cloudTab) cloudTab.style.display = 'none';
+        
+        // Disable "Share Settings" tab in settings
+        const shareTab = document.getElementById('tabBtn_share');
+        if (shareTab) shareTab.style.display = 'none';
+
+        // Hide detail modal action buttons
+        ['btnDetailCopy', 'btnDetailMove', 'btnDetailSell', 'btnSaveVehicle', 'btnMoveVehicle', 'btnSellVehicle', 'btnDeleteVehicle'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+
+        render();
+        showSuccess("View Only Mode", `Viewing shared garage: ${data.characterName}`);
+    }
+
+    function exitViewOnlyMode() {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('share');
+        window.location.href = url.origin + url.pathname;
+    }
 
     // PWA SERVICE WORKER REGISTRATION
     if ('serviceWorker' in navigator) {
