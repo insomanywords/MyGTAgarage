@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.62.4</title>
+    <title>My GTA Garage v1.62.5</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -326,9 +326,9 @@
 <body>
 
 <div class="sticky-top-wrapper">
-    <div id="viewOnlyIndicator" style="display:none; background:var(--accent); color:#fff; text-align:center; font-size:0.7rem; font-weight:bold; padding:4px 0; text-transform:uppercase; letter-spacing:1px; position: relative;">
+    <div id="viewOnlyIndicator" style="display:none; background:var(--accent); color:#fff; text-align:center; font-size:0.7rem; font-weight:bold; padding:6px 0; text-transform:uppercase; letter-spacing:1px; position: relative; min-height: 24px; align-items: center; justify-content: center;">
         View Only Mode
-        <button onclick="exitViewOnlyMode()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #fff; color: var(--accent); border: none; border-radius: 4px; padding: 2px 8px; font-size: 0.6rem; font-weight: bold; cursor: pointer; text-transform: uppercase;">Return to My Garage</button>
+        <button onclick="exitViewOnlyMode()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #fff; color: var(--accent); border: none; border-radius: 4px; padding: 4px 8px; font-size: 0.6rem; font-weight: bold; cursor: pointer; text-transform: uppercase; line-height: 1;">Return to My Garage</button>
     </div>
     <header>
         <div class="header-info">
@@ -375,9 +375,10 @@
 <div id="vehicle-list"></div>
 
 <footer>
-    <a onclick="openCharModal()" id="footerCharName" style="color: var(--f1);">Character 1</a> | 
-    <a onclick="openSettings()">Settings</a> | 
+    <a onclick="openCharModal()" id="footerCharName" style="color: var(--f1);">Character 1</a> <span id="footerPipe1">|</span> 
+    <a onclick="openSettings()" id="footerSettings">Settings</a> <span id="footerPipe2">|</span> 
     <a onclick="openModal('aboutModal')">About</a>
+    <div id="footerSharedUser" style="display:none; margin-top:10px; font-size:0.85rem; color:#888;"></div>
 </footer>
 
 <div id="updateModal" class="modal">
@@ -439,8 +440,16 @@
                 </div>
 
                 <div style="display:flex; align-items:center; gap:10px; margin-top:15px; padding-top:15px; border-top:1px solid #333;">
-                    <input type="checkbox" id="settingsShowGamertag" onchange="saveGamertagSettings()" style="width:auto; margin-bottom:0;">
-                    <label for="settingsShowGamertag" style="margin-bottom:0; font-size:0.9rem; cursor:pointer;">Show on Snapshot</label>
+                    <input type="checkbox" id="settingsShowGamertagImage" onchange="saveGamertagSettings()" style="width:auto; margin-bottom:0;">
+                    <label for="settingsShowGamertagImage" style="margin-bottom:0; font-size:0.9rem; cursor:pointer;">Show on Snapshot Images</label>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px; margin-top:10px;">
+                    <input type="checkbox" id="settingsShowGamertagPDF" onchange="saveGamertagSettings()" style="width:auto; margin-bottom:0;">
+                    <label for="settingsShowGamertagPDF" style="margin-bottom:0; font-size:0.9rem; cursor:pointer;">Show on PDFs</label>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px; margin-top:10px;">
+                    <input type="checkbox" id="settingsShowGamertagLink" onchange="saveGamertagSettings()" style="width:auto; margin-bottom:0;">
+                    <label for="settingsShowGamertagLink" style="margin-bottom:0; font-size:0.9rem; cursor:pointer;">Show on Public Shareable Links</label>
                 </div>
             </div>
         </div>
@@ -679,7 +688,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.62.4</div>
+        <div class="modal-title">About My GTA Garage v1.62.5</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1052,7 +1061,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.62.4 (Current)</strong><br>• Changed public snapshot creation notification to a modal.<br>• Added a progress modal window during public snapshot creation.<br>• Updated proxy fallback chain for shared snapshots.</p>
+            <p><strong>v1.62.5 (Current)</strong><br>• Enhanced View Only Mode UI (hidden buttons, updated labels, shared user info in footer).<br>• Added granular Gamertag visibility settings for Snapshots, PDFs, and Shareable Links.</p>
+            <p><strong>v1.62.4</strong><br>• Changed public snapshot creation notification to a modal.<br>• Added a progress modal window during public snapshot creation.<br>• Updated proxy fallback chain for shared snapshots.</p>
             <p><strong>v1.62.3</strong><br>• Attempted fix for public share link loading.</p>
             <p><strong>v1.62.2</strong><br>• Fixed public share link loading for unauthenticated users with a fallback download method using the direct download endpoint.<br>• Replaced standard browser alerts with a custom themed toast notification system.<br>• Improved clipboard copying reliability with a dual-method system (Clipboard API + fallback).<br>• Fixed "Share Garage" button in Garage Tools with background pre-fetching.</p>
             <p><strong>v1.62.1</strong><br>• Fixed public share link loading for unauthenticated users with a fallback download method.<br>• Replaced standard browser alerts with a custom themed toast notification system.<br>• Improved clipboard copying reliability with a dual-method system (Clipboard API + fallback).<br>• Fixed "Share Garage" button in Garage Tools with background pre-fetching.</p>
@@ -1997,7 +2007,9 @@
         if (!c) return;
         document.getElementById('settingsGamertag').value = c.gamertag || '';
         document.getElementById('settingsPlatform').value = c.platform || 'PC';
-        document.getElementById('settingsShowGamertag').checked = c.showGamertag === true;
+        document.getElementById('settingsShowGamertagImage').checked = c.showGamertagImage === true || c.showGamertag === true; // Fallback to old property
+        document.getElementById('settingsShowGamertagPDF').checked = c.showGamertagPDF === true;
+        document.getElementById('settingsShowGamertagLink').checked = c.showGamertagLink === true;
     }
 
     function saveGamertagSettings() {
@@ -2005,7 +2017,9 @@
         if (!c) return;
         c.gamertag = document.getElementById('settingsGamertag').value.trim();
         c.platform = document.getElementById('settingsPlatform').value;
-        c.showGamertag = document.getElementById('settingsShowGamertag').checked;
+        c.showGamertagImage = document.getElementById('settingsShowGamertagImage').checked;
+        c.showGamertagPDF = document.getElementById('settingsShowGamertagPDF').checked;
+        c.showGamertagLink = document.getElementById('settingsShowGamertagLink').checked;
         safeStorage.setItem('gta_chars_v1', JSON.stringify(characters));
     }
 
@@ -2058,7 +2072,7 @@
         const val = document.getElementById('newCharName').value.trim();
         if(!val) return;
         const newId = 'char_' + Date.now();
-        characters.push({id: newId, name: val, gamertag: '', platform: 'PC', showGamertag: false});
+        characters.push({id: newId, name: val, gamertag: '', platform: 'PC', showGamertagImage: false, showGamertagPDF: false, showGamertagLink: false});
         safeStorage.setItem('gta_chars_v1', JSON.stringify(characters));
         document.getElementById('newCharName').value = '';
         renderSettingsChars();
@@ -2631,7 +2645,7 @@
 
                 const char = characters.find(c => c.id === activeCharId);
                 let footerAdded = false;
-                if (char && char.showGamertag && char.gamertag) {
+                if (char && (char.showGamertagImage || char.showGamertag) && char.gamertag) {
                     const footer = document.createElement('div');
                     footer.id = 'snapshotFooter';
                     footer.style.cssText = 'display:flex; align-items:center; justify-content:center; gap:10px; margin-top:15px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.1); color:#aaa; font-size:0.9rem; font-weight:600;';
@@ -3529,19 +3543,24 @@
 
         const filterText = filterParts.length > 0 ? filterParts.join(' | ') : 'Full Collection';
 
+        const platformHtml = char.showGamertagPDF && char.gamertag ? `
+            <div style="display:flex; align-items:center; gap:20px; background:#252525; padding:15px 30px; border-radius:12px; border:1px solid #333;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <i class="${platformIcon}" style="font-size:28px; color:var(--accent);"></i>
+                    <span style="font-weight:800; font-size:20px; text-transform:uppercase;">${char.platform}</span>
+                </div>
+                <div style="width:2px; height:30px; background:#444;"></div>
+                <div style="font-weight:800; font-size:20px; color:#fff; letter-spacing:0.5px;">${char.gamertag}</div>
+            </div>
+        ` : '';
+
         header.innerHTML = `
             <div>
                 <div style="font-size:36px; font-weight:900; color:var(--accent); text-transform:uppercase; letter-spacing:-1px; margin-bottom:4px;">My GTA Garage</div>
                 <div style="font-size:18px; color:#888; font-weight:600;">${char.name}'s Collection</div>
                 <div style="font-size:13px; color:#666; font-weight:500; margin-top:4px; text-transform:uppercase; letter-spacing:0.5px;">${filterText}</div>
             </div>
-            <div style="display:flex; align-items:center; gap:20px; background:#252525; padding:15px 30px; border-radius:12px; border:1px solid #333;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <i class="${platformIcon}" style="font-size:28px; color:var(--accent);"></i>
-                    <span style="font-weight:800; font-size:20px; text-transform:uppercase;">${char.platform}</span>
-                </div>
-                ${char.gamertag ? `<div style="width:2px; height:30px; background:#444;"></div><div style="font-weight:800; font-size:20px; color:#fff; letter-spacing:0.5px;">${char.gamertag}</div>` : ''}
-            </div>
+            ${platformHtml}
         `;
         
         document.body.appendChild(header);
@@ -4030,7 +4049,8 @@
 
             document.getElementById('publicSnapshotWaitMsg').innerText = 'Preparing snapshot data...';
             // 4. Create/Update JSON file
-            const charName = characters.find(c => c.id === activeCharId)?.name || 'Character';
+            const char = characters.find(c => c.id === activeCharId) || { name: 'Character' };
+            const charName = char.name;
             const fileName = `${charName}_Public_Snapshot.json`;
             
             // Prepare data
@@ -4038,6 +4058,8 @@
                 isPublicShare: true,
                 timestamp: new Date().toISOString(),
                 characterName: charName,
+                gamertag: char.showGamertagLink ? char.gamertag : undefined,
+                platform: char.showGamertagLink ? char.platform : undefined,
                 vehicles: vehicles.map(v => {
                     const vCopy = { ...v };
                     if (!includeImages) delete vCopy.customImg;
@@ -4347,16 +4369,24 @@
         sharedData = data;
         vehicles = data.vehicles || [];
         
-        document.getElementById('viewOnlyIndicator').style.display = 'block';
+        document.getElementById('viewOnlyIndicator').style.display = 'flex';
         document.getElementById('headerCount').innerText = vehicles.length;
+        
+        // Change header count label
+        const totalLabel = document.querySelector('.total-label');
+        if (totalLabel) totalLabel.innerText = 'Viewing: ';
         
         // Hide "Add Vehicle" button
         const addBtn = document.querySelector('button[onclick="openAddModal()"]');
         if (addBtn) addBtn.style.display = 'none';
         
         // Hide "Garage Tools" button
-        const toolsBtn = document.querySelector('button[onclick="openModal(\'garageToolsModal\')"]');
+        const toolsBtn = document.querySelector('button[onclick*="garageToolsModal"]');
         if (toolsBtn) toolsBtn.style.display = 'none';
+
+        // Hide "Cloud Sync" button
+        const cloudBtn = document.getElementById('cloudHeaderBtn');
+        if (cloudBtn) cloudBtn.style.display = 'none';
 
         // Hide "Timer" button
         const timerBtn = document.getElementById('timerBtn');
@@ -4369,6 +4399,32 @@
         // Disable "Share Settings" tab in settings
         const shareTab = document.getElementById('tabBtn_share');
         if (shareTab) shareTab.style.display = 'none';
+
+        // Hide "Settings" button in footer
+        const settingsBtn = document.getElementById('footerSettings');
+        if (settingsBtn) settingsBtn.style.display = 'none';
+        const pipe2 = document.getElementById('footerPipe2');
+        if (pipe2) pipe2.style.display = 'none';
+
+        // Disable "Character Name" button in footer
+        const charBtn = document.getElementById('footerCharName');
+        if (charBtn) {
+            charBtn.onclick = null;
+            charBtn.style.cursor = 'default';
+            charBtn.style.textDecoration = 'none';
+        }
+
+        // Show shared user gamertag in footer
+        const footerSharedUser = document.getElementById('footerSharedUser');
+        if (footerSharedUser && data.gamertag) {
+            let platformIcon = 'fab fa-windows';
+            if (data.platform === 'Xbox One' || data.platform === 'Xbox Series') platformIcon = 'fab fa-xbox';
+            else if (data.platform === 'PS4' || data.platform === 'PS5') platformIcon = 'fab fa-playstation';
+            else if (data.platform === 'Nintendo Switch') platformIcon = 'fab fa-nintendo-switch';
+
+            footerSharedUser.style.display = 'block';
+            footerSharedUser.innerHTML = `Shared by: <span style="color:var(--accent);">${data.gamertag}</span> <i class="${platformIcon}" style="margin-left:4px; margin-right:2px;"></i> (${data.platform || 'Unknown'})`;
+        }
 
         // Hide detail modal action buttons
         ['btnDetailCopy', 'btnDetailMove', 'btnDetailSell', 'btnSaveVehicle', 'btnMoveVehicle', 'btnSellVehicle', 'btnDeleteVehicle'].forEach(id => {
