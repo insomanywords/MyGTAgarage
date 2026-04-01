@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.62.0</title>
+    <title>My GTA Garage v1.62.1</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -285,6 +285,42 @@
         
         #lightbox { display: none; position: fixed; inset: 0; background: #000; z-index: 2000; align-items: center; justify-content: center; }
         #lbImg { max-width: 95%; max-height: 90%; object-fit: contain; }
+
+        /* TOAST */
+        #toast-container {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .toast {
+            background: #2c2c2c;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            border: 1px solid var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: toast-in 0.3s ease-out forwards, toast-out 0.3s ease-in 2.7s forwards;
+            opacity: 0;
+        }
+        @keyframes toast-in {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes toast-out {
+            from { transform: translateY(0); opacity: 1; }
+            to { transform: translateY(-20px); opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -330,7 +366,7 @@
                 <option value="fav">Favorites Only</option>
                 <option value="all">View All</option>
             </select>
-            <button class="btn-sec" onclick="openModal('garageToolsModal')"><i class="fas fa-tools" style="font-size: 1.15rem;"></i></button>
+            <button class="btn-sec" onclick="openModal('garageToolsModal'); checkPublicPermissionsIfConnected();"><i class="fas fa-tools" style="font-size: 1.15rem;"></i></button>
             <button class="btn-pri" onclick="openAddModal()">+ Add</button>
         </div>
     </div>
@@ -643,7 +679,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.62.0</div>
+        <div class="modal-title">About My GTA Garage v1.62.1</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1008,7 +1044,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.62.0 (Current)</strong><br>• Added "Share Garage" button to Garage Tools for instant public link copying.<br>• Implemented vehicle deep-linking: Share direct links to specific cars in your collection.<br>• Added "Share Choice" modal to vehicle detail cards with Snapshot and Link options.<br>• Improved "View Only Mode" security by hiding all modification buttons and adding safety guards.<br>• Fixed UI rendering issues in normal mode caused by template literal syntax in static HTML.</p>
+            <p><strong>v1.62.1 (Current)</strong><br>• Fixed public share link loading for unauthenticated users with a fallback download method.<br>• Replaced standard browser alerts with a custom themed toast notification system.<br>• Improved clipboard copying reliability with a dual-method system (Clipboard API + fallback).<br>• Fixed "Share Garage" button in Garage Tools with background pre-fetching.</p>
+            <p><strong>v1.62.0</strong><br>• Added "Share Garage" button to Garage Tools for instant public link copying.<br>• Implemented vehicle deep-linking: Share direct links to specific cars in your collection.<br>• Added "Share Choice" modal to vehicle detail cards with Snapshot and Link options.<br>• Improved "View Only Mode" security by hiding all modification buttons and adding safety guards.<br>• Fixed UI rendering issues in normal mode caused by template literal syntax in static HTML.</p>
             <p><strong>v1.61.4</strong><br>• Implemented Public Sharing feature: Create time-stamped JSON snapshots of your garage on Google Drive.<br>• Added "Share Settings" tab to settings modal for managing public permissions and links.<br>• Added "View Only Mode" for viewing shared garage snapshots without modifying local data.<br>• Reverted Google Drive token refresh logic to improve session recovery.<br>• Improved error handling for cloud folder setup to prevent premature error messages.</p>
             <p><strong>v1.61.3</strong><br>• Added "Garage Tools" menu to consolidate advanced management features.<br>• Moved "Swap Entire Garage" tool into the new Garage Tools menu.<br>• Added export criteria details to the PDF header for better collection tracking.</p>
             <p><strong>v1.61.2</strong><br>• Added Advanced Filtering system to search by Garage, Floor, Brand, Class, and more.<br>• Added Advanced Filter button to the search bar.<br>• Improved search results view when filtering is active.<br>• Fixed Google Drive sync error auto-refresh logic.</p>
@@ -1093,6 +1130,7 @@
 </div>
 
 <div id="lightbox" onclick="this.style.display='none'"><img id="lbImg"></div>
+<div id="toast-container"></div>
 
 <script>
 
@@ -3854,6 +3892,12 @@
     function checkCustomModel() { document.getElementById('inModelCustom').style.display = document.getElementById('inModel').value==='Custom'?'block':'none'; }
 
     // --- PUBLIC SHARING LOGIC ---
+    function checkPublicPermissionsIfConnected() {
+        if (driveStatus === 'connected' && !publicShareFileId) {
+            checkPublicPermissions();
+        }
+    }
+
     async function checkPublicPermissions() {
         const shareStatus = document.getElementById('shareStatus');
         const shareActions = document.getElementById('shareActions');
@@ -4065,22 +4109,86 @@
         }
     }
 
-    function shareGarageFromTools() {
-        if (publicShareFileId) {
-            copyShareLink();
-            closeModal('garageToolsModal');
+    function showToast(message, icon = 'fa-check-circle') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `<i class="fas ${icon}" style="color:var(--accent);"></i> ${message}`;
+        container.appendChild(toast);
+        setTimeout(() => { if(toast.parentNode) toast.remove(); }, 3100);
+    }
+
+    function copyToClipboard(text, successMsg = 'Link copied to clipboard!') {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(successMsg);
+            }).catch(err => {
+                console.error('Clipboard API failed:', err);
+                fallbackCopy(text, successMsg);
+            });
         } else {
-            closeModal('garageToolsModal');
-            openSettings();
-            switchSettingsTab('share');
+            fallbackCopy(text, successMsg);
         }
+    }
+
+    function fallbackCopy(text, successMsg) {
+        const tempInput = document.createElement('input');
+        tempInput.value = text;
+        tempInput.style.position = 'fixed';
+        tempInput.style.left = '-9999px';
+        tempInput.style.top = '0';
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        try {
+            document.execCommand('copy');
+            showToast(successMsg);
+        } catch (err) {
+            console.error('Fallback copy failed:', err);
+        }
+        document.body.removeChild(tempInput);
+    }
+
+    async function shareGarageFromTools() {
+        if (publicShareFileId) {
+            const shareLink = `${window.location.origin}${window.location.pathname}?share=${publicShareFileId}`;
+            copyToClipboard(shareLink, 'Garage share link copied!');
+            closeModal('garageToolsModal');
+            return;
+        }
+        
+        if (driveStatus === 'connected') {
+            const waitIcon = document.querySelector('#garageToolsModal .fa-share-alt');
+            if (waitIcon) waitIcon.className = 'fas fa-spinner fa-spin';
+            
+            try {
+                await checkPublicPermissions();
+                if (publicShareFileId) {
+                    const shareLink = `${window.location.origin}${window.location.pathname}?share=${publicShareFileId}`;
+                    copyToClipboard(shareLink, 'Garage share link copied!');
+                    closeModal('garageToolsModal');
+                    return;
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                if (waitIcon) waitIcon.className = 'fas fa-share-alt';
+            }
+        }
+        
+        closeModal('garageToolsModal');
+        openSettings();
+        switchSettingsTab('share');
     }
 
     function copyShareLink() {
         const linkInput = document.getElementById('publicShareLink');
-        linkInput.select();
-        document.execCommand('copy');
-        alert('Shareable link copied to clipboard!');
+        let linkToCopy = linkInput.value;
+        if (!linkToCopy && publicShareFileId) {
+            linkToCopy = `${window.location.origin}${window.location.pathname}?share=${publicShareFileId}`;
+        }
+        if (linkToCopy) {
+            copyToClipboard(linkToCopy, 'Shareable link copied to clipboard!');
+        }
     }
 
     function createMultipartBody(filename, contentType, parents, body) {
@@ -4106,15 +4214,7 @@
     function shareVehicleLink() {
         if (publicShareFileId) {
             const shareLink = `${window.location.origin}${window.location.pathname}?share=${publicShareFileId}&v=${currentDetailViewId}`;
-            
-            const tempInput = document.createElement('input');
-            tempInput.value = shareLink;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-            
-            alert('Vehicle share link copied to clipboard!');
+            copyToClipboard(shareLink, 'Vehicle share link copied!');
             closeModal('shareChoiceModal');
         } else {
             closeModal('shareChoiceModal');
