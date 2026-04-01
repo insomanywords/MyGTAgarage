@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.61.3</title>
+    <title>My GTA Garage v1.61.4</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -607,7 +607,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.61.3</div>
+        <div class="modal-title">About My GTA Garage v1.61.4</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -952,7 +952,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.61.3 (Current)</strong><br>• Added "Garage Tools" menu to consolidate advanced management features.<br>• Moved "Swap Entire Garage" tool into the new Garage Tools menu.<br>• Added export criteria details to the PDF header for better collection tracking.</p>
+            <p><strong>v1.61.4 (Current)</strong><br>• Reverted Google Drive token refresh logic to improve session recovery.<br>• Improved error handling for cloud folder setup to prevent premature error messages.</p>
+            <p><strong>v1.61.3</strong><br>• Added "Garage Tools" menu to consolidate advanced management features.<br>• Moved "Swap Entire Garage" tool into the new Garage Tools menu.<br>• Added export criteria details to the PDF header for better collection tracking.</p>
             <p><strong>v1.61.2</strong><br>• Added Advanced Filtering system to search by Garage, Floor, Brand, Class, and more.<br>• Added Advanced Filter button to the search bar.<br>• Improved search results view when filtering is active.<br>• Fixed Google Drive sync error auto-refresh logic.</p>
             <p><strong>v1.61.1</strong><br>• Fixed PWA 404 error on GitHub Pages by using relative paths in manifest and service worker.</p>
             <p><strong>v1.61.0</strong><br>• Implemented full PWA (Progressive Web App) functionality.<br>• Added "Add to Home Screen" support with custom manifest and icons.<br>• Added Service Worker for offline support and instant loading.<br>• Implemented smart image caching for GitHub and Google Drive images.<br>• Added "Update Available" modal notification system.</p>
@@ -1521,10 +1522,6 @@
     }
 
     async function onGoogleSignedIn() {
-        const isValid = await ensureValidToken();
-        const intent = safeStorage.getItem('gta_cloud_intent') === 'true';
-        if (!isValid || !intent) return;
-
         document.getElementById('btnGLogin').style.display = 'none';
         document.getElementById('btnGLogout').style.display = 'block';
         document.getElementById('cloudActions').style.display = 'block';
@@ -1538,18 +1535,23 @@
                 sessionStorage.removeItem('driveSyncAutoRefresh');
             } catch(e) { 
                 console.error(e); 
-                document.getElementById('cloudStatus').innerText = 'Error setting up Drive folders.'; 
-                hasDoneInitialSync = false;
-                
-                // Auto-refresh logic
-                const autoRefreshDone = sessionStorage.getItem('driveSyncAutoRefresh');
-                if (!autoRefreshDone) {
-                    sessionStorage.setItem('driveSyncAutoRefresh', 'true');
-                    window.location.reload();
+                // Only show error if we are actually connected/authenticated
+                if (driveStatus === 'connected') {
+                    document.getElementById('cloudStatus').innerText = 'Error setting up Drive folders.'; 
+                    hasDoneInitialSync = false;
+                    
+                    // Auto-refresh logic
+                    const autoRefreshDone = sessionStorage.getItem('driveSyncAutoRefresh');
+                    if (!autoRefreshDone) {
+                        sessionStorage.setItem('driveSyncAutoRefresh', 'true');
+                        window.location.reload();
+                    } else {
+                        // Error persists after refresh
+                        alert("Error setting up Drive folders. If this persists, please manually logout and log back in to reset the connection.");
+                        sessionStorage.removeItem('driveSyncAutoRefresh'); // Reset for next time
+                    }
                 } else {
-                    // Error persists after refresh
-                    alert("Error setting up Drive folders. If this persists, please manually logout and log back in to reset the connection.");
-                    sessionStorage.removeItem('driveSyncAutoRefresh'); // Reset for next time
+                    hasDoneInitialSync = false;
                 }
             }
         } else {
