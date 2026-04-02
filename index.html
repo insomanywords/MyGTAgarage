@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.62.7</title>
+    <title>My GTA Garage v1.62.8</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -277,11 +277,11 @@
         .brand-count { width: 30px; color: #fff; font-weight: bold; font-size: 0.8rem; }
 
         footer { 
-            background: #111; padding: 15px; text-align: center; 
+            background: #111; padding: 10px 5px; text-align: center; 
             font-size: 0.8rem; color: #555; border-top: 1px solid #222; 
             position: fixed; bottom: 0; width: 100%; z-index: 50; 
         }
-        footer a { color: var(--accent); text-decoration: none; margin: 0 10px; font-weight: bold; cursor: pointer; }
+        footer a { color: var(--accent); text-decoration: none; margin: 0 5px; font-weight: bold; cursor: pointer; }
         
         #lightbox { display: none; position: fixed; inset: 0; background: #000; z-index: 2000; align-items: center; justify-content: center; }
         #lbImg { max-width: 95%; max-height: 90%; object-fit: contain; }
@@ -326,9 +326,9 @@
 <body>
 
 <div class="sticky-top-wrapper">
-    <div id="viewOnlyIndicator" style="display:none; background:var(--accent); color:#fff; font-size:0.7rem; font-weight:bold; padding:4px 10px; text-transform:uppercase; letter-spacing:1px; min-height: 24px; align-items: center; justify-content: space-between;">
+    <div id="viewOnlyIndicator" style="display:none; background:var(--accent); color:#fff; font-size:0.7rem; font-weight:bold; padding:2px 10px; text-transform:uppercase; letter-spacing:1px; min-height: 20px; align-items: center; justify-content: space-between;">
         <span>View Only Mode</span>
-        <button onclick="exitViewOnlyMode()" style="background: #fff; color: var(--accent); border: none; border-radius: 4px; padding: 3px 8px; font-size: 0.6rem; font-weight: bold; cursor: pointer; text-transform: uppercase; line-height: 1;">Return to My Garage</button>
+        <button onclick="exitViewOnlyMode()" style="background: #fff; color: var(--accent); border: none; border-radius: 4px; padding: 2px 6px; font-size: 0.6rem; font-weight: bold; cursor: pointer; text-transform: uppercase; line-height: 1;">Return to My Garage</button>
     </div>
     <header>
         <div class="header-info">
@@ -375,7 +375,7 @@
 <div id="vehicle-list"></div>
 
 <footer>
-    <span id="footerSharedUser" style="display:none; font-size:0.85rem; color:#888; margin-right:5px;"></span>
+    <span id="footerSharedUser" style="display:none; font-size:0.85rem; color:#888; margin-right:2px;"></span>
     <a onclick="openCharModal()" id="footerCharName" style="color: var(--f1);">Character 1</a> <span id="footerPipe1">|</span> 
     <a onclick="openSettings()" id="footerSettings">Settings</a> <span id="footerPipe2">|</span> 
     <a onclick="openModal('aboutModal')">About</a>
@@ -688,7 +688,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.62.7</div>
+        <div class="modal-title">About My GTA Garage v1.62.8</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1040,12 +1040,12 @@
 <div id="garageToolsModal" class="modal">
     <div class="modal-box">
         <div class="modal-title">Garage Tools</div>
-        <div style="display:flex; flex-direction:column; gap:10px;">
-            <button class="btn-sec" style="width:100%; justify-content: flex-start;" onclick="closeModal('garageToolsModal'); openSwapAllModal();">
-                <i class="fas fa-exchange-alt"></i> Swap Entire Garage
+        <div style="display:flex; flex-direction:column; gap:15px;">
+            <button class="btn-sec" style="width:100%; justify-content: center; font-size: 1.1rem; padding: 15px;" onclick="closeModal('garageToolsModal'); openSwapAllModal();">
+                <i class="fas fa-exchange-alt" style="margin-right: 8px; font-size: 1.2rem;"></i> Swap Entire Garage
             </button>
-            <button class="btn-sec" style="width:100%; justify-content: flex-start; background: var(--accent); color: #fff; border: none;" onclick="shareGarageFromTools()">
-                <i class="fas fa-share-alt"></i> Share Garage
+            <button class="btn-sec" style="width:100%; justify-content: center; background: var(--accent); color: #fff; border: none; font-size: 1.1rem; padding: 15px;" onclick="shareGarageFromTools()">
+                <i class="fas fa-share-alt" style="margin-right: 8px; font-size: 1.2rem;"></i> Share Garage
             </button>
             <!-- Future tools can be added here -->
         </div>
@@ -1061,7 +1061,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.62.7 (Current)</strong><br>• Improved View Only Mode banner layout for smaller screens.<br>• Removed "Shared by" text from footer in View Only Mode.</p>
+            <p><strong>v1.62.8 (Current)</strong><br>• Reduced height of View Only Mode banner and return button.<br>• Updated View Only Mode footer with platform abbreviations and tighter spacing.<br>• Improved Google Drive token refresh logic to retry before disconnecting.<br>• Enlarged and centered buttons in the Garage Tools modal.</p>
+            <p><strong>v1.62.7</strong><br>• Improved View Only Mode banner layout for smaller screens.<br>• Removed "Shared by" text from footer in View Only Mode.</p>
             <p><strong>v1.62.6</strong><br>• Improved View Only Mode footer layout to be inline.<br>• Adjusted Share button width in vehicle detail card for View Only Mode.</p>
             <p><strong>v1.62.5</strong><br>• Enhanced View Only Mode UI (hidden buttons, updated labels, shared user info in footer).<br>• Added granular Gamertag visibility settings for Snapshots, PDFs, and Shareable Links.</p>
             <p><strong>v1.62.4</strong><br>• Changed public snapshot creation notification to a modal.<br>• Added a progress modal window during public snapshot creation.<br>• Updated proxy fallback chain for shared snapshots.</p>
@@ -1346,10 +1347,12 @@
                     refreshFailureCount++;
                     if (refreshFailureCount >= MAX_REFRESH_FAILURES) {
                         console.warn('Refresh failed, user remains signed in until manual action');
+                        driveStatus = 'expired';
+                        reject(tokenResponse);
                     } else {
                         console.warn('Silent token refresh failed, retrying...', refreshFailureCount);
+                        silentlyRefreshToken().then(resolve).catch(reject);
                     }
-                    reject(tokenResponse);
                 }
             };
             tokenClient.requestAccessToken({ prompt: 'none' });
@@ -1376,6 +1379,7 @@
                     }
                     return await gapi.client.request(options);
                 } catch (refreshErr) {
+                    openModal('loggedOutModal');
                     throw refreshErr;
                 }
             }
@@ -4420,12 +4424,16 @@
         const footerSharedUser = document.getElementById('footerSharedUser');
         if (footerSharedUser && data.gamertag) {
             let platformIcon = 'fab fa-windows';
-            if (data.platform === 'Xbox One' || data.platform === 'Xbox Series') platformIcon = 'fab fa-xbox';
-            else if (data.platform === 'PS4' || data.platform === 'PS5') platformIcon = 'fab fa-playstation';
-            else if (data.platform === 'Nintendo Switch') platformIcon = 'fab fa-nintendo-switch';
+            let platformAbbr = data.platform || 'Unknown';
+            if (data.platform === 'Xbox One') { platformIcon = 'fab fa-xbox'; platformAbbr = 'One'; }
+            else if (data.platform === 'Xbox Series') { platformIcon = 'fab fa-xbox'; platformAbbr = 'X/S'; }
+            else if (data.platform === 'PS4') { platformIcon = 'fab fa-playstation'; platformAbbr = 'PS4'; }
+            else if (data.platform === 'PS5') { platformIcon = 'fab fa-playstation'; platformAbbr = 'PS5'; }
+            else if (data.platform === 'PC') { platformAbbr = 'PC'; }
+            else if (data.platform === 'Nintendo Switch') { platformIcon = 'fab fa-nintendo-switch'; platformAbbr = 'Switch'; }
 
             footerSharedUser.style.display = 'inline-block';
-            footerSharedUser.innerHTML = `<span style="color:var(--accent);">${data.gamertag}</span> <i class="${platformIcon}" style="margin-left:4px; margin-right:2px;"></i> (${data.platform || 'Unknown'}) <span style="margin-left:5px; opacity:0.5;">|</span>`;
+            footerSharedUser.innerHTML = `<span style="color:var(--accent);">${data.gamertag}</span> <i class="${platformIcon}" style="margin-left:2px; margin-right:2px;"></i> ${platformAbbr} <span style="margin-left:2px; opacity:0.5;">|</span>`;
         }
 
         // Hide detail modal action buttons
