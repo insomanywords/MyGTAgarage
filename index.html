@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.62.8</title>
+    <title>My GTA Garage v1.62.9</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -54,7 +54,7 @@
         header {
             background-color: #000; padding: 12px 16px; border-bottom: 2px solid var(--accent);
             display: flex; justify-content: space-between; align-items: center; 
-            gap: 10px;
+            gap: 10px; position: relative; z-index: 2;
         }
         
         .header-info { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
@@ -70,12 +70,13 @@
         .header-actions { display: flex; gap: 6px; flex-shrink: 0; }
         .header-actions .btn-sec i, .header-actions .btn-sec, .header-actions .timer-btn { font-size: 1.2rem; }
 
-        @media (max-width: 450px) { h1 { display: none; } .header-logo-img { display: block; } }
+        @media (max-width: 600px) { h1 { display: none; } .header-logo-img { display: block; } }
 
         /* CONTROLS */
         .controls {
             padding: 10px; background-color: var(--head); border-bottom: 1px solid var(--border);
             display: flex; flex-direction: column; gap: 10px;
+            position: relative; z-index: 1; transition: margin-top 0.3s ease;
         }
         
         .search-wrapper { position: relative; width: 100%; }
@@ -326,9 +327,9 @@
 <body>
 
 <div class="sticky-top-wrapper">
-    <div id="viewOnlyIndicator" style="display:none; background:var(--accent); color:#fff; font-size:0.7rem; font-weight:bold; padding:2px 10px; text-transform:uppercase; letter-spacing:1px; min-height: 20px; align-items: center; justify-content: space-between;">
+    <div id="viewOnlyIndicator" style="display:none; background:var(--accent); color:#fff; font-size:0.7rem; font-weight:bold; padding:2px 10px; text-transform:uppercase; letter-spacing:1px; height: 28px; align-items: center; justify-content: space-between; position: relative; z-index: 2;">
         <span>View Only Mode</span>
-        <button onclick="exitViewOnlyMode()" style="background: #fff; color: var(--accent); border: none; border-radius: 4px; padding: 2px 6px; font-size: 0.6rem; font-weight: bold; cursor: pointer; text-transform: uppercase; line-height: 1;">Return to My Garage</button>
+        <button onclick="exitViewOnlyMode()" style="background: #fff; color: var(--accent); border: none; border-radius: 4px; padding: 2px 6px; height: 24px; font-size: 0.6rem; font-weight: bold; cursor: pointer; text-transform: uppercase; line-height: 1;">Return to My Garage</button>
     </div>
     <header>
         <div class="header-info">
@@ -688,7 +689,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.62.8</div>
+        <div class="modal-title">About My GTA Garage v1.62.9</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1061,7 +1062,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.62.8 (Current)</strong><br>• Reduced height of View Only Mode banner and return button.<br>• Updated View Only Mode footer with platform abbreviations and tighter spacing.<br>• Improved Google Drive token refresh logic to retry before disconnecting.<br>• Enlarged and centered buttons in the Garage Tools modal.</p>
+            <p><strong>v1.62.9 (Current)</strong><br>• Set exact heights for View Only Mode banner and return button for better alignment.<br>• Made vehicle images in the detail card clickable to view full screen.<br>• Improved header responsiveness on smaller screens to prevent text cutoff.<br>• Implemented smart scrolling for the controls bar on mobile devices to maximize screen space.</p>
+            <p><strong>v1.62.8</strong><br>• Reduced height of View Only Mode banner and return button.<br>• Updated View Only Mode footer with platform abbreviations and tighter spacing.<br>• Improved Google Drive token refresh logic to retry before disconnecting.<br>• Enlarged and centered buttons in the Garage Tools modal.</p>
             <p><strong>v1.62.7</strong><br>• Improved View Only Mode banner layout for smaller screens.<br>• Removed "Shared by" text from footer in View Only Mode.</p>
             <p><strong>v1.62.6</strong><br>• Improved View Only Mode footer layout to be inline.<br>• Adjusted Share button width in vehicle detail card for View Only Mode.</p>
             <p><strong>v1.62.5</strong><br>• Enhanced View Only Mode UI (hidden buttons, updated labels, shared user info in footer).<br>• Added granular Gamertag visibility settings for Snapshots, PDFs, and Shareable Links.</p>
@@ -2257,6 +2259,23 @@
     }
 
     // --- INITIALIZATION ---
+    let lastScrollY = window.scrollY;
+    window.addEventListener('scroll', () => {
+        if (window.innerWidth >= 768) {
+            document.querySelector('.controls').style.marginTop = '0px';
+            return;
+        }
+        const currentScrollY = window.scrollY;
+        const controls = document.querySelector('.controls');
+        
+        if (currentScrollY > lastScrollY && currentScrollY > 100) {
+            controls.style.marginTop = `-${controls.offsetHeight}px`;
+        } else if (currentScrollY < lastScrollY - 10) {
+            controls.style.marginTop = '0px';
+        }
+        lastScrollY = currentScrollY;
+    });
+
     document.addEventListener('DOMContentLoaded', async () => {
         updateFooterCharName();
         updateCloudHeaderIcon();
@@ -2569,7 +2588,7 @@
         }
 
         const content = `
-            <div class="detail-img-box"><img src="${img}" class="detail-img" onerror="if(this.src.includes('drive.google') && '${spawn}'){this.src='${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png';}else{this.style.display='none';}"></div>
+            <div class="detail-img-box"><img src="${img}" class="detail-img" style="cursor:pointer;" onclick="openLb(this.src)" onerror="if(this.src.includes('drive.google') && '${spawn}'){this.src='${BASE_URL}vehicles/${spawn.toLowerCase().trim()}.png';}else{this.style.display='none';}"></div>
             <div class="detail-manuf">${v.manuf}</div>
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px;">
                 <div class="detail-title" style="margin-bottom:0;">${v.model}</div>
