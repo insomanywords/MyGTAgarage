@@ -1,40 +1,97 @@
-# My GTA Garage
+# My GTA Garage 🚗💨
 
-### The ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.
+[![Version](https://img.shields.io/badge/version-1.62.9-blue.svg)](https://github.com/insomanywords/MyGTAgarage)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+**My GTA Garage** is the ultimate, offline-first, Progressive Web App (PWA) designed for Grand Theft Auto Online car collectors. It provides a clean, fast, and feature-rich interface to track, organize, and manage your massive vehicle fleets across multiple characters. 
+
+Built with zero backend requirements, your data lives securely in your browser and automatically syncs to your personal Google Drive. 
 
 
-#### 1. Vehicle Management
 
-   Add Vehicle: Click the + Add button. Select Make, Model, and Garage. Capacities are checked automatically.
-  
-   Edit: Click the  icon on any card to change details like Plate, Wheels, or Notes.
- 
-   Move: Inside the Edit or Detail screen, click Move to transfer a car. The app finds the first empty floor automatically.
-  
-   Sell: Click Sell to simulate a sale. This starts an 18-hour cooldown timer (matches GTA Online).
+---
 
-#### 2. Organization & Search
+## ✨ Features
 
-   Grouping: Use the dropdown to group vehicles by Garage, Manufacturer, Class, or Drivetrain.
+### 🏢 Comprehensive Vehicle Management
+* **Add/Edit Vehicles:** Track your Make, Model, Garage, and Floor location.
+* **Granular Details:** Assign exact Slot numbers, Plate types (Yankton, Liberty City, Panic, E-Cola, etc.), and Wheel types (Stock, F1, Benny's).
+* **Status Tags:** Instantly visually flag vehicles as **Favorite**, **Weaponized**, **HSW**, **Drift**, or **Imani Tech**.
+* **Financial Tracking:** Log the *LSCM Price* (Value) and *Sell Price* of your assets.
+* **Custom Images:** Ditch the stock photos! Upload your own custom screenshots. They auto-sync securely to your Google Drive to save local storage.
+* **Rapid Entry:** Use the **Duplicate/Copy** feature to clone identical builds, changing only the slot number for mass fleet entry.
 
-   Search: Use the top search bar to filter by name, location, or notes in real-time.
+### 🔄 Fleet Operations
+* **Move Vehicles:** Effortlessly migrate cars between properties. The app auto-detects full garages and prompts you to select a vehicle to swap places with.
+* **Swap Entire Garages:** Relocating? Instantly swap the entire contents of two different garages with a single click.
+* **Sales Cooldown Timer:** Simulate selling a car. The app logs the transaction in your **Sales History** and automatically starts the real-time 18-hour Daily Sell Limit cooldown timer.
 
-   Favorites: Toggle the  icon to mark your best cars. Select "Favorites Only" from the dropdown to see them.
+### 🗂️ Advanced Organization & Filtering
+* **Dynamic Grouping:** Collapse or expand your collection grouped by Garage, Brand, Class, Drive Type, Wheels, Plates, Weaponized, or HSW status. 
+* **State Preservation:** The app intelligently remembers which folders you have expanded, so you never lose your place while editing.
+* **Real-Time Search:** Instantly filter your hundreds of cars by name, manufacturer, location, or custom notes.
+* **Advanced Filter Matrix:** Combine multiple criteria (e.g., *Show me all Weaponized, F1-wheeled vehicles in my Agency*).
+* **Floor Nicknames:** Assign custom names to specific garage levels (e.g., "JDM Floor", "Supercar Level").
 
-#### 4. Garage Tools
+### ☁️ Data Security & Cloud Sync
+* **Offline-First PWA:** Install it on your phone or desktop. The app works flawlessly offline, reading and writing to your local browser storage.
+* **Google Drive Sync:** Sign in to Google, and the app creates a private `My GTA Garage` folder in your Drive. Every change you make locally is instantly and silently auto-synced in the background. 
+* **Conflict Resolution:** Swapping between your phone and PC? The app detects sync conflicts and prompts you to keep your local data or download the latest cloud save.
+* **Local Backups:** Manually export or import your raw `.json` database at any time.
 
-   Nicknames: In the Add/Edit window, click "Edit Nickname" to assign custom names to specific garage floors (e.g., "JDM Floor").
+### 📤 Sharing & Exporting
+* **Public View-Only Mode:** Generate a time-stamped, read-only link to your garage. Share it with friends or the LS Car Meet community so they can browse your collection without modifying your data.
+* **Vehicle Snapshots:** Generate a clean, styled image card of a specific vehicle to instantly share to Discord, Reddit, or Messages.
+* **Deep Linking:** Share a public link that opens directly to a specific vehicle's detail card.
+* **PDF Export:** Generate a professional, multi-page PDF catalog of your entire collection (or filtered groups) in either compact list or large detail format.
+* **Gamertag Integration:** Personalize your public links, snapshots, and PDFs by displaying your specific Gamertag and Platform icon.
 
-   Swap All: Click the  button next to the filters to swap the entire contents of two garages instantly.
+---
 
-   Capacity Check: The "Add Vehicle" window hides floors that are full and warns you if a garage has no space left.
+## 🚀 Installation & Usage
 
-#### 5. Data & Settings
+Because My GTA Garage is a client-side PWA, there is no server to configure or database to host. 
 
-   Backup (💾): Saves your entire garage to a JSON file on your device.
+### Option 1: Use the Live App
+Simply visit the live hosted version (if available) and click **"Add to Home Screen"** on your mobile device or desktop browser to install it as a native app.
 
-   Restore (📂): Loads a previously saved JSON file.
+### Option 2: Self-Hosting (GitHub Pages / Local)
+1. Clone or download this repository.
+2. Ensure all files (`index.html`, `manifest.json`, `sw.js`, `icon.svg`) are in the same root directory.
+3. Serve the directory using any static web server (e.g., GitHub Pages, VS Code Live Server, or Python `http.server`).
+4. **Note on Google Drive Sync:** If you self-host on a different domain, you will need to replace the `CLIENT_ID` in `index.html` with your own Google Cloud Console OAuth 2.0 Client ID, configured with your specific authorized JavaScript origins.
 
-   Stats (📊): View a breakdown of your collection, including top brands and total capacity.
+---
 
-   Timer (💲): Tracks your daily sell limit cooldown status.
+## ⚙️ How Google Drive Sync Works
+
+My GTA Garage utilizes **Google Identity Services (GIS)** and the **Google Drive REST API v3**. 
+
+1. When you authenticate, the app creates a structured folder tree in your Drive:
+   `My GTA Garage / [Character Name] / database` and `../images`
+2. It operates entirely via `fetch` and `gapi.client` requests, bypassing strict browser ITP/CORS blocking for cross-origin iframes.
+3. **Session Management:** The app utilizes a dual-mode silent token refresh system. It proactively monitors token expiration and invisibly renews your session in the background, preventing annoying account-picker popups on mobile devices.
+
+---
+
+## 🛠️ Built With
+
+* **Vanilla HTML / CSS / JavaScript:** Zero heavy frameworks (No React, Vue, or Angular) for maximum speed and minimal footprint.
+* **Google Identity Services & Drive API:** For seamless, serverless cloud synchronization.
+* **html2canvas:** For generating shareable vehicle snapshot images.
+* **jsPDF:** For generating multi-page collection catalogs.
+* **FontAwesome:** For UI iconography.
+
+---
+
+## 📝 Changelog
+
+See the in-app **About > View Changelog** modal for a detailed history of updates and bug fixes, including the latest **v1.62.9** improvements.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+*Note: This application is a fan-made tool and is not affiliated with, endorsed, or sponsored by Rockstar Games or Take-Two Interactive.*
