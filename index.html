@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.62.9</title>
+    <title>My GTA Garage v1.62.10</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -25,7 +25,7 @@
     <style>
         :root {
             --bg: #121212; --card: #1e1e1e; --head: #181818;
-            --text: #ffffff; --text-dim: #a0a0a0; --accent: #9b59b6;
+            --text: #ffffff; --text-dim: #a0a0a0; --accent: #9b59b6; --accent-text: #ffffff;
             --wep: #ef4444; --f1: #f59e0b; --benny: #3b82f6; --sell: #22c55e; --timer: #f97316;
             --fav: #e91e63; --hsw: #a855f7;
             --drift: #0ea5e9; --imani: #10b981;
@@ -107,7 +107,7 @@
         input:focus, select:focus { border-color: var(--accent); }
 
         button { border: none; padding: 0 16px; border-radius: var(--radius); font-weight: 600; cursor: pointer; height: 44px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.2s; }
-        .btn-pri { background: var(--accent); color: #fff; }
+        .btn-pri { background: var(--accent); color: var(--accent-text); }
         .btn-sec { background: #2c2c2c; color: #ccc; border: 1px solid #333; }
         .timer-btn { background: #1a1a1a; border: 1px solid var(--sell); color: var(--sell); font-weight: bold; min-width: 50px; }
         .timer-btn.active { border-color: var(--timer); color: var(--timer); }
@@ -149,6 +149,9 @@
             display: flex; min-height: 115px; height: auto;
             border: 1px solid #2a2a2a; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
             cursor: pointer; 
+        }
+        .card-wishlist {
+            opacity: 0.6; border: 1px dashed var(--accent);
         }
         .card-img-box { width: 130px; background: #000; flex-shrink: 0; position: relative; display: flex; align-items: center; justify-content: center; cursor: zoom-in; border-right: 1px solid #222; align-self: stretch; }
         .card-img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
@@ -327,7 +330,7 @@
 <body>
 
 <div class="sticky-top-wrapper">
-    <div id="viewOnlyIndicator" style="display:none; background:var(--accent); color:#fff; font-size:0.7rem; font-weight:bold; padding:2px 10px; text-transform:uppercase; letter-spacing:1px; height: 28px; align-items: center; justify-content: space-between; position: relative; z-index: 2;">
+    <div id="viewOnlyIndicator" style="display:none; background:var(--accent); color:var(--accent-text); font-size:0.7rem; font-weight:bold; padding:2px 10px; text-transform:uppercase; letter-spacing:1px; height: 28px; align-items: center; justify-content: space-between; position: relative; z-index: 2;">
         <span>View Only Mode</span>
         <button onclick="exitViewOnlyMode()" style="background: #fff; color: var(--accent); border: none; border-radius: 4px; padding: 2px 6px; height: 24px; font-size: 0.6rem; font-weight: bold; cursor: pointer; text-transform: uppercase; line-height: 1;">Return to My Garage</button>
     </div>
@@ -365,6 +368,7 @@
                 <option value="drift">Group: Drift</option>
                 <option value="imani">Group: Imani Tech</option>
                 <option value="fav">Favorites Only</option>
+                <option value="wishlist">Wishlist Only</option>
                 <option value="all">View All</option>
             </select>
             <button class="btn-sec" onclick="openModal('garageToolsModal'); checkPublicPermissionsIfConnected();"><i class="fas fa-tools" style="font-size: 1.15rem;"></i></button>
@@ -404,6 +408,7 @@
             <button id="tabBtn_cloud" class="tab-btn" onclick="switchSettingsTab('cloud')">Google Drive</button>
             <button id="tabBtn_share" class="tab-btn" onclick="switchSettingsTab('share')">Share Settings</button>
             <button id="tabBtn_local" class="tab-btn" onclick="switchSettingsTab('local')">Local Data</button>
+            <button id="tabBtn_theme" class="tab-btn" onclick="switchSettingsTab('theme')">App Settings</button>
         </div>
 
         <div id="tabContent_chars" class="tab-content active">
@@ -513,6 +518,17 @@
             <div class="form-section" style="border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05);">
                 <span class="label" style="color: var(--wep);">Danger Zone</span>
                 <button class="btn-sec" style="width:100%; color: var(--wep); border-color: rgba(239,68,68,0.5);" onclick="factoryReset()">Factory Reset All Data</button>
+            </div>
+        </div>
+
+        <div id="tabContent_theme" class="tab-content">
+            <div class="form-section">
+                <span class="label">Theme Customization</span>
+                <p style="font-size:0.8rem; color:#aaa; margin-top:0;">Choose a custom accent color for the app. This color will sync to the cloud and be visible to others in View Only Mode.</p>
+                <div style="display:flex; align-items:center; gap:15px; margin-bottom:15px;">
+                    <input type="color" id="themeColorPicker" style="width:50px; height:50px; padding:0; border:none; border-radius:8px; cursor:pointer;" onchange="handleThemeColorChange(this.value)">
+                    <button class="btn-sec" onclick="resetThemeColor()">Reset to Default</button>
+                </div>
             </div>
         </div>
         
@@ -689,7 +705,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.62.9</div>
+        <div class="modal-title">About My GTA Garage v1.62.10</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -797,6 +813,7 @@
             <div id="detailContent"></div>
         </div>
         <div id="detailActionButtons" class="detail-actions-grid">
+            <button id="btnDetailConfirmPurchase" class="btn-pri" style="grid-column: span 2; display:none;" onclick="confirmPurchase()"><i class="fas fa-check"></i> Confirm Purchase</button>
             <button id="btnDetailCopy" class="btn-sec" style="background:#8e44ad; color:#fff; border:none;" onclick="triggerCopyVehicle()"><i class="fas fa-copy"></i> Copy</button>
             <button id="btnDetailMove" class="btn-sec" style="background:#2980b9; color:#fff; border:none;" onclick="triggerMoveVehicle()"><i class="fas fa-exchange-alt"></i> Move</button>
             <button id="btnDetailSell" class="btn-sec" style="background:var(--sell); color:#fff; border:none;" onclick="triggerSellVehicle()"><i class="fas fa-dollar-sign"></i> Sell</button>
@@ -906,6 +923,10 @@
         <div class="form-section">
             <div class="checkbox-row">
                 <label class="wep-toggle">
+                    <span style="font-weight:700; color:#fff;">Add to Wishlist</span>
+                    <input type="checkbox" id="inWishlist" onchange="toggleWishlistLabel()">
+                </label>
+                <label class="wep-toggle">
                     <span style="font-weight:700; color:#fff;">Favorite</span>
                     <input type="checkbox" id="inFav">
                 </label>
@@ -940,7 +961,7 @@
         </div>
 
         <div class="modal-row" style="margin-bottom:15px;">
-            <div><span class="label">LSCM Price ($)</span><input type="text" id="inLscmPrice" placeholder="Purchase price..." oninput="formatCurrency(this)"></div>
+            <div><span class="label" id="lscmPriceLabel">LSCM Price ($)</span><input type="text" id="inLscmPrice" placeholder="Purchase price..." oninput="formatCurrency(this)"></div>
             <div><span class="label">Sell Price ($)</span><input type="text" id="inSellPrice" placeholder="Resale price..." oninput="formatCurrency(this)"></div>
         </div>
 
@@ -1045,7 +1066,7 @@
             <button class="btn-sec" style="width:100%; justify-content: center; font-size: 1.1rem; padding: 15px;" onclick="closeModal('garageToolsModal'); openSwapAllModal();">
                 <i class="fas fa-exchange-alt" style="margin-right: 8px; font-size: 1.2rem;"></i> Swap Entire Garage
             </button>
-            <button class="btn-sec" style="width:100%; justify-content: center; background: var(--accent); color: #fff; border: none; font-size: 1.1rem; padding: 15px;" onclick="shareGarageFromTools()">
+            <button class="btn-sec" style="width:100%; justify-content: center; background: var(--accent); color: var(--accent-text); border: none; font-size: 1.1rem; padding: 15px;" onclick="shareGarageFromTools()">
                 <i class="fas fa-share-alt" style="margin-right: 8px; font-size: 1.2rem;"></i> Share Garage
             </button>
             <!-- Future tools can be added here -->
@@ -1062,7 +1083,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.62.9 (Current)</strong><br>• Set exact heights for View Only Mode banner and return button for better alignment.<br>• Made vehicle images in the detail card clickable to view full screen.<br>• Improved header responsiveness on smaller screens to prevent text cutoff.<br>• Implemented smart scrolling for the controls bar on mobile devices to maximize screen space.</p>
+            <p><strong>v1.62.10 (Current)</strong><br>• Added custom accent color theme system with color picker in settings.<br>• Added "Wishlist" feature for vehicles with ghosted cards, projected cost, and confirm purchase flow.</p>
+            <p><strong>v1.62.9</strong><br>• Set exact heights for View Only Mode banner and return button for better alignment.<br>• Made vehicle images in the detail card clickable to view full screen.<br>• Improved header responsiveness on smaller screens to prevent text cutoff.<br>• Implemented smart scrolling for the controls bar on mobile devices to maximize screen space.</p>
             <p><strong>v1.62.8</strong><br>• Reduced height of View Only Mode banner and return button.<br>• Updated View Only Mode footer with platform abbreviations and tighter spacing.<br>• Improved Google Drive token refresh logic to retry before disconnecting.<br>• Enlarged and centered buttons in the Garage Tools modal.</p>
             <p><strong>v1.62.7</strong><br>• Improved View Only Mode banner layout for smaller screens.<br>• Removed "Shared by" text from footer in View Only Mode.</p>
             <p><strong>v1.62.6</strong><br>• Improved View Only Mode footer layout to be inline.<br>• Adjusted Share button width in vehicle detail card for View Only Mode.</p>
@@ -1656,6 +1678,10 @@
         lastSell = data.lastSell || 0;
         lastSoldName = data.lastSoldName || "None";
         salesHistory = data.salesHistory || [];
+        if (data.accentColor) {
+            safeStorage.setItem('gta_accent_color', data.accentColor);
+            applyCustomColor(data.accentColor);
+        }
         saveGarage(); 
     }
 
@@ -1750,7 +1776,7 @@
         updateCloudHeaderIcon();
         document.getElementById('cloudStatus').innerText = 'Signed in. Syncing...';
         try {
-            const data = { vehicles: vehicles, nicknames: floorNicknames, lastSell: lastSell, lastSoldName: lastSoldName, salesHistory: salesHistory };
+            const data = { vehicles: vehicles, nicknames: floorNicknames, lastSell: lastSell, lastSoldName: lastSoldName, salesHistory: salesHistory, accentColor: safeStorage.getItem('gta_accent_color') || '#9b59b6' };
             const fileContent = JSON.stringify(data);
             const fileName = 'autosync_db.json';
             const query = `name='${fileName}' and '${driveFolders.db}' in parents and trashed=false`;
@@ -1780,6 +1806,7 @@
                     isPublicShare: true,
                     timestamp: new Date().toISOString(),
                     characterName: charName,
+                    accentColor: safeStorage.getItem('gta_accent_color') || '#9b59b6',
                     vehicles: vehicles.map(v => {
                         const vCopy = { ...v };
                         if (!includeImages) delete vCopy.customImg;
@@ -1991,6 +2018,47 @@
             };
             reader.onerror = error => reject(error);
         });
+    }
+
+    // --- THEME LOGIC ---
+    function getContrastColor(hex) {
+        if (hex.indexOf('#') === 0) hex = hex.slice(1);
+        if (hex.length === 3) hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+        return (yiq >= 128) ? '#000000' : '#ffffff';
+    }
+
+    function applyCustomColor(color) {
+        if (!color) color = '#9b59b6';
+        const contrast = getContrastColor(color);
+        document.documentElement.style.setProperty('--accent', color);
+        document.documentElement.style.setProperty('--accent-text', contrast);
+        
+        // Update header logo
+        const logoImg = document.querySelector('.header-logo-img');
+        if (logoImg) {
+            const encodedColor = encodeURIComponent(color);
+            logoImg.src = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23121212" rx="20"/><text y="50" x="50" dy=".35em" text-anchor="middle" fill="${encodedColor}" font-family="sans-serif" font-weight="bold" font-size="60">G</text></svg>`;
+        }
+        
+        // Update color picker if it exists
+        const picker = document.getElementById('themeColorPicker');
+        if (picker) picker.value = color;
+    }
+
+    function handleThemeColorChange(color) {
+        applyCustomColor(color);
+        safeStorage.setItem('gta_accent_color', color);
+        if (isCloudAuthed && !isViewOnly) {
+            syncToCloud();
+        }
+    }
+
+    function resetThemeColor() {
+        handleThemeColorChange('#9b59b6');
     }
 
     // --- SETTINGS TABS ---
@@ -2277,6 +2345,9 @@
     });
 
     document.addEventListener('DOMContentLoaded', async () => {
+        const savedColor = safeStorage.getItem('gta_accent_color');
+        if (savedColor) applyCustomColor(savedColor);
+
         updateFooterCharName();
         updateCloudHeaderIcon();
         
@@ -2378,12 +2449,13 @@
         });
         
         if (mode === 'fav') { filtered = filtered.filter(v => v.isFav); }
+        if (mode === 'wishlist') { filtered = filtered.filter(v => v.isWishlist); }
 
-        document.getElementById('headerCount').innerText = vehicles.length;
+        document.getElementById('headerCount').innerText = vehicles.filter(v => !v.isWishlist).length;
         document.getElementById('clearSearch').style.display = term.length > 0 ? 'flex' : 'none';
         list.innerHTML = "";
 
-        if(mode === 'all' || mode === 'fav' || isAdvFiltering) {
+        if(mode === 'all' || mode === 'fav' || mode === 'wishlist' || isAdvFiltering) {
             const grid = document.createElement('div'); grid.className = 'vehicle-grid';
             filtered.forEach(v => {
                 const card = createCard(v);
@@ -2513,6 +2585,7 @@
         const gtaUrl = spawn ? `https://gtacars.net/gta5/${spawn.toLowerCase().replace(/_/g, '-')}` : null;
         
         let badges = "";
+        if(v.isWishlist) badges += `<span class="badge" style="background:var(--accent); color:var(--accent-text);">WISHLIST</span> `;
         if(v.isFav) badges += `<span class="badge fav"><i class="fas fa-heart"></i></span>`; 
         if(v.isWeapon) badges += `<span class="badge w">WEAPONIZED</span> `;
         if(v.isHsw) badges += `<span class="badge hsw">HSW</span> `;
@@ -2529,7 +2602,9 @@
             badges += `<span class="badge ${pClass}">${v.plate.toUpperCase()}</span>`;
         }
 
-        const div = document.createElement('div'); div.className = "card";
+        const cardClass = v.isWishlist ? 'card card-wishlist' : 'card';
+
+        const div = document.createElement('div'); div.className = cardClass;
         div.onclick = () => openDetailModal(v.id); 
         
         const displayClass = (db.class || v.class || '-').replace(/_/g, ' ');
@@ -2570,6 +2645,7 @@
         if (v.driveImageId) img = `https://drive.google.com/thumbnail?id=${v.driveImageId}&sz=w1000`;
         
         let badges = "";
+        if(v.isWishlist) badges += `<span class="detail-badge" style="background:var(--accent); color:var(--accent-text);">WISHLIST</span> `;
         if(v.isFav) badges += `<span class="detail-badge fav"><i class="fas fa-heart"></i> FAVORITE</span> `;
         if(v.isWeapon) badges += `<span class="detail-badge w">WEAPONIZED</span> `;
         if(v.isHsw) badges += `<span class="detail-badge hsw">HSW UPGRADED</span> `;
@@ -2582,9 +2658,17 @@
         let priceHtml = "";
         if(v.lscmPrice || v.sellPrice) {
             priceHtml = `<div style="display:flex; gap:15px; margin-bottom:15px; border-top:1px solid #333; padding-top:15px;">`;
-            if(v.lscmPrice) priceHtml += `<div><div style="font-size:0.75rem; color:#888;">LSCM PRICE</div><div style="color:var(--f1); font-weight:bold;">$${Number(v.lscmPrice).toLocaleString('en-US')}</div></div>`;
+            if(v.lscmPrice) priceHtml += `<div><div style="font-size:0.75rem; color:#888;">${v.isWishlist ? 'PROJECTED COST' : 'LSCM PRICE'}</div><div style="color:var(--f1); font-weight:bold;">$${Number(v.lscmPrice).toLocaleString('en-US')}</div></div>`;
             if(v.sellPrice) priceHtml += `<div><div style="font-size:0.75rem; color:#888;">SELL PRICE</div><div style="color:var(--sell); font-weight:bold;">$${Number(v.sellPrice).toLocaleString('en-US')}</div></div>`;
             priceHtml += `</div>`;
+        }
+
+        if (!isViewOnly) {
+            document.getElementById('btnDetailConfirmPurchase').style.display = v.isWishlist ? 'block' : 'none';
+            document.getElementById('btnDetailCopy').style.display = v.isWishlist ? 'none' : 'block';
+            document.getElementById('btnDetailSell').style.display = v.isWishlist ? 'none' : 'block';
+        } else {
+            document.getElementById('btnDetailConfirmPurchase').style.display = 'none';
         }
 
         const content = `
@@ -2802,6 +2886,16 @@
         input.value = val;
     }
 
+    function confirmPurchase() {
+        if (isViewOnly) return;
+        const v = vehicles.find(c => c.id == currentDetailViewId);
+        if (!v) return;
+        v.isWishlist = false;
+        v.lscmPrice = ""; // Clear price value
+        saveGarage();
+        closeModal('detailModal');
+    }
+
     function triggerCopyVehicle() {
         if (isViewOnly) return;
         closeModal('detailModal');
@@ -2837,6 +2931,7 @@
         setTimeout(() => { document.getElementById('inFloor').value = v.floor; }, 0);
 
         document.getElementById('inSlot').value = v.slot||"";
+        document.getElementById('inWishlist').checked = v.isWishlist || false;
         document.getElementById('inWep').checked = v.isWeapon;
         document.getElementById('inFav').checked = v.isFav || false; 
         document.getElementById('inHsw').checked = v.isHsw || false; 
@@ -2865,6 +2960,7 @@
             document.getElementById('inDriveImageSelect').innerHTML = '<option value="">-- Use Default / Upload New --</option>';
         }
         
+        toggleWishlistLabel();
         openModal('vehicleModal');
     }
     
@@ -2885,6 +2981,7 @@
         setTimeout(() => { document.getElementById('inFloor').value = v.floor; }, 0);
 
         document.getElementById('inSlot').value = ""; // Clear slot number
+        document.getElementById('inWishlist').checked = v.isWishlist || false;
         document.getElementById('inWep').checked = v.isWeapon;
         document.getElementById('inFav').checked = v.isFav || false; 
         document.getElementById('inHsw').checked = v.isHsw || false; 
@@ -2913,6 +3010,7 @@
             document.getElementById('inDriveImageSelect').innerHTML = '<option value="">-- Use Default / Upload New --</option>';
         }
         
+        toggleWishlistLabel();
         openModal('vehicleModal');
     }
 
@@ -3084,6 +3182,7 @@
         const car = {
             id: editingId || (Date.now() + "_" + Math.random().toString(36).substr(2, 9)), manuf, model, loc, floor: floor,
             slot: document.getElementById('inSlot').value,
+            isWishlist: document.getElementById('inWishlist').checked,
             isFav: document.getElementById('inFav').checked, 
             isWeapon: document.getElementById('inWep').checked,
             isHsw: document.getElementById('inHsw').checked,
@@ -3531,6 +3630,7 @@
     }
 
     async function createPdfHeader(settings = {}) {
+        const currentAccent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#9b59b6';
         const char = characters.find(c => c.id === activeCharId) || { name: 'Character', gamertag: '', platform: 'PC' };
         const header = document.createElement('div');
         header.style.cssText = 'background:#1e1e1e; padding:30px; border-bottom:1px solid #333; color:#fff; font-family:Inter, sans-serif; width:1200px; display:flex; justify-content:space-between; align-items:center;';
@@ -3571,7 +3671,7 @@
         const platformHtml = char.showGamertagPDF && char.gamertag ? `
             <div style="display:flex; align-items:center; gap:20px; background:#252525; padding:15px 30px; border-radius:12px; border:1px solid #333;">
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <i class="${platformIcon}" style="font-size:28px; color:var(--accent);"></i>
+                    <i class="${platformIcon}" style="font-size:28px; color:${currentAccent};"></i>
                     <span style="font-weight:800; font-size:20px; text-transform:uppercase;">${char.platform}</span>
                 </div>
                 <div style="width:2px; height:30px; background:#444;"></div>
@@ -3581,7 +3681,7 @@
 
         header.innerHTML = `
             <div>
-                <div style="font-size:36px; font-weight:900; color:var(--accent); text-transform:uppercase; letter-spacing:-1px; margin-bottom:4px;">My GTA Garage</div>
+                <div style="font-size:36px; font-weight:900; color:${currentAccent}; text-transform:uppercase; letter-spacing:-1px; margin-bottom:4px;">My GTA Garage</div>
                 <div style="font-size:18px; color:#888; font-weight:600;">${char.name}'s Collection</div>
                 <div style="font-size:13px; color:#666; font-weight:500; margin-top:4px; text-transform:uppercase; letter-spacing:0.5px;">${filterText}</div>
             </div>
@@ -3763,6 +3863,7 @@
         document.getElementById('inLoc').value = "";
         document.getElementById('inFloor').innerHTML = "";
         document.getElementById('inSlot').value = "";
+        document.getElementById('inWishlist').checked = false;
         document.getElementById('inWep').checked = false;
         document.getElementById('inFav').checked = false; 
         document.getElementById('inHsw').checked = false; 
@@ -3797,6 +3898,7 @@
         }
 
         handleLocChange();
+        toggleWishlistLabel();
         openModal('vehicleModal'); 
     }
     
@@ -3945,6 +4047,10 @@
 
     window.onclick = e => { if(e.target.className === 'modal') e.target.style.display = 'none'; }
     function checkCustomModel() { document.getElementById('inModelCustom').style.display = document.getElementById('inModel').value==='Custom'?'block':'none'; }
+    function toggleWishlistLabel() {
+        const isWishlist = document.getElementById('inWishlist').checked;
+        document.getElementById('lscmPriceLabel').innerText = isWishlist ? 'Projected Cost ($)' : 'LSCM Price ($)';
+    }
 
     // --- PUBLIC SHARING LOGIC ---
     function checkPublicPermissionsIfConnected() {
@@ -4083,6 +4189,7 @@
                 isPublicShare: true,
                 timestamp: new Date().toISOString(),
                 characterName: charName,
+                accentColor: safeStorage.getItem('gta_accent_color') || '#9b59b6',
                 gamertag: char.showGamertagLink ? char.gamertag : undefined,
                 platform: char.showGamertagLink ? char.platform : undefined,
                 vehicles: vehicles.map(v => {
@@ -4394,8 +4501,12 @@
         sharedData = data;
         vehicles = data.vehicles || [];
         
+        if (data.accentColor) {
+            applyCustomColor(data.accentColor);
+        }
+        
         document.getElementById('viewOnlyIndicator').style.display = 'flex';
-        document.getElementById('headerCount').innerText = vehicles.length;
+        document.getElementById('headerCount').innerText = vehicles.filter(v => !v.isWishlist).length;
         
         // Change header count label
         const totalLabel = document.querySelector('.total-label');
