@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.62.12</title>
+    <title>My GTA Garage v1.62.13</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -706,7 +706,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.62.12</div>
+        <div class="modal-title">About My GTA Garage v1.62.13</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1084,7 +1084,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.62.12 (Current)</strong><br>• Fixed Public Shareable JSON file sync issue.<br>• Added fetchPublicShareId to identify existing public share files.<br>• Persisted "Include custom images in public shares" setting.<br>• Ensured data consistency in public snapshots during auto-sync.<br>• Fixed character switching logic for public shares.</p>
+            <p><strong>v1.62.13 (Current)</strong><br>• Implemented Token Lifespan Awareness for proactive session validation.<br>• Added background token refresh on app focus to prevent session expiration.</p>
+            <p><strong>v1.62.12</strong><br>• Fixed Public Shareable JSON file sync issue.<br>• Added fetchPublicShareId to identify existing public share files.<br>• Persisted "Include custom images in public shares" setting.<br>• Ensured data consistency in public snapshots during auto-sync.<br>• Fixed character switching logic for public shares.</p>
             <p><strong>v1.62.11</strong><br>• Added Hex code input to Theme Customization.<br>• Fixed Share Link button to automatically check permissions and copy link in the background.<br>• Fixed collapsible groups state to properly restore after clearing search results.</p>
             <p><strong>v1.62.10</strong><br>• Added custom accent color theme system with color picker in settings.<br>• Added "Wishlist" feature for vehicles with ghosted cards, projected cost, and confirm purchase flow.</p>
             <p><strong>v1.62.9</strong><br>• Set exact heights for View Only Mode banner and return button for better alignment.<br>• Made vehicle images in the detail card clickable to view full screen.<br>• Improved header responsiveness on smaller screens to prevent text cutoff.<br>• Implemented smart scrolling for the controls bar on mobile devices to maximize screen space.</p>
@@ -1414,6 +1415,29 @@
         }
     }
 
+    async function validateSessionOnStart() {
+        if (safeStorage.getItem('gta_cloud_intent') === 'true') {
+            let storedStr = safeStorage.getItem('gta_gdrive_token');
+            if (storedStr) {
+                let stored = null;
+                try { stored = JSON.parse(storedStr); } catch(e) {}
+                if (stored && stored.token && stored.expiresAt) {
+                    if (Date.now() > (stored.expiresAt - 120000)) {
+                        try {
+                            await silentlyRefreshToken();
+                        } catch(e) {
+                            console.error("Token refresh failed during validation", e);
+                        }
+                    } else {
+                        gapi.client.setToken({ access_token: stored.token });
+                        driveStatus = 'connected';
+                    }
+                }
+            }
+        }
+        updateCloudHeaderIcon();
+    }
+
     function checkCloudAuth() {
         if (!gapiInited || !gisInited) return;
 
@@ -1429,6 +1453,7 @@
             driveStatus = 'expired';
         }
         updateCloudHeaderIcon();
+        validateSessionOnStart();
     }
 
     function handleHeaderCloudClick() {
@@ -4679,6 +4704,12 @@
             }).catch(err => console.error("SW Registration failed:", err));
         });
     }
+
+    window.addEventListener('focus', () => {
+        if (gapiInited && gisInited) {
+            validateSessionOnStart();
+        }
+    });
 </script>
 
 <script src="https://accounts.google.com/gsi/client" async defer onload="gisLoadedInit()"></script>
