@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.62.13</title>
+    <title>My GTA Garage v1.62.14</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -706,7 +706,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.62.13</div>
+        <div class="modal-title">About My GTA Garage v1.62.14</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1054,6 +1054,7 @@
 <div id="salesHistoryModal" class="modal" style="z-index:1200;">
     <div class="modal-box">
         <div class="modal-title">Sales History</div>
+        <div id="salesHistorySummary" style="margin-bottom:10px; padding:10px; background:#1c1c1c; border-radius:6px; border:1px solid var(--accent); display:none; justify-content:space-between;"></div>
         <div id="salesHistoryList" style="max-height:300px; overflow-y:auto; margin-bottom:15px; display:flex; flex-direction:column; gap:8px;">
         </div>
         <button class="btn-pri" style="width:100%" onclick="closeModal('salesHistoryModal')">Close</button>
@@ -1084,7 +1085,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.62.13 (Current)</strong><br>• Implemented Token Lifespan Awareness for proactive session validation.<br>• Added background token refresh on app focus to prevent session expiration.</p>
+            <p><strong>v1.62.14 (Current)</strong><br>• Added total revenue and vehicle count statistics to the Sales History modal.<br>• Added shared user gamertag and platform info to the View Only Mode welcome modal.</p>
+            <p><strong>v1.62.13</strong><br>• Implemented Token Lifespan Awareness for proactive session validation.<br>• Added background token refresh on app focus to prevent session expiration.</p>
             <p><strong>v1.62.12</strong><br>• Fixed Public Shareable JSON file sync issue.<br>• Added fetchPublicShareId to identify existing public share files.<br>• Persisted "Include custom images in public shares" setting.<br>• Ensured data consistency in public snapshots during auto-sync.<br>• Fixed character switching logic for public shares.</p>
             <p><strong>v1.62.11</strong><br>• Added Hex code input to Theme Customization.<br>• Fixed Share Link button to automatically check permissions and copy link in the background.<br>• Fixed collapsible groups state to properly restore after clearing search results.</p>
             <p><strong>v1.62.10</strong><br>• Added custom accent color theme system with color picker in settings.<br>• Added "Wishlist" feature for vehicles with ghosted cards, projected cost, and confirm purchase flow.</p>
@@ -3796,9 +3798,32 @@
 
     function openSalesHistory() {
         const list = document.getElementById('salesHistoryList');
+        const summary = document.getElementById('salesHistorySummary');
         if (salesHistory.length === 0) {
+            summary.style.display = 'none';
             list.innerHTML = '<div style="color:#888; text-align:center; padding:20px 0;">No vehicles sold yet.</div>';
         } else {
+            let totalAmount = 0;
+            salesHistory.forEach(sale => {
+                if (sale.price && sale.price !== "Unknown") {
+                    let numPrice = Number(sale.price);
+                    if (!isNaN(numPrice)) totalAmount += numPrice;
+                }
+            });
+            const totalCount = salesHistory.length;
+            
+            summary.style.display = 'flex';
+            summary.innerHTML = `
+                <div style="display:flex; flex-direction:column;">
+                    <span style="font-size:0.75rem; color:#aaa;">Total Vehicles Sold</span>
+                    <span style="font-size:1rem; font-weight:bold; color:#fff;">${totalCount}</span>
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:flex-end;">
+                    <span style="font-size:0.75rem; color:#aaa;">Total Revenue</span>
+                    <span style="font-size:1rem; font-weight:bold; color:var(--sell);">$${totalAmount.toLocaleString('en-US')}</span>
+                </div>
+            `;
+            
             list.innerHTML = salesHistory.map(sale => `
                 <div style="background:#252525; padding:10px; border-radius:6px; border:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
                     <div style="display:flex; flex-direction:column; gap:3px;">
@@ -4680,7 +4705,22 @@
         }
 
         render();
-        showSuccess("View Only Mode", `Viewing shared garage: ${data.characterName}`);
+        
+        let successMsg = `Viewing shared garage: ${data.characterName}`;
+        if (data.gamertag) {
+            let platformIcon = 'fab fa-windows';
+            let platformAbbr = data.platform || 'Unknown';
+            if (data.platform === 'Xbox One') { platformIcon = 'fab fa-xbox'; platformAbbr = 'One'; }
+            else if (data.platform === 'Xbox Series') { platformIcon = 'fab fa-xbox'; platformAbbr = 'X/S'; }
+            else if (data.platform === 'PS4') { platformIcon = 'fab fa-playstation'; platformAbbr = 'PS4'; }
+            else if (data.platform === 'PS5') { platformIcon = 'fab fa-playstation'; platformAbbr = 'PS5'; }
+            else if (data.platform === 'PC') { platformAbbr = 'PC'; }
+            else if (data.platform === 'Nintendo Switch') { platformIcon = 'fab fa-nintendo-switch'; platformAbbr = 'Switch'; }
+            
+            successMsg += `<br><div style="margin-top:10px; display:inline-block; background:rgba(255,255,255,0.05); padding:6px 12px; border-radius:15px;"><span style="color:var(--accent); font-weight:bold;">${data.gamertag}</span> <i class="${platformIcon}" style="margin:0 4px;"></i> <span style="font-size:0.85rem; color:#aaa;">${platformAbbr}</span></div>`;
+        }
+        
+        showSuccess("View Only Mode", successMsg);
     }
 
     function exitViewOnlyMode() {
