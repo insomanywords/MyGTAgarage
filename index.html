@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.62.14</title>
+    <title>My GTA Garage v1.62.15</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -367,6 +367,7 @@
                 <option value="hsw">Group: HSW</option>
                 <option value="drift">Group: Drift</option>
                 <option value="imani">Group: Imani Tech</option>
+                <option value="for_sale" id="optGroupSell">For Sale Only</option>
                 <option value="fav">Favorites Only</option>
                 <option value="wishlist">Wishlist Only</option>
                 <option value="all">View All</option>
@@ -612,6 +613,15 @@
                     <option value="no">No</option>
                 </select>
             </div>
+            <div id="advStatusDiv">
+                <label class="input-label">Status</label>
+                <select id="advStatus">
+                    <option value="">All</option>
+                    <option value="for_sale" id="optFilterSell">For Sale</option>
+                    <option value="fav">Favorites</option>
+                    <option value="wishlist">Wishlist</option>
+                </select>
+            </div>
         </div>
         <div style="display:flex; gap:10px;">
             <button class="btn-pri" style="flex:1" onclick="applyAdvFilter()">Apply Filter</button>
@@ -633,8 +643,8 @@
     <div class="modal-box">
         <div class="modal-title">Export to PDF</div>
         <div class="form-group">
-            <span class="label">Group By</span>
-            <select id="pdfGroupBy" onchange="updatePdfGroupValueSelect()">
+            <span class="label">Group By (PDF Sections)</span>
+            <select id="pdfGroupBy">
                 <option value="none">None (Standard Garage Order)</option>
                 <option value="manuf">Brand</option>
                 <option value="class">Class</option>
@@ -647,25 +657,78 @@
                 <option value="imani">Imani Tech</option>
             </select>
         </div>
-        <div class="form-group" id="pdfGroupValueGroup" style="display:none;">
-            <span class="label">Select Group Value</span>
-            <select id="pdfGroupValueSelect">
-                <option value="all">All Groups</option>
-            </select>
+        <div class="form-group adv-filter-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:20px; border-top:1px solid #333; padding-top:20px; margin-bottom:20px;">
+            <div>
+                <label class="input-label">Garage</label>
+                <select id="pdfAdvGarage" onchange="updatePdfAdvFloorOptions()"></select>
+            </div>
+            <div>
+                <label class="input-label">Floor</label>
+                <select id="pdfAdvFloor"></select>
+            </div>
+            <div>
+                <label class="input-label">Brand</label>
+                <select id="pdfAdvBrand"></select>
+            </div>
+            <div>
+                <label class="input-label">Class</label>
+                <select id="pdfAdvClass"></select>
+            </div>
+            <div>
+                <label class="input-label">Drive Type</label>
+                <select id="pdfAdvDrive"></select>
+            </div>
+            <div>
+                <label class="input-label">Wheels</label>
+                <select id="pdfAdvWheels"></select>
+            </div>
+            <div>
+                <label class="input-label">Plate</label>
+                <select id="pdfAdvPlate"></select>
+            </div>
+            <div>
+                <label class="input-label">Weaponized</label>
+                <select id="pdfAdvWeapon">
+                    <option value="">All</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+            <div>
+                <label class="input-label">HSW</label>
+                <select id="pdfAdvHsw">
+                    <option value="">All</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+            <div>
+                <label class="input-label">Drift</label>
+                <select id="pdfAdvDrift">
+                    <option value="">All</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+            <div>
+                <label class="input-label">Imani Tech</label>
+                <select id="pdfAdvImani">
+                    <option value="">All</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+            <div>
+                <label class="input-label">Status</label>
+                <select id="pdfAdvStatus">
+                    <option value="">All</option>
+                    <option value="for_sale">For Sale</option>
+                    <option value="fav">Favorites</option>
+                    <option value="wishlist">Wishlist</option>
+                </select>
+            </div>
         </div>
-        <div class="form-group">
-            <span class="label">Select Garage</span>
-            <select id="pdfGarageSelect" onchange="updatePdfFloorSelect()">
-                <option value="all">All Garages</option>
-            </select>
-        </div>
-        <div class="form-group" id="pdfFloorGroup" style="display:none;">
-            <span class="label">Select Floor</span>
-            <select id="pdfFloorSelect">
-                <option value="all">All Floors</option>
-            </select>
-        </div>
-        <div class="form-group">
+        <div class="form-group" style="border-top:1px solid #333; padding-top:20px;">
             <span class="label">Export Type</span>
             <select id="pdfExportType">
                 <option value="small">Small Vehicle Cards</option>
@@ -706,7 +769,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.62.14</div>
+        <div class="modal-title">About My GTA Garage v1.62.15</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -928,6 +991,10 @@
                     <input type="checkbox" id="inWishlist" onchange="toggleWishlistLabel()">
                 </label>
                 <label class="wep-toggle">
+                    <span style="font-weight:700; color:#fff;">For Sale</span>
+                    <input type="checkbox" id="inForSale" onchange="toggleForSaleLabel()">
+                </label>
+                <label class="wep-toggle">
                     <span style="font-weight:700; color:#fff;">Favorite</span>
                     <input type="checkbox" id="inFav">
                 </label>
@@ -1085,7 +1152,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.62.14 (Current)</strong><br>• Added total revenue and vehicle count statistics to the Sales History modal.<br>• Added shared user gamertag and platform info to the View Only Mode welcome modal.</p>
+            <p><strong>v1.62.15 (Current)</strong><br>• Added "For Sale" status tracking with checkboxes, visual badges, filters, and a dedicated Group By view.<br>• Added "Potential Revenue" statistics for vehicles marked "For Sale" to the Sales Dashboard.<br>• Integrated "For Sale" alerts directly into the Daily Sell Timer.<br>• Overhauled "Export to PDF" modal with a full Advanced Filter grid for precise exports.<br>• Hid "For Sale" metrics from View Only Mode to protect privacy on shared links.</p>
+            <p><strong>v1.62.14</strong><br>• Added total revenue and vehicle count statistics to the Sales History modal.<br>• Added shared user gamertag and platform info to the View Only Mode welcome modal.</p>
             <p><strong>v1.62.13</strong><br>• Implemented Token Lifespan Awareness for proactive session validation.<br>• Added background token refresh on app focus to prevent session expiration.</p>
             <p><strong>v1.62.12</strong><br>• Fixed Public Shareable JSON file sync issue.<br>• Added fetchPublicShareId to identify existing public share files.<br>• Persisted "Include custom images in public shares" setting.<br>• Ensured data consistency in public snapshots during auto-sync.<br>• Fixed character switching logic for public shares.</p>
             <p><strong>v1.62.11</strong><br>• Added Hex code input to Theme Customization.<br>• Fixed Share Link button to automatically check permissions and copy link in the background.<br>• Fixed collapsible groups state to properly restore after clearing search results.</p>
@@ -1226,7 +1294,7 @@
     let publicShareFileId = null;
     let advFilter = {
         garage: '', floor: '', brand: '', class: '', drive: '',
-        wheels: '', plate: '', weaponized: null, hsw: null, drift: null, imani: null
+        wheels: '', plate: '', weaponized: null, hsw: null, drift: null, imani: null, status: ''
     };
     let _fn = null; try { _fn = JSON.parse(safeStorage.getItem(keys.n)); } catch(e){} let floorNicknames = (_fn && typeof _fn === 'object' && !Array.isArray(_fn)) ? _fn : {};
     let lastSell = parseInt(safeStorage.getItem(keys.ls)) || 0;
@@ -2533,10 +2601,15 @@
             if (advFilter.hsw !== null && v.isHsw !== advFilter.hsw) return false;
             if (advFilter.drift !== null && v.isDrift !== advFilter.drift) return false;
             if (advFilter.imani !== null && v.isImani !== advFilter.imani) return false;
+            
+            if (advFilter.status === 'for_sale' && !v.isForSale) return false;
+            if (advFilter.status === 'fav' && !v.isFav) return false;
+            if (advFilter.status === 'wishlist' && !v.isWishlist) return false;
 
             return true;
         });
         
+        if (mode === 'for_sale') { filtered = filtered.filter(v => v.isForSale); }
         if (mode === 'fav') { filtered = filtered.filter(v => v.isFav); }
         if (mode === 'wishlist') { filtered = filtered.filter(v => v.isWishlist); }
 
@@ -2544,7 +2617,7 @@
         document.getElementById('clearSearch').style.display = term.length > 0 ? 'flex' : 'none';
         list.innerHTML = "";
 
-        if(mode === 'all' || mode === 'fav' || mode === 'wishlist' || isAdvFiltering) {
+        if(mode === 'all' || mode === 'fav' || mode === 'wishlist' || mode === 'for_sale' || isAdvFiltering) {
             const grid = document.createElement('div'); grid.className = 'vehicle-grid';
             filtered.forEach(v => {
                 const card = createCard(v);
@@ -2675,6 +2748,7 @@
         
         let badges = "";
         if(v.isWishlist) badges += `<span class="badge" style="background:var(--accent); color:var(--accent-text);">WISHLIST</span> `;
+        if(v.isForSale && !isViewOnly) badges += `<span class="badge" style="background:var(--sell); color:#fff;">FOR SALE</span> `;
         if(v.isFav) badges += `<span class="badge fav"><i class="fas fa-heart"></i></span>`; 
         if(v.isWeapon) badges += `<span class="badge w">WEAPONIZED</span> `;
         if(v.isHsw) badges += `<span class="badge hsw">HSW</span> `;
@@ -2735,6 +2809,7 @@
         
         let badges = "";
         if(v.isWishlist) badges += `<span class="detail-badge" style="background:var(--accent); color:var(--accent-text);">WISHLIST</span> `;
+        if(v.isForSale && !isViewOnly) badges += `<span class="detail-badge" style="background:var(--sell); color:#fff;">FOR SALE</span> `;
         if(v.isFav) badges += `<span class="detail-badge fav"><i class="fas fa-heart"></i> FAVORITE</span> `;
         if(v.isWeapon) badges += `<span class="detail-badge w">WEAPONIZED</span> `;
         if(v.isHsw) badges += `<span class="detail-badge hsw">HSW UPGRADED</span> `;
@@ -3021,6 +3096,7 @@
 
         document.getElementById('inSlot').value = v.slot||"";
         document.getElementById('inWishlist').checked = v.isWishlist || false;
+        document.getElementById('inForSale').checked = v.isForSale || false;
         document.getElementById('inWep').checked = v.isWeapon;
         document.getElementById('inFav').checked = v.isFav || false; 
         document.getElementById('inHsw').checked = v.isHsw || false; 
@@ -3071,6 +3147,7 @@
 
         document.getElementById('inSlot').value = ""; // Clear slot number
         document.getElementById('inWishlist').checked = v.isWishlist || false;
+        document.getElementById('inForSale').checked = v.isForSale || false;
         document.getElementById('inWep').checked = v.isWeapon;
         document.getElementById('inFav').checked = v.isFav || false; 
         document.getElementById('inHsw').checked = v.isHsw || false; 
@@ -3272,6 +3349,7 @@
             id: editingId || (Date.now() + "_" + Math.random().toString(36).substr(2, 9)), manuf, model, loc, floor: floor,
             slot: document.getElementById('inSlot').value,
             isWishlist: document.getElementById('inWishlist').checked,
+            isForSale: document.getElementById('inForSale').checked,
             isFav: document.getElementById('inFav').checked, 
             isWeapon: document.getElementById('inWep').checked,
             isHsw: document.getElementById('inHsw').checked,
@@ -3360,92 +3438,76 @@
 
     function openPdfExportModal() {
         document.getElementById('pdfGroupBy').value = 'none';
-        updatePdfGroupValueSelect();
-        const select = document.getElementById('pdfGarageSelect');
-        select.innerHTML = '<option value="all">All Garages</option>';
         
+        const garageSelect = document.getElementById('pdfAdvGarage');
+        const brandSelect = document.getElementById('pdfAdvBrand');
+        const classSelect = document.getElementById('pdfAdvClass');
+        const driveSelect = document.getElementById('pdfAdvDrive');
+        const wheelsSelect = document.getElementById('pdfAdvWheels');
+        const plateSelect = document.getElementById('pdfAdvPlate');
+
         const garages = [...new Set(vehicles.map(v => v.loc))].sort();
-        garages.forEach(g => {
-            const opt = document.createElement('option');
-            opt.value = g;
-            opt.textContent = g;
-            select.appendChild(opt);
-        });
+        const brands = [...new Set(vehicles.map(v => v.manuf))].sort();
+        const classes = [...new Set(vehicles.map(v => {
+            const db = masterDB.find(d => d.model === v.model) || {};
+            return (db.class || v.class || 'Unknown').replace(/_/g, ' ');
+        }))].sort();
+        const drives = [...new Set(vehicles.map(v => {
+            const db = masterDB.find(d => d.model === v.model) || {};
+            return db.drive || v.drive || 'Unknown';
+        }))].sort();
+        const wheels = [...new Set(vehicles.map(v => v.wheels || 'Stock'))].sort();
+        const plates = [...new Set(vehicles.map(v => v.plate || 'Standard'))].sort();
+
+        fillSelect(garageSelect, garages, "");
+        fillSelect(brandSelect, brands, "");
+        fillSelect(classSelect, classes, "");
+        fillSelect(driveSelect, drives, "");
+        fillSelect(wheelsSelect, wheels, "");
+        fillSelect(plateSelect, plates, "");
+
+        updatePdfAdvFloorOptions();
         
-        updatePdfFloorSelect();
+        setTriState('pdfAdvWeapon', null);
+        setTriState('pdfAdvHsw', null);
+        setTriState('pdfAdvDrift', null);
+        setTriState('pdfAdvImani', null);
+        document.getElementById('pdfAdvStatus').value = '';
+
         openModal('pdfExportModal');
     }
 
-    function updatePdfGroupValueSelect() {
-        const mode = document.getElementById('pdfGroupBy').value;
-        const vSelect = document.getElementById('pdfGroupValueSelect');
-        const vGroup = document.getElementById('pdfGroupValueGroup');
-        
-        if (mode === 'none') {
-            vGroup.style.display = 'none';
+    function updatePdfAdvFloorOptions() {
+        const garage = document.getElementById('pdfAdvGarage').value;
+        const floorSelect = document.getElementById('pdfAdvFloor');
+        if (!garage) {
+            floorSelect.innerHTML = '<option value="">All</option>';
+            floorSelect.disabled = true;
             return;
         }
-        
-        vGroup.style.display = 'block';
-        vSelect.innerHTML = '<option value="all">All Groups</option>';
-        
-        const groups = new Set();
-        vehicles.forEach(v => {
-            let k = "Unknown";
-            const db = masterDB.find(d => d.model === v.model) || {};
-            if (mode === 'manuf') k = v.manuf;
-            else if (mode === 'class') k = (db.class || v.class || 'Unknown').replace(/_/g, ' ');
-            else if (mode === 'drive') k = db.drive || v.drive || 'Unknown';
-            else if (mode === 'wheels') k = v.wheels || 'Stock';
-            else if (mode === 'plates') k = v.plate || 'Standard';
-            else if (mode === 'weaponized') k = v.isWeapon ? 'Weaponized' : 'Standard';
-            else if (mode === 'hsw') k = v.isHsw ? 'HSW Upgraded' : 'Standard';
-            else if (mode === 'drift') k = v.isDrift ? 'Drift Tuned' : 'Standard';
-            else if (mode === 'imani') k = v.isImani ? 'Imani Tech' : 'Standard';
-            groups.add(k);
-        });
-        
-        [...groups].sort().forEach(k => {
-            const opt = document.createElement('option');
-            opt.value = k;
-            opt.textContent = k;
-            vSelect.appendChild(opt);
-        });
-    }
-
-    function updatePdfFloorSelect() {
-        const gSelect = document.getElementById('pdfGarageSelect');
-        const fSelect = document.getElementById('pdfFloorSelect');
-        const fGroup = document.getElementById('pdfFloorGroup');
-        
-        if (gSelect.value === 'all') {
-            fGroup.style.display = 'none';
-            return;
-        }
-        
-        fGroup.style.display = 'block';
-        fSelect.innerHTML = '<option value="all">All Floors</option>';
-        
-        const floors = [...new Set(vehicles.filter(v => v.loc === gSelect.value).map(v => v.floor || "Main Floor"))].sort();
-        if (floors.length <= 1 && floors[0] === "Main Floor") {
-            fGroup.style.display = 'none';
-            return;
-        }
-        
-        floors.forEach(f => {
-            const opt = document.createElement('option');
-            opt.value = f;
-            opt.textContent = f;
-            fSelect.appendChild(opt);
-        });
+        floorSelect.disabled = false;
+        const floors = [...new Set(vehicles.filter(v => v.loc === garage).map(v => v.floor || "Main Floor"))].sort();
+        fillSelect(floorSelect, floors, "");
     }
 
     async function startPdfExport() {
-        const garage = document.getElementById('pdfGarageSelect').value;
-        const floor = document.getElementById('pdfFloorSelect').value;
         const exportType = document.getElementById('pdfExportType').value;
         const groupBy = document.getElementById('pdfGroupBy').value;
-        const groupValue = document.getElementById('pdfGroupValueSelect').value;
+        
+        const filterData = {
+            garage: document.getElementById('pdfAdvGarage').value,
+            floor: document.getElementById('pdfAdvFloor').value,
+            brand: document.getElementById('pdfAdvBrand').value,
+            class: document.getElementById('pdfAdvClass').value,
+            drive: document.getElementById('pdfAdvDrive').value,
+            wheels: document.getElementById('pdfAdvWheels').value,
+            plate: document.getElementById('pdfAdvPlate').value,
+            weaponized: getTriState('pdfAdvWeapon'),
+            hsw: getTriState('pdfAdvHsw'),
+            drift: getTriState('pdfAdvDrift'),
+            imani: getTriState('pdfAdvImani'),
+            status: document.getElementById('pdfAdvStatus').value
+        };
         
         closeModal('pdfExportModal');
         openModal('pdfGeneratingModal');
@@ -3454,32 +3516,35 @@
         if (progressBar) progressBar.style.width = '0%';
         if (progressText) progressText.innerText = '0%';
         
-        let filtered = vehicles;
-        
-        // Apply Group By filter
-        if (groupBy !== 'none' && groupValue !== 'all') {
-            filtered = filtered.filter(v => {
-                let k = "Unknown";
-                const db = masterDB.find(d => d.model === v.model) || {};
-                if (groupBy === 'manuf') k = v.manuf;
-                else if (groupBy === 'class') k = (db.class || v.class || 'Unknown').replace(/_/g, ' ');
-                else if (groupBy === 'drive') k = db.drive || v.drive || 'Unknown';
-                else if (groupBy === 'wheels') k = v.wheels || 'Stock';
-                else if (groupBy === 'plates') k = v.plate || 'Standard';
-                else if (groupBy === 'weaponized') k = v.isWeapon ? 'Weaponized' : 'Standard';
-                else if (groupBy === 'hsw') k = v.isHsw ? 'HSW Upgraded' : 'Standard';
-                else if (groupBy === 'drift') k = v.isDrift ? 'Drift Tuned' : 'Standard';
-                else if (groupBy === 'imani') k = v.isImani ? 'Imani Tech' : 'Standard';
-                return k === groupValue;
-            });
-        }
+        let filtered = vehicles.filter(v => {
+            if (filterData.garage && v.loc !== filterData.garage) return false;
+            if (filterData.floor && (v.floor || "Main Floor") !== filterData.floor) return false;
+            if (filterData.brand && v.manuf !== filterData.brand) return false;
+            
+            const db = masterDB.find(d => d.model === v.model) || {};
+            const vClass = (db.class || v.class || 'Unknown').replace(/_/g, ' ');
+            if (filterData.class && vClass !== filterData.class) return false;
+            
+            const vDrive = db.drive || v.drive || 'Unknown';
+            if (filterData.drive && vDrive !== filterData.drive) return false;
+            
+            const vWheels = v.wheels || 'Stock';
+            if (filterData.wheels && vWheels !== filterData.wheels) return false;
+            
+            const vPlate = v.plate || 'Standard';
+            if (filterData.plate && vPlate !== filterData.plate) return false;
 
-        if (garage !== 'all') {
-            filtered = filtered.filter(v => v.loc === garage);
-            if (floor !== 'all') {
-                filtered = filtered.filter(v => (v.floor || "Main Floor") === floor);
-            }
-        }
+            if (filterData.weaponized !== null && v.isWeapon !== filterData.weaponized) return false;
+            if (filterData.hsw !== null && v.isHsw !== filterData.hsw) return false;
+            if (filterData.drift !== null && v.isDrift !== filterData.drift) return false;
+            if (filterData.imani !== null && v.isImani !== filterData.imani) return false;
+
+            if (filterData.status === 'for_sale' && !v.isForSale) return false;
+            if (filterData.status === 'fav' && !v.isFav) return false;
+            if (filterData.status === 'wishlist' && !v.isWishlist) return false;
+
+            return true;
+        });
         
         if (filtered.length === 0) {
             alert("No vehicles found for the selected criteria.");
@@ -3667,6 +3732,7 @@
         if (!blobUrl && v.driveImageId) img = `https://drive.google.com/thumbnail?id=${v.driveImageId}&sz=w1000`;
 
         let badges = "";
+        if(v.isForSale && !isViewOnly) badges += `<span class="detail-badge" style="background:var(--sell); color:#fff;">FOR SALE</span> `;
         if(v.isFav) badges += `<span class="detail-badge fav"><i class="fas fa-heart"></i> FAVORITE</span> `;
         if(v.isWeapon) badges += `<span class="detail-badge w">WEAPONIZED</span> `;
         if(v.isHsw) badges += `<span class="detail-badge hsw">HSW UPGRADED</span> `;
@@ -3792,38 +3858,64 @@
             if(disp) { disp.innerText = `${h}h ${m}m ${s}s`; disp.style.color = "var(--timer)"; next.innerText = "Ready at: " + new Date(lastSell + cd).toLocaleTimeString(); }
         } else {
             btn.innerHTML = '💲'; btn.classList.remove('active');
-            if(disp) { disp.innerText = "READY"; disp.style.color = "var(--sell)"; next.innerText = "Sale window is open."; }
+            const forSaleCount = vehicles.filter(v => v.isForSale).length;
+            if(disp) { 
+                disp.innerText = "READY"; 
+                disp.style.color = "var(--sell)"; 
+                next.innerText = forSaleCount > 0 ? `Sale window is open. You have ${forSaleCount} vehicle(s) For Sale.` : "Sale window is open."; 
+            }
         }
     }
 
     function openSalesHistory() {
         const list = document.getElementById('salesHistoryList');
         const summary = document.getElementById('salesHistorySummary');
+        
+        let totalAmount = 0;
+        salesHistory.forEach(sale => {
+            if (sale.price && sale.price !== "Unknown") {
+                let numPrice = Number(sale.price);
+                if (!isNaN(numPrice)) totalAmount += numPrice;
+            }
+        });
+        const totalCount = salesHistory.length;
+        
+        let potentialRevenue = 0;
+        const forSaleVehicles = vehicles.filter(v => v.isForSale);
+        forSaleVehicles.forEach(v => {
+            let price = Number(v.sellPrice);
+            if (!isNaN(price)) potentialRevenue += price;
+        });
+        
+        summary.style.display = 'flex';
+        summary.innerHTML = `
+            <div style="display:flex; flex-direction:column; gap:10px; width:100%;">
+                <div style="display:flex; justify-content:space-between; width:100%;">
+                    <div style="display:flex; flex-direction:column;">
+                        <span style="font-size:0.75rem; color:#aaa;">Total Vehicles Sold</span>
+                        <span style="font-size:1rem; font-weight:bold; color:#fff;">${totalCount}</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end;">
+                        <span style="font-size:0.75rem; color:#aaa;">Total Revenue</span>
+                        <span style="font-size:1rem; font-weight:bold; color:var(--sell);">$${totalAmount.toLocaleString('en-US')}</span>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:space-between; width:100%; border-top:1px solid #333; padding-top:10px;">
+                    <div style="display:flex; flex-direction:column;">
+                        <span style="font-size:0.75rem; color:#aaa;">Vehicles For Sale</span>
+                        <span style="font-size:1rem; font-weight:bold; color:#fff;">${forSaleVehicles.length}</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end;">
+                        <span style="font-size:0.75rem; color:#aaa;">Potential Revenue</span>
+                        <span style="font-size:1rem; font-weight:bold; color:var(--sell);">$${potentialRevenue.toLocaleString('en-US')}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
         if (salesHistory.length === 0) {
-            summary.style.display = 'none';
             list.innerHTML = '<div style="color:#888; text-align:center; padding:20px 0;">No vehicles sold yet.</div>';
         } else {
-            let totalAmount = 0;
-            salesHistory.forEach(sale => {
-                if (sale.price && sale.price !== "Unknown") {
-                    let numPrice = Number(sale.price);
-                    if (!isNaN(numPrice)) totalAmount += numPrice;
-                }
-            });
-            const totalCount = salesHistory.length;
-            
-            summary.style.display = 'flex';
-            summary.innerHTML = `
-                <div style="display:flex; flex-direction:column;">
-                    <span style="font-size:0.75rem; color:#aaa;">Total Vehicles Sold</span>
-                    <span style="font-size:1rem; font-weight:bold; color:#fff;">${totalCount}</span>
-                </div>
-                <div style="display:flex; flex-direction:column; align-items:flex-end;">
-                    <span style="font-size:0.75rem; color:#aaa;">Total Revenue</span>
-                    <span style="font-size:1rem; font-weight:bold; color:var(--sell);">$${totalAmount.toLocaleString('en-US')}</span>
-                </div>
-            `;
-            
             list.innerHTML = salesHistory.map(sale => `
                 <div style="background:#252525; padding:10px; border-radius:6px; border:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
                     <div style="display:flex; flex-direction:column; gap:3px;">
@@ -3976,6 +4068,7 @@
         document.getElementById('inFloor').innerHTML = "";
         document.getElementById('inSlot').value = "";
         document.getElementById('inWishlist').checked = false;
+        document.getElementById('inForSale').checked = false;
         document.getElementById('inWep').checked = false;
         document.getElementById('inFav').checked = false; 
         document.getElementById('inHsw').checked = false; 
@@ -4088,6 +4181,7 @@
         setTriState('advHsw', advFilter.hsw);
         setTriState('advDrift', advFilter.drift);
         setTriState('advImani', advFilter.imani);
+        document.getElementById('advStatus').value = advFilter.status || '';
     }
 
     function fillSelect(el, items, currentVal) {
@@ -4140,6 +4234,7 @@
         advFilter.hsw = getTriState('advHsw');
         advFilter.drift = getTriState('advDrift');
         advFilter.imani = getTriState('advImani');
+        advFilter.status = document.getElementById('advStatus').value;
 
         closeModal('advFilterModal');
         const isFiltering = Object.values(advFilter).some(v => v !== '' && v !== null);
@@ -4150,7 +4245,7 @@
     function resetAdvFilter() {
         advFilter = {
             garage: '', floor: '', brand: '', class: '', drive: '',
-            wheels: '', plate: '', weaponized: null, hsw: null, drift: null, imani: null
+            wheels: '', plate: '', weaponized: null, hsw: null, drift: null, imani: null, status: ''
         };
         document.getElementById('advFilterBtn').style.color = 'var(--text-dim)';
         closeModal('advFilterModal');
@@ -4161,7 +4256,17 @@
     function checkCustomModel() { document.getElementById('inModelCustom').style.display = document.getElementById('inModel').value==='Custom'?'block':'none'; }
     function toggleWishlistLabel() {
         const isWishlist = document.getElementById('inWishlist').checked;
+        if (isWishlist) {
+            document.getElementById('inForSale').checked = false;
+        }
         document.getElementById('lscmPriceLabel').innerText = isWishlist ? 'Projected Cost ($)' : 'LSCM Price ($)';
+    }
+    function toggleForSaleLabel() {
+        const isForSale = document.getElementById('inForSale').checked;
+        if (isForSale) {
+            document.getElementById('inWishlist').checked = false;
+            toggleWishlistLabel();
+        }
     }
 
     // --- PUBLIC SHARING LOGIC ---
@@ -4696,6 +4801,12 @@
             const el = document.getElementById(id);
             if (el) el.style.display = 'none';
         });
+
+        // Hide For Sale group/filter
+        const optGroupSell = document.getElementById('optGroupSell');
+        if (optGroupSell) optGroupSell.style.display = 'none';
+        const advStatusDiv = document.getElementById('advStatusDiv');
+        if (advStatusDiv) advStatusDiv.style.display = 'none';
 
         // Make Share button full width in View Only Mode
         const detailActions = document.getElementById('detailActionButtons');
