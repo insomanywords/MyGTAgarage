@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.62.15</title>
+    <title>My GTA Garage v1.62.16</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -487,7 +487,7 @@
                     <button class="btn-pri" style="width:100%; margin-bottom:10px;" onclick="confirmPublicSnapshot()">Create Public Snapshot</button>
                     
                     <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
-                        <input type="checkbox" id="includeCustomImages" style="width:auto; margin-bottom:0;" onchange="safeStorage.setItem('gta_include_images', this.checked)">
+                        <input type="checkbox" id="includeCustomImages" style="width:auto; margin-bottom:0;" onchange="safeStorage.setItem('gta_include_images', this.checked); pushAppSettings();">
                         <label for="includeCustomImages" style="margin-bottom:0; font-size:0.9rem; cursor:pointer;">Include custom images in public shares</label>
                     </div>
 
@@ -769,7 +769,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.62.15</div>
+        <div class="modal-title">About My GTA Garage v1.62.16</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -860,10 +860,13 @@
 </div>
 
 <div id="syncConflictModal" class="modal">
-    <div class="modal-box" style="text-align:center;">
-        <div style="font-size:3rem; margin-bottom:10px;">☁️</div>
-        <h2 style="color:#fff; margin:0 0 10px 0;">Sync Conflict Detected</h2>
-        <p style="color:#ccc; font-size:0.95rem; line-height:1.5; margin-bottom:20px;">We found existing cloud data for this character. Do you want to keep your Local Data or download the Cloud Data?</p>
+    <div class="modal-box" style="text-align:left; max-width: 500px;">
+        <div style="font-size:2.5rem; text-align:center; margin-bottom:10px;">☁️</div>
+        <h2 style="color:#fff; margin:0 0 10px 0; text-align:center;">Sync Conflict Detected</h2>
+        <p style="color:#ccc; font-size:0.95rem; line-height:1.5; margin-bottom:20px; text-align:center;">We found existing cloud data that does not match your current device. Please choose which version to keep as the master save.</p>
+        <div id="syncConflictDetails" style="display:flex; flex-direction:column; gap:15px; margin-bottom: 20px;">
+            <!-- Injected dynamically -->
+        </div>
         <div style="display:flex; flex-direction:column; gap:10px;">
             <button class="btn-pri" onclick="resolveSync('local')">Keep Local Data (Overwrite Cloud)</button>
             <button class="btn-sec" onclick="resolveSync('cloud')">Download Cloud Data (Overwrite Local)</button>
@@ -1152,7 +1155,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.62.15 (Current)</strong><br>• Added "For Sale" status tracking with checkboxes, visual badges, filters, and a dedicated Group By view.<br>• Added "Potential Revenue" statistics for vehicles marked "For Sale" to the Sales Dashboard.<br>• Integrated "For Sale" alerts directly into the Daily Sell Timer.<br>• Overhauled "Export to PDF" modal with a full Advanced Filter grid for precise exports.<br>• Hid "For Sale" metrics from View Only Mode to protect privacy on shared links.</p>
+            <p><strong>v1.62.16 (Current)</strong><br>• Introduced gta_app_settings.json to Google Drive Sync, seamlessly backing up Theme Colors, Gamertags, and App Settings across devices.<br>• Fixed an issue preventing successful deletion of custom vehicle images from Google Drive.</p>
+            <p><strong>v1.62.15</strong><br>• Added "For Sale" status tracking with checkboxes, visual badges, filters, and a dedicated Group By view.<br>• Added "Potential Revenue" statistics for vehicles marked "For Sale" to the Sales Dashboard.<br>• Integrated "For Sale" alerts directly into the Daily Sell Timer.<br>• Overhauled "Export to PDF" modal with a full Advanced Filter grid for precise exports.<br>• Hid "For Sale" metrics from View Only Mode to protect privacy on shared links.</p>
             <p><strong>v1.62.14</strong><br>• Added total revenue and vehicle count statistics to the Sales History modal.<br>• Added shared user gamertag and platform info to the View Only Mode welcome modal.</p>
             <p><strong>v1.62.13</strong><br>• Implemented Token Lifespan Awareness for proactive session validation.<br>• Added background token refresh on app focus to prevent session expiration.</p>
             <p><strong>v1.62.12</strong><br>• Fixed Public Shareable JSON file sync issue.<br>• Added fetchPublicShareId to identify existing public share files.<br>• Persisted "Include custom images in public shares" setting.<br>• Ensured data consistency in public snapshots during auto-sync.<br>• Fixed character switching logic for public shares.</p>
@@ -1695,6 +1699,42 @@
         return null;
     }
 
+    async function pullAppSettings() {
+        if (!driveFolders.root) return null;
+        try {
+            const query = `name='gta_app_settings.json' and '${driveFolders.root}' in parents and trashed=false`;
+            let res = await driveApiRequest({ path: '/drive/v3/files', method: 'GET', params: { q: query, fields: 'files(id)' } });
+            if (res.result.files && res.result.files.length > 0) {
+                let fileId = res.result.files[0].id;
+                let getRes = await driveApiRequest({ path: `/drive/v3/files/${fileId}`, method: 'GET', params: { alt: 'media' } });
+                if (typeof getRes.result === 'string') return JSON.parse(getRes.result);
+                return getRes.result;
+            }
+        } catch(e) { console.warn("Failed to pull app settings", e); }
+        return null;
+    }
+
+    async function pushAppSettings() {
+        if (!driveFolders.root || isViewOnly) return;
+        try {
+            const data = {
+                characters: characters,
+                accentColor: safeStorage.getItem('gta_accent_color') || '#9b59b6',
+                includePublicImages: safeStorage.getItem('gta_include_images') === 'true'
+            };
+            const fileContent = JSON.stringify(data);
+            const query = `name='gta_app_settings.json' and '${driveFolders.root}' in parents and trashed=false`;
+            let resList = await driveApiRequest({ path: '/drive/v3/files', method: 'GET', params: { q: query, fields: 'files(id)' } });
+            
+            if (resList.result.files && resList.result.files.length > 0) {
+                let fileId = resList.result.files[0].id;
+                await driveApiRequest({ path: `/drive/v3/files/${fileId}`, method: 'PATCH', uploadType: 'multipart', body: fileContent });
+            } else {
+                await createDriveFile('gta_app_settings.json', driveFolders.root, fileContent);
+            }
+        } catch(e) { console.error("Failed to push app settings", e); }
+    }
+
     let driveStructurePromise = null;
     async function ensureDriveStructure() {
         if (driveFolders.images) return; 
@@ -1706,6 +1746,33 @@
             
             document.getElementById('cloudStatus').innerText = 'Signed in. Initializing Drive folders...';
             driveFolders.root = await findOrCreateFolder('My GTA Garage');
+
+            let cloudSettings = await pullAppSettings();
+            if (cloudSettings) {
+                if (cloudSettings.characters && Array.isArray(cloudSettings.characters)) {
+                    characters = cloudSettings.characters;
+                    safeStorage.setItem('gta_chars_v1', JSON.stringify(characters));
+                    if (!characters.find(c => c.id === activeCharId)) {
+                        activeCharId = characters[0].id;
+                        safeStorage.setItem('gta_active_char_v1', activeCharId);
+                        keys = getStorageKeys(); // Ensure keys are updated if fallback needed
+                    }
+                }
+                if (cloudSettings.accentColor) {
+                    safeStorage.setItem('gta_accent_color', cloudSettings.accentColor);
+                    applyCustomColor(cloudSettings.accentColor);
+                }
+                if (cloudSettings.includePublicImages !== undefined) {
+                    safeStorage.setItem('gta_include_images', cloudSettings.includePublicImages);
+                    const incImg = document.getElementById('includeCustomImages');
+                    if (incImg) incImg.checked = cloudSettings.includePublicImages;
+                }
+                updateFooterCharName();
+                try { renderSettingsChars(); } catch(e){}
+            } else {
+                await pushAppSettings();
+            }
+
             const charName = characters.find(c => c.id === activeCharId)?.name || 'Character';
             driveFolders.char = await findOrCreateFolder(charName, driveFolders.root);
             driveFolders.db = await findOrCreateFolder('database', driveFolders.char);
@@ -1738,11 +1805,26 @@
                 let cloudData = resGet.result;
                 if(typeof cloudData === 'string') { try { cloudData = JSON.parse(cloudData); } catch(e) { cloudData = null; } }
                 
-                const localDataStr = JSON.stringify({ vehicles: vehicles, nicknames: floorNicknames, lastSell: lastSell, lastSoldName: lastSoldName, salesHistory: salesHistory });
-                const cloudDataStr = JSON.stringify({ vehicles: cloudData.vehicles || [], nicknames: cloudData.nicknames || {}, lastSell: cloudData.lastSell || 0, lastSoldName: cloudData.lastSoldName || "None", salesHistory: cloudData.salesHistory || [] });
+                const localDataObj = {
+                    vehicles: vehicles,
+                    nicknames: floorNicknames,
+                    lastSell: lastSell,
+                    lastSoldName: lastSoldName,
+                    salesHistory: salesHistory
+                };
+                const localDataStr = JSON.stringify(localDataObj);
+
+                const cd = cloudData || {};
+                const cloudDataStr = JSON.stringify({
+                    vehicles: cd.vehicles || [],
+                    nicknames: cd.nicknames || {},
+                    lastSell: cd.lastSell || 0,
+                    lastSoldName: cd.lastSoldName || "None",
+                    salesHistory: cd.salesHistory || []
+                });
 
                 let hasLocal = vehicles.length > 0;
-                let hasCloud = cloudData.vehicles && cloudData.vehicles.length > 0;
+                let hasCloud = cd.vehicles && cd.vehicles.length > 0;
                 
                 if (localDataStr === cloudDataStr) {
                     lastSyncTime = Date.now();
@@ -1750,10 +1832,63 @@
                     document.getElementById('cloudStatus').innerText = 'Signed in. Folders mapped. Auto-sync active. (In Sync)';
                     updateCloudHeaderIcon();
                 } else if (!hasLocal && hasCloud) {
-                    applyCloudData(cloudData);
+                    applyCloudData(cd);
                     document.getElementById('cloudStatus').innerText = 'Signed in. Auto-pulled from Cloud.';
                 } else if (hasLocal && hasCloud) {
-                    tempCloudData = cloudData;
+                    tempCloudData = cd;
+                    
+                    const localVehicles = vehicles;
+                    const cloudVehicles = cd.vehicles || [];
+
+                    const localRev = salesHistory.reduce((sum, s) => sum + (Number(s.price) || 0), 0);
+                    const cloudRev = (cd.salesHistory || []).reduce((sum, s) => sum + (Number(s.price) || 0), 0);
+
+                    const localIDs = new Set(localVehicles.map(v => String(v.id)));
+                    const cloudIDs = new Set(cloudVehicles.map(v => String(v.id)));
+
+                    const uniqueLocal = localVehicles.filter(v => !cloudIDs.has(String(v.id))).map(v => v.model || 'Unknown Vehicle');
+                    const uniqueCloud = cloudVehicles.filter(v => !localIDs.has(String(v.id))).map(v => v.model || 'Unknown Vehicle');
+
+                    const maxDisp = 3;
+                    const formatUniques = (list) => {
+                        if (list.length === 0) return 'None.';
+                        let t = list.slice(0, maxDisp).join(', ');
+                        if (list.length > maxDisp) t += `, + ${list.length - maxDisp} more...`;
+                        return t;
+                    };
+
+                    let localSettingsDiff = [];
+                    let cloudSettingsDiff = [];
+                    if (JSON.stringify(floorNicknames) !== JSON.stringify(cd.nicknames || {})) {
+                        localSettingsDiff.push("Floor Nicknames");
+                        cloudSettingsDiff.push("Floor Nicknames");
+                    }
+
+                    const formatSettings = (sDiff) => sDiff.length > 0 ? sDiff.join(', ') : 'None';
+
+                    const container = document.getElementById('syncConflictDetails');
+                    if (container) {
+                        container.innerHTML = `
+                            <div style="background:var(--card); padding:15px; border-radius:8px; border:1px solid #444;">
+                                <h3 style="margin-top:0; color:#fff; font-size:1.1rem; margin-bottom:10px;">📁 Local Data (This Device)</h3>
+                                <ul style="margin:0; padding-left:20px; color:#ccc; font-size:0.9rem; line-height:1.4;">
+                                    <li><strong>Vehicles:</strong> ${localVehicles.length}</li>
+                                    <li><strong>Sales Revenue:</strong> $${localRev.toLocaleString()}</li>
+                                    <li><strong>Settings Diff:</strong> ${formatSettings(localSettingsDiff)}</li>
+                                    <li><strong style="color:var(--accent);">Unique Cars Here:</strong> ${formatUniques(uniqueLocal)}</li>
+                                </ul>
+                            </div>
+                            <div style="background:var(--card); padding:15px; border-radius:8px; border:1px solid #444;">
+                                <h3 style="margin-top:0; color:#fff; font-size:1.1rem; margin-bottom:10px;">☁️ Cloud Data (Drive)</h3>
+                                <ul style="margin:0; padding-left:20px; color:#ccc; font-size:0.9rem; line-height:1.4;">
+                                    <li><strong>Vehicles:</strong> ${cloudVehicles.length}</li>
+                                    <li><strong>Sales Revenue:</strong> $${cloudRev.toLocaleString()}</li>
+                                    <li><strong>Settings Diff:</strong> ${formatSettings(cloudSettingsDiff)}</li>
+                                    <li><strong style="color:var(--accent);">Unique Cars Here:</strong> ${formatUniques(uniqueCloud)}</li>
+                                </ul>
+                            </div>
+                        `;
+                    }
                     openModal('syncConflictModal');
                 } else {
                     document.getElementById('cloudStatus').innerText = 'Signed in. Folders mapped. Auto-sync active.';
@@ -1776,10 +1911,6 @@
         lastSell = data.lastSell || 0;
         lastSoldName = data.lastSoldName || "None";
         salesHistory = data.salesHistory || [];
-        if (data.accentColor) {
-            safeStorage.setItem('gta_accent_color', data.accentColor);
-            applyCustomColor(data.accentColor);
-        }
         saveGarage(); 
     }
 
@@ -1898,7 +2029,7 @@
         updateCloudHeaderIcon();
         document.getElementById('cloudStatus').innerText = 'Signed in. Syncing...';
         try {
-            const data = { vehicles: vehicles, nicknames: floorNicknames, lastSell: lastSell, lastSoldName: lastSoldName, salesHistory: salesHistory, accentColor: safeStorage.getItem('gta_accent_color') || '#9b59b6' };
+            const data = { vehicles: vehicles, nicknames: floorNicknames, lastSell: lastSell, lastSoldName: lastSoldName, salesHistory: salesHistory };
             const fileContent = JSON.stringify(data);
             const fileName = 'autosync_db.json';
             const query = `name='${fileName}' and '${driveFolders.db}' in parents and trashed=false`;
@@ -2082,8 +2213,10 @@
         
         document.getElementById('uploadWaitTitle').innerText = "Deleting Image...";
         document.getElementById('uploadWaitMsg').innerText = "Removing file from Google Drive.";
-        document.getElementById('uploadProgressContainer').style.display = 'none';
-        document.getElementById('uploadProgressText').style.display = 'none';
+        const upc = document.getElementById('uploadProgressContainer');
+        if (upc) upc.style.display = 'none';
+        const upt = document.getElementById('uploadProgressText');
+        if (upt) upt.style.display = 'none';
         openModal('uploadWaitModal');
         
         try {
@@ -2193,6 +2326,7 @@
     function handleThemeColorChange(color) {
         applyCustomColor(color);
         safeStorage.setItem('gta_accent_color', color);
+        pushAppSettings();
         if (isCloudAuthed && !isViewOnly) {
             syncToCloud();
         }
@@ -2238,6 +2372,7 @@
         c.showGamertagPDF = document.getElementById('settingsShowGamertagPDF').checked;
         c.showGamertagLink = document.getElementById('settingsShowGamertagLink').checked;
         safeStorage.setItem('gta_chars_v1', JSON.stringify(characters));
+        pushAppSettings();
     }
 
     function renderSettingsChars() {
@@ -2265,6 +2400,8 @@
         c.name = newName;
         safeStorage.setItem('gta_chars_v1', JSON.stringify(characters));
         updateFooterCharName();
+        // Fire and forget push
+        pushAppSettings();
 
         let token = getActiveToken();
         if (gapiInited && token && driveFolders.root) {
@@ -2291,6 +2428,7 @@
         const newId = 'char_' + Date.now();
         characters.push({id: newId, name: val, gamertag: '', platform: 'PC', showGamertagImage: false, showGamertagPDF: false, showGamertagLink: false});
         safeStorage.setItem('gta_chars_v1', JSON.stringify(characters));
+        pushAppSettings();
         document.getElementById('newCharName').value = '';
         renderSettingsChars();
         showSuccess("Added", "New character added.");
@@ -2306,6 +2444,7 @@
             const charName = c.name;
             characters = characters.filter(x => x.id !== id);
             safeStorage.setItem('gta_chars_v1', JSON.stringify(characters));
+            pushAppSettings();
             
             let suffix = id === 'default' ? '' : '_' + id;
             safeStorage.removeItem('gta_vehicles_v1' + suffix);
