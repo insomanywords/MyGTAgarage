@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.62.16</title>
+    <title>My GTA Garage v1.63.0</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -22,6 +22,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
     <style>
         :root {
             --bg: #121212; --card: #1e1e1e; --head: #181818;
@@ -34,7 +37,38 @@
             /* Plates */
             --pl-yankton: #ffd700; --pl-liberty: #1e3a8a; --pl-panic: #6366f1;
             --pl-pound: #3b82f6; --pl-venturas: #b91c1c; --pl-ecola: #dc2626; --pl-sprunk: #16a34a;
+
+            /* Leaflet Pins */
+            --map-bg: #0c0d12;
         }
+
+        /* Leaflet Pins */
+        .map-pin {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px !important;
+            height: 30px !important;
+            background: var(--card);
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            color: var(--text);
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            transition: transform 0.2s, background 0.2s;
+        }
+        .map-pin:hover {
+            transform: scale(1.2);
+            z-index: 1000 !important;
+            background: var(--accent);
+        }
+        .map-pin i { font-size: 0.85rem; }
+        
+        .leaflet-popup-content-wrapper { background: var(--card); color: var(--text); border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.6); }
+        .leaflet-popup-tip { background: var(--card); border: 1px solid var(--border); }
+        .leaflet-container a.leaflet-popup-close-button { color: var(--text-dim); }
+        .leaflet-popup-content { margin: 15px; min-width: 150px; }
+        .leaflet-bar a { background-color: var(--card) !important; color: var(--text) !important; border-bottom: 1px solid var(--border) !important; }
+        .leaflet-bar a:hover { background-color: var(--accent) !important; color: #fff !important; }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
@@ -357,7 +391,7 @@
         </div>
         <div class="filter-row">
             <select id="viewMode" onchange="render()">
-                <option value="garage">Group: Garage</option>
+                <option value="garage">Group: Garages</option>
                 <option value="manuf">Group: Brand</option>
                 <option value="class">Group: Class</option>
                 <option value="drive">Group: Drive</option>
@@ -407,6 +441,7 @@
             <button id="tabBtn_chars" class="tab-btn active" onclick="switchSettingsTab('chars')">Characters</button>
             <button id="tabBtn_gamertag" class="tab-btn" onclick="switchSettingsTab('gamertag')">Gamertag</button>
             <button id="tabBtn_cloud" class="tab-btn" onclick="switchSettingsTab('cloud')">Google Drive</button>
+            <button id="tabBtn_map" class="tab-btn" onclick="switchSettingsTab('map')">Map Locations</button>
             <button id="tabBtn_share" class="tab-btn" onclick="switchSettingsTab('share')">Share Settings</button>
             <button id="tabBtn_local" class="tab-btn" onclick="switchSettingsTab('local')">Local Data</button>
             <button id="tabBtn_theme" class="tab-btn" onclick="switchSettingsTab('theme')">App Settings</button>
@@ -472,6 +507,16 @@
                 <div id="cloudActions" style="display:none; border-top:1px solid #333; padding-top:15px; margin-top:5px;">
                     <button class="btn-sec" style="width:100%; margin-bottom:10px; border-color:var(--accent); color:var(--accent);" onclick="manualCloudBackup()">Create Manual Cloud Backup</button>
                     <button class="btn-sec" style="width:100%;" onclick="restoreCloudBackup()">Restore from Cloud Backup</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tabContent_map" class="tab-content">
+            <div class="form-section">
+                <span class="label">Dynamic Business Locations</span>
+                <p style="font-size:0.8rem; color:#aaa; margin-top:0;">Select your specific property locations for correct map plotting.</p>
+                <div id="mapDynamicSettings" style="display:flex; flex-direction:column; gap:12px;">
+                    <!-- Dynamic dropdowns here -->
                 </div>
             </div>
         </div>
@@ -769,7 +814,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.62.16</div>
+        <div class="modal-title">About My GTA Garage v1.63.0</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1141,6 +1186,9 @@
             <button class="btn-sec" style="width:100%; justify-content: center; background: var(--accent); color: var(--accent-text); border: none; font-size: 1.1rem; padding: 15px;" onclick="shareGarageFromTools()">
                 <i class="fas fa-share-alt" style="margin-right: 8px; font-size: 1.2rem;"></i> Share Garage
             </button>
+            <button class="btn-sec" style="width:100%; justify-content: center; font-size: 1.1rem; padding: 15px;" onclick="closeModal('garageToolsModal'); openMapModal();">
+                <i class="fas fa-map-marked-alt" style="margin-right: 8px; font-size: 1.2rem;"></i> View Map
+            </button>
             <!-- Future tools can be added here -->
         </div>
         <button class="btn-pri" style="width:100%; margin-top:20px;" onclick="closeModal('garageToolsModal')">Close</button>
@@ -1148,6 +1196,28 @@
 </div>
 
 <div id="swapAllModal" class="modal"><div class="modal-box"><div class="modal-title">Swap Entire Garage</div><div class="form-group"><span class="label">From</span><select id="saFrom" style="width:100%"></select></div><div style="text-align:center; padding:10px;"><i class="fas fa-arrow-down" style="color:var(--accent); font-size:1.5rem;"></i></div><div class="form-group"><span class="label">To</span><select id="saTo" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('swapAllModal')">Cancel</button><button class="btn-pri" onclick="performSwapAll()">Confirm Swap</button></div></div></div>
+
+<div id="mapModal" class="modal">
+    <div class="modal-box" style="padding: 0; width: 98%; max-width: 1600px; overflow: hidden; height: 96vh; display: flex; flex-direction: column; position: relative; border: 1px solid var(--accent);">
+        <button class="btn-sec" style="position: absolute; top: 15px; right: 15px; z-index: 1000; width: 44px; height: 44px; border-radius: 50%; background: var(--head); border: 2px solid var(--accent); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5);" onclick="closeModal('mapModal')">✕</button>
+        <div id="mapContainer" style="flex: 1; width: 100%; height: 100%; background: var(--map-bg);"></div>
+    </div>
+</div>
+
+<div id="dynamicLocModal" class="modal" style="z-index: 1350;">
+    <div class="modal-box" style="max-width: 400px;">
+        <div class="modal-title" style="font-size: 1.1rem;">Resolve Location</div>
+        <p id="dynLocMsg" style="color:#ccc; font-size: 0.9rem; margin-bottom: 15px;"></p>
+        <div class="form-group">
+            <span class="label">Select Property</span>
+            <select id="dynLocSelect" style="width: 100%;"></select>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-sec" onclick="closeModal('dynamicLocModal')">Cancel</button>
+            <button class="btn-pri" id="dynLocConfirm">Set Location</button>
+        </div>
+    </div>
+</div>
 <div id="moveModal" class="modal"><div class="modal-box"><div class="modal-title">Move Vehicle</div><p id="moveCarName" style="color:var(--accent); font-weight:bold; margin-bottom:20px; font-size:1.1rem;"></p><div class="form-group"><span class="label">Destination</span><select id="moveDest" style="width:100%" onchange="checkMoveCap()"></select></div><div id="moveSwapUI" style="display:none; background:rgba(245,158,11,0.1); padding:15px; border-radius:10px; border:1px solid var(--f1); margin-bottom:15px;"><span class="label" style="color:var(--f1)">Garage Full! Select car to swap with:</span><select id="moveSwapTarget" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('moveModal')">Cancel</button><button class="btn-pri" onclick="commitMove()">Confirm Move</button></div></div></div>
 <div id="migrationModal" class="modal"><div class="modal-box"><div class="modal-title" style="color:var(--accent)">Data Migration</div><p style="color:#ccc; font-size:0.9rem;">Syncing vehicle data with cloud database (Images & Drive stats).</p><div id="migLog" style="height:120px; overflow:auto; background:#000; padding:10px; font-family:monospace; color:var(--sell); border-radius:8px;"></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('migrationModal')">Cancel</button><button class="btn-pri" onclick="runMigration()">Run Update</button></div></div></div>
 
@@ -1155,7 +1225,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.62.16 (Current)</strong><br>• Introduced gta_app_settings.json to Google Drive Sync, seamlessly backing up Theme Colors, Gamertags, and App Settings across devices.<br>• Fixed an issue preventing successful deletion of custom vehicle images from Google Drive.</p>
+            <p><strong>v1.63.0 (Current)</strong><br>• Fully calibrated interactive GTA V map with precise data-mined engine coordinates [X, Y].<br>• Implemented advanced coordinate translation logic with custom scaling for accurate pin placement.<br>• Expanded map view area in the modal and relocated navigation controls for better visibility.<br>• Support for dynamic business locations (Nightclubs, Offices, Agencies, etc.) with sub-location selection.</p>
+            <p><strong>v1.62.16</strong><br>• Introduced gta_app_settings.json to Google Drive Sync, seamlessly backing up Theme Colors, Gamertags, and App Settings across devices.<br>• Fixed an issue preventing successful deletion of custom vehicle images from Google Drive.</p>
             <p><strong>v1.62.15</strong><br>• Added "For Sale" status tracking with checkboxes, visual badges, filters, and a dedicated Group By view.<br>• Added "Potential Revenue" statistics for vehicles marked "For Sale" to the Sales Dashboard.<br>• Integrated "For Sale" alerts directly into the Daily Sell Timer.<br>• Overhauled "Export to PDF" modal with a full Advanced Filter grid for precise exports.<br>• Hid "For Sale" metrics from View Only Mode to protect privacy on shared links.</p>
             <p><strong>v1.62.14</strong><br>• Added total revenue and vehicle count statistics to the Sales History modal.<br>• Added shared user gamertag and platform info to the View Only Mode welcome modal.</p>
             <p><strong>v1.62.13</strong><br>• Implemented Token Lifespan Awareness for proactive session validation.<br>• Added background token refresh on app focus to prevent session expiration.</p>
@@ -1270,6 +1341,94 @@
     // --- 1. CONFIG & DB ---
     const BASE_URL = "https://raw.githubusercontent.com/insomanywords/MyGTAgarage-images/main/";
     const DB_URL = BASE_URL + "vehicles.json";
+
+    const RAW_GAME_COORDINATES = {
+    // 1. EXACT MATCHES (Exterior Garage Doors & Map Blips)
+    exact: {
+        "Vinewood Club Garage (100)": [30, -1080], 
+        "Eclipse Blvd Garage (50)": [-277, 282], 
+        "Richman Villa (20)": [-1667, 467],
+        "The Vinewood Residence (20)": [551, 759], 
+        "The Tongva Estate (20)": [-1850, 1200],
+        "Arena Workshop (27)": [-256, -2000],
+        "Casino Penthouse (10)": [923, 48],
+        "Kosatka": [-3100, -1000], // Ocean spawn
+        "Acid Lab": [740, -1330], // Freakshop Exterior
+        "Garment Factory (10)": [716, -965], // Darnell Bros Exterior
+        "2057 Vespucci Canals, Apt 1 (6)": [-1068, -1300],
+        "0115 Bay City Ave, Apt 45 (6)": [-1050, -1400],
+        "0069 Cougar Ave, Apt 19 (6)": [-1350, -1450],
+        "1237 Prosperity St, Apt 21 (6)": [-1250, -1150],
+        "1561 San Vitas St, Apt 2 (6)": [-1400, -950],
+        "1115 Blvd Del Perro, Apt 18 (6)": [-1450, -600],
+        "0605 Spanish Ave, Apt 1 (6)": [-1100, -450],
+        "0120 Murrieta Heights (2)": [1150, -400],
+        "0432 Davis Ave (2)": [100, -1700],
+        "0504 South Mo Milton Dr (2)": [-950, -150],
+        "1893 Grapeseed Ave (2)": [2450, 4800],
+        "1920 Senate St (2)": [-100, -950],
+        "2143 Las Lagunas Blvd (2)": [-350, -350],
+        "0012 Adam's Apple Blvd (2)": [200, -1000],
+        "1337 Exceptionalists Way (10)": [-1060, -2880],
+        "Unit 1 Furnished (6)": [800, -2150],
+        "2000 Great Ocean Hwy (2)": [-3150, 1100]
+    },
+    // 2. DEPENDENT MATCHES
+    dependent: {
+        "Terrorbyte": "Nightclub (31)",
+        "Avenger": "Facility (7)",
+        "MOC": "Bunker",
+        "Office Garage 1 (20)": "Office",
+        "Office Garage 2 (20)": "Office",
+        "Office Garage 3 (20)": "Office"
+    },
+    // 3. CLUSTERS (High-End Apartment Buildings)
+    clusters: {
+        "Eclipse Towers": [-773, 312], 
+        "Richards Majestic": [-914, -378],
+        "Tinsel Towers": [-618, 40],
+        "4 Integrity Way": [-38, -586],
+        "Del Perro Heights": [-1442, -545],
+        "Weazel Plaza": [-796, -209],
+        "3 Alta St": [-267, -962],
+        "Dream Tower": [-900, -450],
+        "Las Lagunas Blvd": [-600, -200],
+        "Power St": [500, -500],
+        "North Conker Ave": [-650, 600],
+        "Mad Wayne Thunder Dr": [-550, 500],
+        "Milton Rd": [-800, 300],
+        "Hillcrest Ave": [-500, 700],
+        "Wild Oats Dr": [-100, 800],
+        "South Rockford Dr": [-1000, -1000],
+        "Popular St": [800, -1500],
+        "South Shambles St": [785, -2250],
+        "Route 68": [50, 2750],
+        "Roy Lowenstein Blvd": [400, -1700]
+    },
+    // 4. DYNAMIC BUSINESSES (Exterior Map Blips)
+    dynamic: {
+        "Office": { "Maze Bank West (Del Perro)": [-1380, -478], "Arcadius Business Center": [-140, -620], "Lombank West": [-1580, -560], "Maze Bank Tower": [-70, -800] },
+        "Agency (20)": { "Little Seoul": [-1100, -850], "Rockford Hills": [-800, -250], "Vespucci Canals": [-1100, -1350], "Hawick": [350, 100] },
+        "Nightclub (31)": { "Del Perro": [-1283, -649], "Vespucci Canals": [-1174, -1152], "Strawberry": [-124, -1257], "Mission Row": [345, -978], "La Mesa": [757, -1332], "Cypress Flats": [874, -2101], "LSIA": [-673, -2466], "Elysian Island": [195, -3170], "Downtown Vinewood": [373, 252], "West Vinewood": [5, 221] },
+        "Arcade (10)": { "Eight-Bit (Vinewood)": [300, 150], "Videogeddon (La Mesa)": [750, -1350], "Insert Coin (Del Perro)": [-1350, -500], "Wonderama (Grapeseed)": [2450, 4800], "Pixel Pete's (Paleto Bay)": [-150, 6300], "Warehouse (Davis)": [150, -1700] },
+        "Auto Shop (10)": { "Mission Row": [400, -1000], "Strawberry": [-100, -1300], "Rancho": [400, -1800], "Burton": [-350, -150], "La Mesa": [750, -1500] },
+        "Salvage Yard (2)": { "La Puerta": [-1000, -1400], "Strawberry": [-200, -1200], "Murrieta Heights": [1000, -400], "Paleto Bay": [-200, 6200], "Sandy Shores": [1800, 3300] },
+        "Bail Enforcement (2)": { "Downtown Vinewood": [350, 200], "Del Perro": [-1300, -600], "Mission Row": [400, -1000], "Paleto Bay": [-150, 6200] },
+        "Facility (7)": { "Grand Senora Desert": [850, 3000], "Route 68": [50, 2750], "Sandy Shores": [2000, 3300], "Mount Gordo": [2800, 5300], "Paleto Bay": [-150, 6300], "Lago Zancudo": [-3000, 3300], "Zancudo River": [-2000, 2800], "Ron Alternates": [2300, 3200], "Land Act Reservoir": [1200, 500] },
+        "Bunker": { "Chumash": [-3157, 1376], "Farmhouse": [1571, 2225], "Route 68": [48, 2761], "Grand Senora Desert": [848, 3004], "Smoke Tree Road": [2110, 3326], "Thomson Scrapyard": [2496, 3163], "Grapeseed": [2452, 4786], "Paleto Forest": [-690, 5334], "Raton Canyon": [-369, 4324], "Lago Zancudo": [-3030, 3334] },
+        "Clubhouse (10)": { "Del Perro Beach": [-1350, -700], "Vespucci Beach": [-1100, -1350], "Rancho": [400, -1800], "La Mesa": [750, -1500], "Pillbox Hill": [200, -1000], "Downtown Vinewood": [350, 200], "Hawick": [350, 100], "Sandy Shores": [1800, 3300], "Grapeseed": [2450, 4800], "Paleto Bay": [-150, 6200] }
+    }
+};
+
+const MAP_ICONS = {
+    "Apartments": "fa-building", "Safehouses": "fa-home", "Stilt Houses": "fa-home", 
+    "Business": "fa-briefcase", "Massive": "fa-warehouse", "Garage Units": "fa-warehouse", 
+    "Special": "fa-star", "Default": "fa-map-marker-alt"
+};
+
+    let gtaMap = null;
+    let mapMarkers = [];
+    let mapReady = false;
 
     let masterDB = [];
     
@@ -2344,6 +2503,222 @@
         document.getElementById('tabContent_' + tab).classList.add('active');
         if (tab === 'gamertag') renderGamertagSettings();
         if (tab === 'share') checkPublicPermissions();
+        if (tab === 'map') renderMapSettings();
+    }
+
+    function translateToLeaflet(gameX, gameY) {
+        // The exact pixel location of the game's [0,0] origin on the Leaflet map
+        const originX = 3753;
+        const originY = 2659;
+        
+        // The averaged scale multipliers for this specific stitched image
+        const scaleX = 0.662; 
+        const scaleY = 0.698;
+        
+        // Apply the offset and scale 
+        const leafletX = Math.round((gameX * scaleX) + originX);
+        const leafletY = Math.round((gameY * scaleY) + originY); 
+        
+        // Return in standard Leaflet [Y, X] (Lat/Lng) format
+        return [leafletY, leafletX]; 
+    }
+
+    // --- MAP FEATURE LOGIC ---
+    function initMap() {
+        if (gtaMap) return;
+        
+        const mapBounds = [[0, 0], [8192, 8192]];
+        
+        // Match 8192 units to the tile system (256px at zoom 0)
+        const factor = 256 / 8192;
+        const GtaCRS = L.extend({}, L.CRS.Simple, {
+            transformation: new L.Transformation(factor, 0, -factor, 256)
+        });
+
+        gtaMap = L.map('mapContainer', {
+            crs: GtaCRS,
+            maxBounds: mapBounds,
+            maxBoundsViscosity: 1.0,
+            minZoom: 0,
+            maxZoom: 5,
+            attributionControl: false,
+            zoomControl: false
+        });
+
+        L.control.zoom({ position: 'bottomright' }).addTo(gtaMap);
+
+        L.tileLayer('https://raw.githubusercontent.com/insomanywords/MyGTAgarage-images/main/maps/tiles/{z}/{x}/{y}.png', {
+            bounds: mapBounds,
+            noWrap: true,
+            tileSize: 256
+        }).addTo(gtaMap);
+
+        gtaMap.fitBounds(mapBounds);
+
+        mapReady = true;
+    }
+
+    function renderMapSettings() {
+        const container = document.getElementById('mapDynamicSettings');
+        container.innerHTML = "";
+        
+        Object.keys(RAW_GAME_COORDINATES.dynamic).forEach(type => {
+            const current = safeStorage.getItem('gta_map_' + type);
+            const options = Object.keys(RAW_GAME_COORDINATES.dynamic[type]);
+            
+            const div = document.createElement('div');
+            div.style.marginBottom = "8px";
+            div.innerHTML = `
+                <span class="label" style="font-size:0.75rem">${type}</span>
+                <select onchange="safeStorage.setItem('gta_map_${type}', this.value)" style="width:100%">
+                    <option value="">-- Select Location --</option>
+                    ${options.map(opt => `<option value="${opt}" ${current === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                </select>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    async function openMapModal(targetGarage = null) {
+        openModal('mapModal');
+        
+        // Leaflet needs to be initted when visible
+        setTimeout(() => {
+            initMap();
+            if (gtaMap) {
+                gtaMap.invalidateSize();
+                plotGarages(targetGarage);
+            }
+        }, 300);
+    }
+
+    function getGarageCoordinates(locName) {
+        if (!locName) return null;
+        const cleanLoc = locName.trim();
+
+        // 1. Exact match
+        if (RAW_GAME_COORDINATES.exact[cleanLoc]) return RAW_GAME_COORDINATES.exact[cleanLoc];
+        
+        // 2. Dependent match (Terrorbyte belongs to Nightclub)
+        if (RAW_GAME_COORDINATES.dependent[cleanLoc]) {
+            return getGarageCoordinates(RAW_GAME_COORDINATES.dependent[cleanLoc]);
+        }
+        
+        // 3. Cluster match (Generic apartments)
+        // Sort by length descending to catch most specific first
+        const clusterKeys = Object.keys(RAW_GAME_COORDINATES.clusters)
+            .sort((a,b) => b.length - a.length);
+        const clusterKey = clusterKeys.find(k => cleanLoc.includes(k));
+        if (clusterKey) return RAW_GAME_COORDINATES.clusters[clusterKey];
+        
+        // 4. Dynamic match (Nightclub, Arcade, etc)
+        const dynamicKeys = Object.keys(RAW_GAME_COORDINATES.dynamic)
+            .sort((a,b) => b.length - a.length);
+        const dynamicType = dynamicKeys.find(k => cleanLoc.includes(k));
+        if (dynamicType) {
+            const saved = safeStorage.getItem('gta_map_' + dynamicType);
+            if (saved && RAW_GAME_COORDINATES.dynamic[dynamicType][saved]) {
+                return RAW_GAME_COORDINATES.dynamic[dynamicType][saved];
+            }
+            return { needsResolution: true, type: dynamicType };
+        }
+        
+        // 5. Try stripped match (no capacity)
+        const stripped = cleanLoc.split(" (")[0];
+        if (RAW_GAME_COORDINATES.exact[stripped]) return RAW_GAME_COORDINATES.exact[stripped];
+        
+        return null;
+    }
+
+    async function resolveDynamicLocation(type, garageName) {
+        return new Promise((resolve) => {
+            const modal = document.getElementById('dynamicLocModal');
+            document.getElementById('dynLocMsg').innerText = `Which ${type} do you own? We need this to plot your ${garageName} on the map correctly.`;
+            
+            const sel = document.getElementById('dynLocSelect');
+            const options = Object.keys(RAW_GAME_COORDINATES.dynamic[type]);
+            sel.innerHTML = options.map(o => `<option value="${o}">${o}</option>`).join('');
+            
+            document.getElementById('dynLocConfirm').onclick = () => {
+                const val = sel.value;
+                safeStorage.setItem('gta_map_' + type, val);
+                closeModal('dynamicLocModal');
+                resolve(RAW_GAME_COORDINATES.dynamic[type][val]);
+            };
+            
+            openModal('dynamicLocModal');
+        });
+    }
+
+    async function plotGarages(focusLoc = null) {
+        mapMarkers.forEach(m => gtaMap.removeLayer(m));
+        mapMarkers = [];
+        
+        const ownedGarages = [...new Set(vehicles.map(v => v.loc))];
+        let focusedMarker = null;
+
+        for (const loc of ownedGarages) {
+            let coords = getGarageCoordinates(loc);
+            
+            if (coords && coords.needsResolution) {
+                // Skip resolution during initial bulk plotting unless it's the focus
+                if (loc === focusLoc) {
+                    coords = await resolveDynamicLocation(coords.type, loc);
+                } else {
+                    continue; 
+                }
+            }
+
+            if (coords) {
+                const garageInfo = GARAGE_DATA.find(g => g.items.includes(loc));
+                const type = garageInfo ? garageInfo.grp : "Default";
+                const iconClass = MAP_ICONS[type] || MAP_ICONS["Default"];
+                
+                const customIcon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div class="map-pin"><i class="fas ${iconClass}"></i></div>`,
+                    iconSize: [30, 30],
+                    iconAnchor: [15, 15]
+                });
+
+                const count = vehicles.filter(v => v.loc === loc).length;
+                const cleanName = loc.split(" (")[0]; 
+                const capKey = Object.keys(CAPACITIES).find(m => cleanName.includes(m)) || "DEFAULT";
+                const cap = CAPACITIES[capKey];
+
+                const marker = L.marker(translateToLeaflet(coords[0], coords[1]), { icon: customIcon }).addTo(gtaMap);
+                
+                const popupContent = `
+                    <div style="text-align:center">
+                        <div style="font-weight:800; font-size:1.1rem; color:var(--accent); margin-bottom:5px;">${loc.replace(/\s\(\d+\)$/, '')}</div>
+                        <div style="font-size:0.9rem; color:var(--text-dim); margin-bottom:12px;">${count} / ${cap} Slots Used</div>
+                        <button class="btn-pri" style="width:100%; font-size:0.8rem; padding:8px;" onclick="closeModal('mapModal'); filterByGarageFromMap('${loc}')">View Vehicles</button>
+                    </div>
+                `;
+                
+                marker.bindPopup(popupContent);
+                mapMarkers.push(marker);
+
+                if (loc === focusLoc) {
+                    focusedMarker = marker;
+                }
+            }
+        }
+
+        if (focusedMarker) {
+            gtaMap.setView(focusedMarker.getLatLng(), 4);
+            focusedMarker.openPopup();
+        } else {
+            gtaMap.setView([4096, 4096], 1);
+        }
+    }
+
+    function filterByGarageFromMap(loc) {
+        advFilter = {
+            garage: loc, floor: '', brand: '', class: '', drive: '',
+            wheels: '', plate: '', weaponized: null, hsw: null, drift: null, imani: null, status: ''
+        };
+        render();
     }
 
     // --- CHARACTER MANAGEMENT LOGIC ---
@@ -2563,16 +2938,19 @@
     const GARAGE_DATA = [
         { grp: "Safehouses", items: ["Richman Villa (20)", "The Vinewood Residence (20)", "The Tongva Estate (20)"] },
         { grp: "Massive", items: ["Vinewood Club Garage (100)", "Eclipse Blvd Garage (50)", "Office Garage 1 (20)", "Office Garage 2 (20)", "Office Garage 3 (20)"] },
-        { grp: "Apartments", items: ["Eclipse Towers, Penthouse 1 (10)", "Eclipse Towers, Penthouse 2 (10)", "Eclipse Towers, Penthouse 3 (10)", "Eclipse Towers, Apt 31 (10)", "Eclipse Towers, Apt 9 (10)", "Eclipse Towers, Apt 5 (10)", "Eclipse Towers, Apt 3 (10)", "Eclipse Towers, Apt 40 (10)", "Richards Majestic, Apt 51 (10)", "Richards Majestic, Apt 4 (10)", "Tinsel Towers, Apt 42 (10)", "Tinsel Towers, Apt 29 (10)", "4 Integrity Way, Apt 30 (10)", "4 Integrity Way, Apt 35 (10)", "Del Perro Heights, Apt 7 (10)", "Del Perro Heights, Apt 20 (10)", "Weazel Plaza, Apt 101 (10)", "Weazel Plaza, Apt 70 (10)", "Weazel Plaza, Apt 26 (10)", "3 Alta St, Apt 10 (10)", "3 Alta St, Apt 57 (10)"] },
+        { grp: "Apartments", items: ["Eclipse Towers, Penthouse 1 (10)", "Eclipse Towers, Penthouse 2 (10)", "Eclipse Towers, Penthouse 3 (10)", "Eclipse Towers, Apt 31 (10)", "Eclipse Towers, Apt 9 (10)", "Eclipse Towers, Apt 5 (10)", "Eclipse Towers, Apt 3 (10)", "Eclipse Towers, Apt 40 (10)", "Richards Majestic, Apt 51 (10)", "Richards Majestic, Apt 4 (10)", "Richards Majestic, Apt 2 (10)", "Tinsel Towers, Apt 42 (10)", "Tinsel Towers, Apt 29 (10)", "Tinsel Towers, Apt 45 (10)", "4 Integrity Way, Apt 30 (10)", "4 Integrity Way, Apt 35 (10)", "4 Integrity Way, Apt 28 (10)", "Del Perro Heights, Apt 7 (10)", "Del Perro Heights, Apt 20 (10)", "Del Perro Heights, Apt 4 (10)", "Weazel Plaza, Apt 101 (10)", "Weazel Plaza, Apt 70 (10)", "Weazel Plaza, Apt 26 (10)", "3 Alta St, Apt 10 (10)", "3 Alta St, Apt 57 (10)", "Dream Tower, Apt 15 (10)", "0604 Las Lagunas Blvd, Apt 4 (10)", "1162 Power St, Apt 3 (10)"] },
+        { grp: "Stilt Houses", items: ["2044 North Conker Ave (10)", "2045 North Conker Ave (10)", "2113 Mad Wayne Thunder Dr (10)", "2117 Milton Rd (10)", "2862 Hillcrest Ave (10)", "2868 Hillcrest Ave (10)", "2874 Hillcrest Ave (10)", "3655 Wild Oats Dr (10)", "3677 Milton Rd (10)"] },
+        { grp: "Standard Apts", items: ["0112 South Rockford Dr, Apt 13 (6)", "2057 Vespucci Canals, Apt 1 (6)", "0115 Bay City Ave, Apt 45 (6)", "0069 Cougar Ave, Apt 19 (6)", "1237 Prosperity St, Apt 21 (6)", "1561 San Vitas St, Apt 2 (6)", "1115 Blvd Del Perro, Apt 18 (6)", "0184 Milton Rd, Apt 13 (6)", "0325 South Rockford Dr (6)", "0605 Spanish Ave, Apt 1 (6)", "0120 Murrieta Heights (2)", "0432 Davis Ave (2)", "0504 South Mo Milton Dr (2)", "1893 Grapeseed Ave (2)", "1920 Senate St (2)", "1970 Popular St (2)", "2143 Las Lagunas Blvd (2)", "0012 Adam's Apple Blvd (2)", "1117 Milton Rd (2)"] },
+        { grp: "Garage Units", items: ["Unit 124 Popular St (10)", "Unit 14 Popular St (10)", "1623 South Shambles St (10)", "1337 Exceptionalists Way (10)", "Unit 1 Furnished (6)", "Unit 2 Popular St (6)", "870 Route 68 (6)", "8754 Route 68 (6)", "1200 Route 68 (6)", "0552 Roy Lowenstein Blvd (2)", "0602 Roy Lowenstein Blvd (2)", "1623 South Shambles St (2)", "1920 Senate St (2)", "2000 Great Ocean Hwy (2)"] },
         { grp: "Business", items: ["Agency (20)", "Nightclub (31)", "Arcade (10)", "Auto Shop (10)", "Salvage Yard (2)", "Bail Enforcement (2)", "Clubhouse (10)", "Garment Factory (10)"] },
-        { grp: "Special", items: ["Arena Workshop (27)", "Casino Penthouse (10)", "Facility (7)", "Kosatka", "Terrorbyte", "Acid Lab", "Avenger", "MOC"] }
+        { grp: "Special", items: ["Arena Workshop (27)", "Casino Penthouse (10)", "Facility (7)", "Bunker", "Kosatka", "Terrorbyte", "Acid Lab", "Avenger", "MOC"] }
     ];
 
     const CAPACITIES = {
         "Vinewood Club": 100, "Eclipse Blvd": 50, "Office": 20, "Agency": 20, "Nightclub": 31, 
         "Arena Workshop": 27, "Facility": 7, "Arcade": 10, "Auto Shop": 10, "Richman Villa": 20,
         "Vinewood Residence": 20, "Tongva Estate": 20, "Salvage Yard": 2, "Bail Enforcement": 2, 
-        "Clubhouse": 10, "Garment Factory": 10, "DEFAULT": 10
+        "Clubhouse": 10, "Garment Factory": 10, "Terrorbyte": 1, "Bunker": 1, "DEFAULT": 10
     };
 
     const FLOOR_MAP = {
@@ -2604,6 +2982,11 @@
         if (loc.includes("Nightclub") && floor === "Service Entrance") return 1;
         if (loc.includes("Salvage") || loc.includes("Bail")) return 2;
         if (loc.includes("Facility")) return 7;
+        if (loc.includes("Terrorbyte") || loc.includes("Bunker")) return 1;
+
+        // Auto-detect capacity from name for non-special types
+        if (loc.includes("(6)")) return 6;
+        if (loc.includes("(2)")) return 2;
         return 10; 
     }
 
@@ -2768,7 +3151,9 @@
             filtered.forEach(v => { 
                 let k = "Unknown";
                 const db = masterDB.find(d => d.model === v.model) || {};
-                if (mode === 'garage') k = v.loc;
+                if (mode === 'garage') {
+                   k = v.loc;
+                }
                 else if (mode === 'manuf') k = v.manuf;
                 else if (mode === 'class') k = (db.class || v.class || 'Unknown').replace(/_/g, ' ');
                 else if (mode === 'drive') k = db.drive || v.drive || 'Unknown';
@@ -2780,20 +3165,37 @@
                 else if (mode === 'imani') k = v.isImani ? 'Imani Tech' : 'Standard';
                 if(!groups[k]) groups[k] = []; groups[k].push(v); 
             });
-            Object.keys(groups).sort().forEach(k => {
+
+            const sortedKeys = Object.keys(groups).sort((a,b) => {
+                if(mode === 'garage') {
+                    const getGroupForLoc = (loc) => GARAGE_DATA.find(g => g.items.includes(loc))?.grp || "Other";
+                    const order = GARAGE_DATA.map(g => g.grp);
+                    const catA = getGroupForLoc(a);
+                    const catB = getGroupForLoc(b);
+                    const idxA = order.indexOf(catA);
+                    const idxB = order.indexOf(catB);
+                    if(idxA !== idxB) return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+                }
+                return a.localeCompare(b);
+            });
+
+            sortedKeys.forEach(k => {
+                const groupKey = k; // Preserve original key for groups access
                 let isExpG = currentlySearching || expandedGroups.includes(k);
+                
                 const head = document.createElement('div'); head.className = isExpG ? 'group-header' : 'group-header collapsed';
                 head.dataset.g = k;
-                let meta = `${groups[k].length}`; 
+                let meta = `${groups[groupKey].length}`; 
                 let pct = 0;
                 
                 let displayK = k;
                 if(mode==='garage') { 
-                    displayK = k.replace(/Penthouse/g, 'PH').replace(/\s\(\d+\)$/, '');
-                    const cleanName = k.split(" (")[0]; 
+                    const locName = k;
+                    displayK = locName.replace(/Penthouse/g, 'PH').replace(/\s\(\d+\)$/, '');
+                    const cleanName = locName.split(" (")[0]; 
                     const cl = Object.keys(CAPACITIES).find(m => cleanName.includes(m)) || "DEFAULT"; 
                     const cap=CAPACITIES[cl]; 
-                    const actualGarageCount = vehicles.filter(v => v.loc === k).length;
+                    const actualGarageCount = vehicles.filter(v => v.loc === locName).length;
                     meta = `${actualGarageCount} / ${cap}`; 
                     pct = (actualGarageCount/cap)*100; 
                 }
@@ -2813,7 +3215,7 @@
                 
                 if (mode === 'garage') {
                     const floorGroups = {};
-                    groups[k].forEach(v => {
+                    groups[groupKey].forEach(v => {
                         const fName = v.floor || "Main Floor";
                         if (!floorGroups[fName]) floorGroups[fName] = [];
                         floorGroups[fName].push(v);
@@ -2863,7 +3265,7 @@
                         grid.appendChild(fGrid);
                     });
                 } else {
-                    groups[k].forEach(v => {
+                    groups[groupKey].forEach(v => {
                         const card = createCard(v);
                         if (card) grid.appendChild(card); 
                     });
@@ -2983,7 +3385,13 @@
             </div>
             <div style="margin-bottom:15px; display:flex; flex-wrap:wrap; gap:5px;">${badges}</div>
             <div class="detail-row"><span class="detail-chip"><i class="fas fa-tag"></i> ${(db.class||v.class||'-').replace(/_/g, ' ')}</span><span class="detail-chip"><i class="fas fa-cog"></i> ${db.drive||v.drive||'-'}</span><span class="detail-chip"><i class="fas fa-user"></i> ${db.seats||v.seats||'2'} Seats</span>${v.isWeapon ? `<span class="detail-chip"><i class="fas fa-crosshairs"></i> Weapon</span>` : ''}${v.isHsw ? `<span class="detail-chip"><i class="fas fa-tachometer-alt"></i> HSW</span>` : ''}${v.isDrift ? `<span class="detail-chip"><i class="fas fa-wind"></i> Drift</span>` : ''}${v.isImani ? `<span class="detail-chip"><i class="fas fa-shield-alt"></i> Imani</span>` : ''}</div>
-            <div class="detail-loc"><div style="font-size:0.8rem; color:#888; margin-bottom:4px;">LOCATION</div><div style="font-weight:bold; font-size:1.1rem; color:#fff;">${v.loc}</div>${v.floor ? `<div style="color:var(--accent); margin-top:2px;">${v.floor} ${v.slot ? `(Slot ${v.slot})` : ''}</div>` : ''}</div>
+            <div class="detail-loc" style="cursor:pointer" onclick="closeModal('detailModal'); openMapModal('${v.loc.replace(/'/g, "\\'")}')">
+                <div style="font-size:0.8rem; color:#888; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
+                    LOCATION <i class="fas fa-map-marked-alt" style="color:var(--accent);"></i>
+                </div>
+                <div style="font-weight:bold; font-size:1.1rem; color:#fff;">${v.loc}</div>
+                ${v.floor ? `<div style="color:var(--accent); margin-top:2px;">${v.floor} ${v.slot ? `(Slot ${v.slot})` : ''}</div>` : ''}
+            </div>
             ${priceHtml}
             ${v.notes ? `<div class="detail-notes">"${v.notes}"</div>` : ''}
         `;
@@ -3743,7 +4151,12 @@
             };
             addBg();
             
-            const headerImg = await createPdfHeader({ garage, floor, groupBy, groupValue });
+            const headerImg = await createPdfHeader({ 
+                garage: filterData.garage, 
+                floor: filterData.floor, 
+                groupBy, 
+                groupValue: "" 
+            });
             const headerHeight = 25; 
             pdf.addImage(headerImg, 'JPEG', 0, 0, pageWidth, headerHeight);
             
