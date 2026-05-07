@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.63.1</title>
+    <title>My GTA Garage v1.63.2</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -120,8 +120,13 @@
             position: absolute; right: 12px; top: 50%; transform: translateY(-50%); 
             color: var(--text-dim); cursor: pointer; z-index: 5; 
             width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s ease;
         }
-        .filter-btn-search:hover { color: var(--accent); }
+        .filter-btn-search:hover, .filter-btn-search.active { color: var(--accent); }
+        .filter-btn-search.active {
+            text-shadow: 0 0 10px var(--accent);
+            filter: drop-shadow(0 0 5px var(--accent));
+        }
         .clear-search { position: absolute; right: 42px; top: 0; height: 100%; width: 40px; display: none; align-items: center; justify-content: center; color: var(--text-dim); cursor: pointer; }
 
         .filter-row { display: flex; gap: 8px; width: 100%; }
@@ -814,7 +819,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.63.1</div>
+        <div class="modal-title">About My GTA Garage v1.63.2</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1229,7 +1234,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.63.1 (Current)</strong><br>• Updated Bunker and Kosatka capacity to 1 vehicle (MOC and Kosatka Sparrow/Kraken/etc. equivalents).<br>• User-confirmed coordinates for "Eclipse Blvd Garage (50)" and "Richman Villa (20)".<br>• Fine-tuned map coordinate origin and translation logic for improved pin placement accuracy.<br>• Improved Drive sync robustness with safety timeouts for silent token refresh.</p>
+            <p><strong>v1.63.2 (Current)</strong><br>• Optimized map icon logic to ensure markers accurately reflect location types (e.g., house icons for mansions).<br>• Improved "Group by: Garages" view to organize properties by type followed by alphabetical order.<br>• Added visual feedback for active advanced filters; the filter icon now highlights when filters are applied.<br>• Enhanced garage name normalization for more reliable data mapping and coordinate lookups.</p>
+            <p><strong>v1.63.1</strong><br>• Updated Bunker and Kosatka capacity to 1 vehicle (MOC and Kosatka Sparrow/Kraken/etc. equivalents).<br>• User-confirmed coordinates for "Eclipse Blvd Garage (50)" and "Richman Villa (20)".<br>• Fine-tuned map coordinate origin and translation logic for improved pin placement accuracy.<br>• Improved Drive sync robustness with safety timeouts for silent token refresh.</p>
             <p><strong>v1.63.0</strong><br>• Fully calibrated interactive GTA V map with precise data-mined engine coordinates [X, Y].<br>• Implemented advanced coordinate translation logic with custom scaling for accurate pin placement.<br>• Expanded map view area in the modal and relocated navigation controls for better visibility.<br>• Support for dynamic business locations (Nightclubs, Offices, Agencies, etc.) with sub-location selection.</p>
             <p><strong>v1.62.16</strong><br>• Introduced gta_app_settings.json to Google Drive Sync, seamlessly backing up Theme Colors, Gamertags, and App Settings across devices.<br>• Fixed an issue preventing successful deletion of custom vehicle images from Google Drive.</p>
             <p><strong>v1.62.15</strong><br>• Added "For Sale" status tracking with checkboxes, visual badges, filters, and a dedicated Group By view.<br>• Added "Potential Revenue" statistics for vehicles marked "For Sale" to the Sales Dashboard.<br>• Integrated "For Sale" alerts directly into the Daily Sell Timer.<br>• Overhauled "Export to PDF" modal with a full Advanced Filter grid for precise exports.<br>• Hid "For Sale" metrics from View Only Mode to protect privacy on shared links.</p>
@@ -1465,6 +1471,9 @@
         "Terrorbyte": "Nightclub (31)",
         "Avenger": "Facility (7)",
         "MOC": "Bunker",
+        "Office Garage 1 (20)": "Office",
+        "Office Garage 2 (20)": "Office",
+        "Office Garage 3 (20)": "Office",
         "CEO Office Garage: Level 1 (20)": "Office",
         "CEO Office Garage: Level 2 (20)": "Office",
         "CEO Office Garage: Level 3 (20)": "Office"
@@ -2821,9 +2830,20 @@ const MAP_ICONS = {
         }, 300);
     }
 
+    function normalizeGarageName(locName) {
+        if (!locName) return locName;
+        let clean = locName.trim();
+        for (const rule of MIGRATION_RULES) {
+            if (clean === rule.key || (clean.includes(rule.key) && !RAW_GAME_COORDINATES.exact[clean])) {
+                return rule.target;
+            }
+        }
+        return clean;
+    }
+
     function getGarageCoordinates(locName) {
         if (!locName) return null;
-        const cleanLoc = locName.trim();
+        const cleanLoc = normalizeGarageName(locName);
 
         // 1. Exact match
         if (RAW_GAME_COORDINATES.exact[cleanLoc]) return RAW_GAME_COORDINATES.exact[cleanLoc];
@@ -2879,6 +2899,29 @@ const MAP_ICONS = {
         });
     }
 
+    function getGarageIcon(normLoc, group) {
+        const clean = normLoc.toLowerCase();
+        
+        // Specific name-based overrides for clear visual distinction
+        if (clean.includes("agency")) return "fa-user-shield";
+        if (clean.includes("nightclub")) return "fa-music";
+        if (clean.includes("arcade")) return "fa-gamepad";
+        if (clean.includes("auto shop")) return "fa-tools";
+        if (clean.includes("salvage yard")) return "fa-recycle";
+        if (clean.includes("bail enforcement")) return "fa-gavel";
+        if (clean.includes("clubhouse")) return "fa-motorcycle";
+        if (clean.includes("arena workshop")) return "fa-trophy";
+        if (clean.includes("casino penthouse")) return "fa-dice";
+        if (clean.includes("facility")) return "fa-shield-halved";
+        if (clean.includes("bunker")) return "fa-radiation";
+        if (clean.includes("kosatka")) return "fa-ship"; 
+        if (clean.includes("terrorbyte") || clean.includes("acid lab") || clean.includes("moc") || clean.includes("avenger")) return "fa-truck-moving";
+        if (clean.includes("office garage") || clean.includes("ceo office")) return "fa-building-columns";
+
+        // Fallback to broader group icons
+        return MAP_ICONS[group] || MAP_ICONS["Default"];
+    }
+
     async function plotGarages(focusLoc = null) {
         mapMarkers.forEach(m => gtaMap.removeLayer(m));
         mapMarkers = [];
@@ -2899,9 +2942,10 @@ const MAP_ICONS = {
             }
 
             if (coords) {
-                const garageInfo = GARAGE_DATA.find(g => g.items.includes(loc));
+                const normLoc = normalizeGarageName(loc);
+                const garageInfo = GARAGE_DATA.find(g => g.items.includes(normLoc) || g.items.includes(loc));
                 const type = garageInfo ? garageInfo.grp : "Default";
-                const iconClass = MAP_ICONS[type] || MAP_ICONS["Default"];
+                const iconClass = getGarageIcon(normLoc, type);
                 
                 const customIcon = L.divIcon({
                     className: 'custom-div-icon',
@@ -2911,7 +2955,7 @@ const MAP_ICONS = {
                 });
 
                 const count = vehicles.filter(v => v.loc === loc).length;
-                const cleanName = loc.split(" (")[0]; 
+                const cleanName = normLoc.split(" (")[0]; 
                 const capKey = Object.keys(CAPACITIES).find(m => cleanName.includes(m)) || "DEFAULT";
                 const cap = CAPACITIES[capKey];
 
@@ -3154,6 +3198,9 @@ const MAP_ICONS = {
         { key: "Office Garage 1", target: "Office Garage 1 (20)" },
         { key: "Office Garage 2", target: "Office Garage 2 (20)" },
         { key: "Office Garage 3", target: "Office Garage 3 (20)" },
+        { key: "CEO Office Garage: Level 1", target: "Office Garage 1 (20)" },
+        { key: "CEO Office Garage: Level 2", target: "Office Garage 2 (20)" },
+        { key: "CEO Office Garage: Level 3", target: "Office Garage 3 (20)" },
         { key: "Agency", target: "Agency (20)" },
         { key: "Nightclub", target: "Nightclub (31)" },
         { key: "Arcade", target: "Arcade (10)" },
@@ -3357,6 +3404,11 @@ const MAP_ICONS = {
         try {
         const term = document.getElementById('searchInput').value.toLowerCase();
         const isAdvFiltering = Object.values(advFilter).some(val => val !== '' && val !== null);
+        const btn = document.getElementById('advFilterBtn');
+        if (btn) {
+            if (isAdvFiltering) btn.classList.add('active');
+            else btn.classList.remove('active');
+        }
         const currentlySearching = term !== '' || isAdvFiltering;
 
         let expandedGroups = [];
@@ -3434,7 +3486,7 @@ const MAP_ICONS = {
                 let k = "Unknown";
                 const db = masterDB.find(d => d.model === v.model) || {};
                 if (mode === 'garage') {
-                   k = v.loc;
+                   k = normalizeGarageName(v.loc);
                 }
                 else if (mode === 'manuf') k = v.manuf;
                 else if (mode === 'class') k = (db.class || v.class || 'Unknown').replace(/_/g, ' ');
@@ -3458,7 +3510,7 @@ const MAP_ICONS = {
                     const idxB = order.indexOf(catB);
                     if(idxA !== idxB) return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
                 }
-                return a.localeCompare(b);
+                return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
             });
 
             sortedKeys.forEach(k => {
@@ -5071,8 +5123,6 @@ const MAP_ICONS = {
         advFilter.status = document.getElementById('advStatus').value;
 
         closeModal('advFilterModal');
-        const isFiltering = Object.values(advFilter).some(v => v !== '' && v !== null);
-        document.getElementById('advFilterBtn').style.color = isFiltering ? 'var(--accent)' : 'var(--text-dim)';
         render();
     }
 
@@ -5081,7 +5131,6 @@ const MAP_ICONS = {
             garage: '', floor: '', brand: '', class: '', drive: '',
             wheels: '', plate: '', weaponized: null, hsw: null, drift: null, imani: null, status: ''
         };
-        document.getElementById('advFilterBtn').style.color = 'var(--text-dim)';
         closeModal('advFilterModal');
         render();
     }
