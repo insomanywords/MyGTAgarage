@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.63.0</title>
+    <title>My GTA Garage v1.63.1</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -814,7 +814,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.63.0</div>
+        <div class="modal-title">About My GTA Garage v1.63.1</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1201,6 +1201,10 @@
     <div class="modal-box" style="padding: 0; width: 98%; max-width: 1600px; overflow: hidden; height: 96vh; display: flex; flex-direction: column; position: relative; border: 1px solid var(--accent);">
         <button class="btn-sec" style="position: absolute; top: 15px; right: 15px; z-index: 1000; width: 44px; height: 44px; border-radius: 50%; background: var(--head); border: 2px solid var(--accent); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5);" onclick="closeModal('mapModal')">✕</button>
         <div id="mapContainer" style="flex: 1; width: 100%; height: 100%; background: var(--map-bg);"></div>
+        <div id="coordBar" style="background: rgba(0,0,0,0.9); color: white; padding: 8px 15px; font-size: 0.75rem; display: flex; justify-content: space-between; align-items: center; z-index: 1000; border-top: 1px solid var(--accent); font-family: monospace; flex-shrink: 0;">
+            <div>Map: <span id="mapCoords">0, 0</span></div>
+            <div style="color: var(--accent); font-weight: bold;">Game Engine: <span id="gameCoords">0.0, 0.0</span></div>
+        </div>
     </div>
 </div>
 
@@ -1225,7 +1229,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.63.0 (Current)</strong><br>• Fully calibrated interactive GTA V map with precise data-mined engine coordinates [X, Y].<br>• Implemented advanced coordinate translation logic with custom scaling for accurate pin placement.<br>• Expanded map view area in the modal and relocated navigation controls for better visibility.<br>• Support for dynamic business locations (Nightclubs, Offices, Agencies, etc.) with sub-location selection.</p>
+            <p><strong>v1.63.1 (Current)</strong><br>• Updated Bunker and Kosatka capacity to 1 vehicle (MOC and Kosatka Sparrow/Kraken/etc. equivalents).<br>• User-confirmed coordinates for "Eclipse Blvd Garage (50)" and "Richman Villa (20)".<br>• Fine-tuned map coordinate origin and translation logic for improved pin placement accuracy.<br>• Improved Drive sync robustness with safety timeouts for silent token refresh.</p>
+            <p><strong>v1.63.0</strong><br>• Fully calibrated interactive GTA V map with precise data-mined engine coordinates [X, Y].<br>• Implemented advanced coordinate translation logic with custom scaling for accurate pin placement.<br>• Expanded map view area in the modal and relocated navigation controls for better visibility.<br>• Support for dynamic business locations (Nightclubs, Offices, Agencies, etc.) with sub-location selection.</p>
             <p><strong>v1.62.16</strong><br>• Introduced gta_app_settings.json to Google Drive Sync, seamlessly backing up Theme Colors, Gamertags, and App Settings across devices.<br>• Fixed an issue preventing successful deletion of custom vehicle images from Google Drive.</p>
             <p><strong>v1.62.15</strong><br>• Added "For Sale" status tracking with checkboxes, visual badges, filters, and a dedicated Group By view.<br>• Added "Potential Revenue" statistics for vehicles marked "For Sale" to the Sales Dashboard.<br>• Integrated "For Sale" alerts directly into the Daily Sell Timer.<br>• Overhauled "Export to PDF" modal with a full Advanced Filter grid for precise exports.<br>• Hid "For Sale" metrics from View Only Mode to protect privacy on shared links.</p>
             <p><strong>v1.62.14</strong><br>• Added total revenue and vehicle count statistics to the Sales History modal.<br>• Added shared user gamertag and platform info to the View Only Mode welcome modal.</p>
@@ -1343,80 +1348,248 @@
     const DB_URL = BASE_URL + "vehicles.json";
 
     const RAW_GAME_COORDINATES = {
-    // 1. EXACT MATCHES (Exterior Garage Doors & Map Blips)
+    // 1. EXACT MATCHES (Standalone Properties & Special Units)
     exact: {
-        "Vinewood Club Garage (100)": [30, -1080], 
-        "Eclipse Blvd Garage (50)": [-277, 282], 
-        "Richman Villa (20)": [-1667, 467],
-        "The Vinewood Residence (20)": [551, 759], 
-        "The Tongva Estate (20)": [-1850, 1200],
-        "Arena Workshop (27)": [-256, -2000],
-        "Casino Penthouse (10)": [923, 48],
-        "Kosatka": [-3100, -1000], // Ocean spawn
-        "Acid Lab": [740, -1330], // Freakshop Exterior
-        "Garment Factory (10)": [716, -965], // Darnell Bros Exterior
-        "2057 Vespucci Canals, Apt 1 (6)": [-1068, -1300],
-        "0115 Bay City Ave, Apt 45 (6)": [-1050, -1400],
-        "0069 Cougar Ave, Apt 19 (6)": [-1350, -1450],
-        "1237 Prosperity St, Apt 21 (6)": [-1250, -1150],
-        "1561 San Vitas St, Apt 2 (6)": [-1400, -950],
-        "1115 Blvd Del Perro, Apt 18 (6)": [-1450, -600],
-        "0605 Spanish Ave, Apt 1 (6)": [-1100, -450],
-        "0120 Murrieta Heights (2)": [1150, -400],
-        "0432 Davis Ave (2)": [100, -1700],
-        "0504 South Mo Milton Dr (2)": [-950, -150],
-        "1893 Grapeseed Ave (2)": [2450, 4800],
-        "1920 Senate St (2)": [-100, -950],
-        "2143 Las Lagunas Blvd (2)": [-350, -350],
-        "0012 Adam's Apple Blvd (2)": [200, -1000],
-        "1337 Exceptionalists Way (10)": [-1060, -2880],
-        "Unit 1 Furnished (6)": [800, -2150],
-        "2000 Great Ocean Hwy (2)": [-3150, 1100]
+        // ==========================================
+        // --- SPECIAL / UNIQUE PROPERTIES ---
+        // ==========================================
+        "Vinewood Club Garage (100)": [180, -1165], 
+        "Eclipse Blvd Garage (50)": [-275, 275], // User Confirmed
+        "Richman Villa (20)": [-1660, 450], // User Confirmed
+        "Vinewood Residence (20)": [550, 800], 
+        "Tongva Estate (20)": [-2555, 1900], 
+        "Arena Workshop (27)": [-248.673, -2010.603], 
+        "Casino Penthouse (10)": [924.369, 47.037], 
+        "Kosatka (1)": [-3100.0, -1000.0], 
+        "Acid Lab": [735.45, -1330.65], 
+        "Garment Factory (10)": [716.23, -965.71], 
+        
+        // ==========================================
+        // --- STANDARD APARTMENTS ---
+        // ==========================================
+        
+        // --- High End (10) ---
+        "Eclipse Towers, Apt 31 (10)": [-786.866, 315.764],
+        "Eclipse Towers, Apt 40 (10)": [-786.866, 315.764],
+        "Eclipse Towers, Apt 5 (10)": [-786.866, 315.764],
+        "Eclipse Towers, Apt 9 (10)": [-786.866, 315.764],
+        "Weazel Plaza, Apt 101 (10)": [-796.80, -209.60],
+        "Weazel Plaza, Apt 70 (10)": [-796.80, -209.60],
+        "Weazel Plaza, Apt 26 (10)": [-796.80, -209.60],
+        "Tinsel Towers, Apt 29 (10)": [-618.30, 40.56],
+        "Tinsel Towers, Apt 45 (10)": [-618.30, 40.56],
+        "Richards Majestic, Apt 51 (10)": [-914.86, -378.32],
+        "4 Integrity Way, Apt 35 (10)": [-35.312, -580.419],
+        "Richards Majestic, Apt 4 (10)": [-914.86, -378.32],
+        "4 Integrity Way, Apt 30 (10)": [-35.312, -580.419],
+        "3 Alta St, Apt 57 (10)": [-267.30, -962.50],
+        "3 Alta St, Apt 10 (10)": [-267.30, -962.50],
+        "Del Perro Heights, Apt 20 (10)": [-1468.140, -541.815],
+        "Del Perro Heights, Apt 7 (10)": [-1468.140, -541.815],
+        "Eclipse Towers, Apt 3 (10)": [-786.866, 315.764],
+        "Tinsel Towers, Apt 42 (10)": [-618.30, 40.56],
+        "Richards Majestic, Apt 2 (10)": [-914.86, -378.32],
+        "4 Integrity Way, Apt 28 (10)": [-35.312, -580.419],
+        "Del Perro Heights, Apt 4 (10)": [-1468.140, -541.815],
+        "Eclipse Towers, Penthouse 3 (10)": [-786.866, 315.764],
+        "Eclipse Towers, Penthouse 1 (10)": [-786.866, 315.764],
+        "Eclipse Towers, Penthouse 2 (10)": [-786.866, 315.764],
+
+        // --- Mid Range (6) ---
+        "4 Hangman Ave (6)": [-169.286, 486.493],
+        "4401 Procopio Dr (6)": [-200.123, 6300.456],
+        "4584 Procopio Dr (6)": [-150.123, 6300.456],
+        "0115 Bay City Ave, Apt 45 (6)": [-1042.845, -1412.332],
+        "0184 Milton Rd, Apt 13 (6)": [-805.123, 298.543],
+        "12 Sustancia Rd (6)": [805.234, -1507.876],
+        "0504 South Mo Milton Dr (6)": [-953.765, -148.234],
+        "0325 South Rockford Dr (6)": [-1002.512, -1005.143],
+        "Dream Tower, Apt 15 (6)": [-898.12, -446.34],
+        "1162 Power St, Apt 3 (6)": [496.124, -506.321],
+        "0605 Spanish Ave, Apt 1 (6)": [-1102.321, -446.856],
+        "0604 Las Lagunas Blvd, Apt 4 (6)": [-594.342, -203.018],
+        "The Royale, Apt 19 (6)": [-618.30, 40.56],
+
+        // --- Low End (2) ---
+        "0232 Paleto Blvd (2)": [-120.45, 6420.12],
+        "140 Zancudo Ave (2)": [-100.123, 6400.456],
+        "1893 Grapeseed Ave (2)": [2117.876, 4788.123],
+        "2143 Las Lagunas Blvd, Apt 9 (2)": [-344.654, -360.234],
+        "0069 Cougar Ave, Apt 19 (2)": [-1360.123, -1458.745],
+        "1237 Prosperity St, Apt 21 (2)": [-1257.923, -1145.432],
+        "1561 San Vitas St, Apt 2 (2)": [-1408.312, -943.912],
+        "1115 Blvd Del Perro, Apt 18 (2)": [-1447.889, -606.312],
+        "2057 Vespucci Blvd, Apt 1 (2)": [-1066.012, -1297.834],
+        "0112 South Rockford Dr, Apt 13 (2)": [-1002.512, -1005.143],
+
+        // ==========================================
+        // --- STANDALONE GARAGE UNITS ---
+        // ==========================================
+
+        // --- High End (10) ---
+        "0120 Murrieta Heights (10)": [1148.123, -407.543],
+        "Popular St, Unit 2 (10)": [805.234, -1507.876],
+        "331 Supply St (10)": [805.234, -1507.876],
+        "Greenwich Pkwy, Unit 76 (10)": [-1064.876, -2885.234],
+        "1337 Exceptionalists Way (10)": [-1064.876, -2885.234],
+        "1623 South Shambles St (10)": [785.123, -2250.543],
+
+        // --- Mid Range (6) ---
+        "0552 Roy Lowenstein Blvd (6)": [405.876, -1707.234],
+        "Popular St, Unit 14 (6)": [805.234, -1507.876],
+        "1905 Davis Ave (6)": [104.543, -1728.123],
+        "0432 Davis Ave (6)": [104.543, -1728.123],
+        "Olympic Fwy, Unit 1 (6)": [805.234, -1507.876],
+        "4531 Dry Dock St (6)": [874.56, -2101.78],
+        "8754 Route 68 (6)": [54.123, 2754.543],
+        "870 Route 68 Approach (6)": [54.123, 2754.543],
+
+        // --- Low End (2) ---
+        "0897 Mirror Park Blvd (2)": [1148.123, -407.543],
+        "Garage Innocence Blvd (2)": [785.123, -2250.543],
+        "634 Blvd Del Perro (2)": [785.123, -2250.543],
+        "12 Little Bighorn Ave (2)": [785.123, -2250.543],
+        "1920 Senora Way (2)": [785.123, -2250.543],
+        "2000 Great Ocean Hwy (2)": [-3156.432, 1111.765],
+        "0754 Roy Lowenstein Blvd (2)": [405.876, -1707.234],
+        "197 Route 68 (2)": [54.123, 2754.543],
+        "1200 Route 68 (2)": [54.123, 2754.543],
+        "1932 Grapeseed Ave (2)": [785.123, -2250.543],
+        "142 Paleto Blvd (2)": [785.123, -2250.543],
+        "1 Strawberry Ave (2)": [785.123, -2250.543],
+        "Popular St, Unit 124 (2)": [805.234, -1507.876]
     },
-    // 2. DEPENDENT MATCHES
+    
+    // 2. DEPENDENT MATCHES (Vehicles parked inside other properties)
     dependent: {
         "Terrorbyte": "Nightclub (31)",
         "Avenger": "Facility (7)",
         "MOC": "Bunker",
-        "Office Garage 1 (20)": "Office",
-        "Office Garage 2 (20)": "Office",
-        "Office Garage 3 (20)": "Office"
+        "CEO Office Garage: Level 1 (20)": "Office",
+        "CEO Office Garage: Level 2 (20)": "Office",
+        "CEO Office Garage: Level 3 (20)": "Office"
     },
-    // 3. CLUSTERS (High-End Apartment Buildings)
+    
+    // 3. CLUSTERS (High-End Towers & Stilt Houses)
     clusters: {
-        "Eclipse Towers": [-773, 312], 
-        "Richards Majestic": [-914, -378],
-        "Tinsel Towers": [-618, 40],
-        "4 Integrity Way": [-38, -586],
-        "Del Perro Heights": [-1442, -545],
-        "Weazel Plaza": [-796, -209],
-        "3 Alta St": [-267, -962],
-        "Dream Tower": [-900, -450],
-        "Las Lagunas Blvd": [-600, -200],
-        "Power St": [500, -500],
-        "North Conker Ave": [-650, 600],
-        "Mad Wayne Thunder Dr": [-550, 500],
-        "Milton Rd": [-800, 300],
-        "Hillcrest Ave": [-500, 700],
-        "Wild Oats Dr": [-100, 800],
-        "South Rockford Dr": [-1000, -1000],
-        "Popular St": [800, -1500],
-        "South Shambles St": [785, -2250],
-        "Route 68": [50, 2750],
-        "Roy Lowenstein Blvd": [400, -1700]
+        "Eclipse Towers": [-786.866, 315.764], // RAGE MP
+        "Richards Majestic": [-914.86, -378.32], // altV
+        "Tinsel Towers": [-618.30, 40.56], // altV
+        "4 Integrity Way": [-35.312, -580.419], // RAGE MP
+        "Del Perro Heights": [-1468.140, -541.815], // RAGE MP
+        "Weazel Plaza": [-796.80, -209.60], // altV
+        "3 Alta St Tower": [-267.30, -962.50], // altV
+        "Dream Tower": [-898.12, -446.34], 
+        "2044 North Conker Ave": [340.941, 437.179], // RAGE MP
+        "2045 North Conker Ave": [340.941, 437.179], // RAGE MP
+        "2113 Mad Wayne Thunder Dr": [-1288.12, 440.748], // RAGE MP
+        "2117 Milton Rd": [-805.12, 298.54],
+        "2862 Hillcrest Ave": [-676.127, 588.612], // RAGE MP
+        "2866 Hillcrest Ave": [-676.127, 588.612], // RAGE MP
+        "2868 Hillcrest Ave": [-676.127, 588.612], // RAGE MP
+        "2874 Hillcrest Ave": [-676.127, 588.612], // RAGE MP
+        "3655 Wild Oats Dr": [-169.286, 486.493], // RAGE MP
+        "3677 Whispymound Dr": [-805.12, 298.54],
+        "South Rockford Dr": [-1002.51, -1005.14],
+        "Popular St": [805.23, -1507.87],
+        "South Shambles St": [785.12, -2250.54],
+        "Route 68": [54.12, 2754.54],
+        "Roy Lowenstein Blvd": [405.87, -1707.23]
     },
-    // 4. DYNAMIC BUSINESSES (Exterior Map Blips)
+    
+    // 4. DYNAMIC BUSINESSES
     dynamic: {
-        "Office": { "Maze Bank West (Del Perro)": [-1380, -478], "Arcadius Business Center": [-140, -620], "Lombank West": [-1580, -560], "Maze Bank Tower": [-70, -800] },
-        "Agency (20)": { "Little Seoul": [-1100, -850], "Rockford Hills": [-800, -250], "Vespucci Canals": [-1100, -1350], "Hawick": [350, 100] },
-        "Nightclub (31)": { "Del Perro": [-1283, -649], "Vespucci Canals": [-1174, -1152], "Strawberry": [-124, -1257], "Mission Row": [345, -978], "La Mesa": [757, -1332], "Cypress Flats": [874, -2101], "LSIA": [-673, -2466], "Elysian Island": [195, -3170], "Downtown Vinewood": [373, 252], "West Vinewood": [5, 221] },
-        "Arcade (10)": { "Eight-Bit (Vinewood)": [300, 150], "Videogeddon (La Mesa)": [750, -1350], "Insert Coin (Del Perro)": [-1350, -500], "Wonderama (Grapeseed)": [2450, 4800], "Pixel Pete's (Paleto Bay)": [-150, 6300], "Warehouse (Davis)": [150, -1700] },
-        "Auto Shop (10)": { "Mission Row": [400, -1000], "Strawberry": [-100, -1300], "Rancho": [400, -1800], "Burton": [-350, -150], "La Mesa": [750, -1500] },
-        "Salvage Yard (2)": { "La Puerta": [-1000, -1400], "Strawberry": [-200, -1200], "Murrieta Heights": [1000, -400], "Paleto Bay": [-200, 6200], "Sandy Shores": [1800, 3300] },
-        "Bail Enforcement (2)": { "Downtown Vinewood": [350, 200], "Del Perro": [-1300, -600], "Mission Row": [400, -1000], "Paleto Bay": [-150, 6200] },
-        "Facility (7)": { "Grand Senora Desert": [850, 3000], "Route 68": [50, 2750], "Sandy Shores": [2000, 3300], "Mount Gordo": [2800, 5300], "Paleto Bay": [-150, 6300], "Lago Zancudo": [-3000, 3300], "Zancudo River": [-2000, 2800], "Ron Alternates": [2300, 3200], "Land Act Reservoir": [1200, 500] },
-        "Bunker": { "Chumash": [-3157, 1376], "Farmhouse": [1571, 2225], "Route 68": [48, 2761], "Grand Senora Desert": [848, 3004], "Smoke Tree Road": [2110, 3326], "Thomson Scrapyard": [2496, 3163], "Grapeseed": [2452, 4786], "Paleto Forest": [-690, 5334], "Raton Canyon": [-369, 4324], "Lago Zancudo": [-3030, 3334] },
-        "Clubhouse (10)": { "Del Perro Beach": [-1350, -700], "Vespucci Beach": [-1100, -1350], "Rancho": [400, -1800], "La Mesa": [750, -1500], "Pillbox Hill": [200, -1000], "Downtown Vinewood": [350, 200], "Hawick": [350, 100], "Sandy Shores": [1800, 3300], "Grapeseed": [2450, 4800], "Paleto Bay": [-150, 6200] }
+        "Office": { 
+            "Maze Bank West": [-1392.667, -480.473], // RAGE MP
+            "Arcadius Business Center": [-141.198, -620.913], // RAGE MP
+            "Lombank West": [-1579.756, -565.066], // RAGE MP
+            "Maze Bank Tower": [-75.846, -826.989] // RAGE MP
+        },
+        "Nightclub (31)": { 
+            "Cypress Flats": [874.56, -2101.78], 
+            "Del Perro": [-1283.45, -649.12], 
+            "Downtown Vinewood": [373.45, 252.67], 
+            "Elysian Island": [195.23, -3170.45], 
+            "La Mesa": [757.12, -1332.45], 
+            "LSIA": [-673.89, -2466.12], 
+            "Mission Row": [345.78, -978.23], 
+            "Strawberry": [-124.34, -1257.56], 
+            "Vespucci Canals": [-1174.67, -1152.89], 
+            "West Vinewood": [5.12, 221.89] 
+        },
+        "Bunker (1)": { 
+            "Chumash": [-3180.466, 1374.192], // RAGE MP
+            "Farmhouse": [1570.372, 2254.549], // RAGE MP
+            "Grand Senora Desert": [848.617, 2996.567], // RAGE MP
+            "Grand Senora Oilfields": [1174.56, 3012.34], 
+            "Grapeseed": [1823.961, 4708.140], // RAGE MP
+            "Lago Zancudo": [-3058.714, 3329.190], // RAGE MP
+            "Paleto Forest": [-783.075, 5934.686], // RAGE MP
+            "Raton Canyon": [-391.321, 4363.728], // RAGE MP
+            "Route 68": [24.435, 2959.705], // RAGE MP
+            "Smoke Tree Rd": [2126.785, 3335.040], // RAGE MP
+            "Thomson Scrapyard": [2493.654, 3140.399] // RAGE MP
+        },
+        "Facility (7)": { 
+            "Paleto Bay": [18, 6828], // User Confirmed
+            "Mount Gordo": [3390, 5510], // User Confirmed
+            "Sandy Shores": [2750, 3910], // User Confirmed
+            "Zancudo River": [-4, 3345], // User Confirmed
+            "Lago Zancudo": [-2230, 2400], // User Confirmed
+            "Route 68": [34, 2630], // User Confirmed
+            "Grand Senora Desert": [1275, 2840], // User Confirmed
+            "RON Alternates Wind Farm": [2085, 1760], // User Confirmed
+            "Land Act Reservoir": [1865, 270] // User Confirmed
+        },
+        "Clubhouse (10)": { 
+            "Paleto Bay 1 (1 Paleto Blvd)": [-120.45, 6420.12], 
+            "Rancho (1334 Roy Lowenstein Blvd)": [400.56, -1815.34], 
+            "La Mesa (137 Capital Blvd)": [755.34, -1500.12], 
+            "Hawick (1778 Hawick Ave)": [417.56, 126.34], 
+            "Grapeseed (2111 East Joshua Rd)": [2276.89, 4811.56], 
+            "Downtown Vinewood (2214 Clinton Ave)": [388.78, 255.67], 
+            "Sandy Shores (47 Algonquin Blvd)": [1772.12, 3302.78], 
+            "Vespucci Beach (4 Goma St)": [-1122.78, -1371.56], 
+            "Paleto Bay 2 (68 Paleto Blvd)": [-330.67, 6210.34], 
+            "Del Perro Beach (7 Del Perro Beach)": [-1323.12, -719.89],
+            "Pillbox Hill (75 Elgin Ave)": [234.12, -1004.89], 
+            "Great Chaparral (101 Route 68)": [71.34, 2743.12]
+        },
+        "Agency (20)": { 
+            "Hawick": [388.12, 114.34],
+            "Little Seoul": [-585, -715], // User Confirmed
+            "Rockford Hills": [-802.12, -243.34], 
+            "Vespucci Canals": [-1204.56, -1314.78]
+        },
+        "Arcade (10)": { 
+            "Eight-Bit": [-600, 285], // User Confirmed
+            "Insert Coin": [-1280, -300], // User Confirmed
+            "Pixel Pete's": [-230, 6240], // User Confirmed
+            "Videogeddon": [740, -820], // User Confirmed
+            "Warehouse": [-105, -1800], // User Confirmed
+            "Wonderama": [1700, 4790] // User Confirmed
+        },
+        "Auto Shop (10)": { 
+            "Burton": [-200, -30], // User Confirmed
+            "La Mesa": [740, -690], // User Confirmed
+            "Mission Row": [480, -900], // User Confirmed
+            "Rancho": [230, -1865], // User Confirmed
+            "Strawberry": [-145, -1335] // User Confirmed
+        },
+        "Salvage Yard (2)": { 
+            "La Puerta": [-512, -1735], // User Confirmed
+            "Murrieta Heights": [1190, -1260], // User Confirmed
+            "Paleto Bay": [-192, 6270], // User Confirmed
+            "Sandy Shores": [2500, 4110], // User Confirmed
+            "Strawberry": [-15, -1330] // User Confirmed
+        },
+        "Bail Enforcement (3)": { 
+            "Davis": [130, -1700], // User Confirmed
+            "Del Perro": [-1415, -650], // User Confirmed
+            "Downtown Vinewood": [110, 8], // User Confirmed
+            "Mission Row": [480, -935], // User Confirmed
+            "Paleto Bay": [-60, 6530] // User Confirmed
+        }
     }
 };
 
@@ -1591,7 +1764,17 @@ const MAP_ICONS = {
                 return;
             }
 
+            // Safety timeout for silent refresh
+            const timeoutId = setTimeout(() => {
+                if (isRefreshingToken) {
+                    console.warn("Silent token refresh timed out after 10s");
+                    isRefreshingToken = null;
+                    reject("Refresh timeout");
+                }
+            }, 10000);
+
             tokenClient.callback = (tokenResponse) => {
+                clearTimeout(timeoutId);
                 isRefreshingToken = null;
                 if (tokenResponse && tokenResponse.access_token) {
                     refreshFailureCount = 0;
@@ -1616,7 +1799,13 @@ const MAP_ICONS = {
                     }
                 }
             };
-            tokenClient.requestAccessToken({ prompt: 'none' });
+            try {
+                tokenClient.requestAccessToken({ prompt: 'none' });
+            } catch (e) {
+                clearTimeout(timeoutId);
+                isRefreshingToken = null;
+                reject(e);
+            }
         });
         return isRefreshingToken;
     }
@@ -1787,6 +1976,7 @@ const MAP_ICONS = {
     function handleAuthClick() { 
         tokenClient.callback = (tokenResponse) => {
             if (tokenResponse && tokenResponse.access_token) {
+                refreshFailureCount = 0;
                 safeStorage.setItem('gta_gdrive_token', JSON.stringify({
                     token: tokenResponse.access_token,
                     expiresAt: Date.now() + (tokenResponse.expires_in * 1000)
@@ -1914,7 +2104,7 @@ const MAP_ICONS = {
                     if (!characters.find(c => c.id === activeCharId)) {
                         activeCharId = characters[0].id;
                         safeStorage.setItem('gta_active_char_v1', activeCharId);
-                        keys = getStorageKeys(); // Ensure keys are updated if fallback needed
+                        keys = getStorageKeys();
                     }
                 }
                 if (cloudSettings.accentColor) {
@@ -1938,8 +2128,11 @@ const MAP_ICONS = {
             driveFolders.images = await findOrCreateFolder('images', driveFolders.char);
         })();
         
-        await driveStructurePromise;
-        driveStructurePromise = null;
+        try {
+            await driveStructurePromise;
+        } finally {
+            driveStructurePromise = null;
+        }
     }
 
     async function checkInitialSync() {
@@ -2122,9 +2315,9 @@ const MAP_ICONS = {
                 // Clear the auto-refresh flag if sync succeeds
                 sessionStorage.removeItem('driveSyncAutoRefresh');
             } catch(e) { 
-                console.error(e); 
+                console.error("Initial sync/setup failed:", e); 
                 // Only show error if we are actually connected/authenticated
-                if (driveStatus === 'connected') {
+                if (driveStatus === 'connected' || driveStatus === 'expired') {
                     document.getElementById('cloudStatus').innerText = 'Error setting up Drive folders.'; 
                     hasDoneInitialSync = false;
                     
@@ -2135,7 +2328,7 @@ const MAP_ICONS = {
                         window.location.reload();
                     } else {
                         // Error persists after refresh
-                        alert("Error setting up Drive folders. If this persists, please manually logout and log back in to reset the connection.");
+                        alert("Error setting up Drive folders. If this persists, please manually logout and log back in to reset the connection.\n\nDetails: " + (e.message || e));
                         sessionStorage.removeItem('driveSyncAutoRefresh'); // Reset for next time
                     }
                 } else {
@@ -2143,10 +2336,19 @@ const MAP_ICONS = {
                 }
             }
         } else {
-             if (document.getElementById('cloudStatus').innerText.includes("Not signed in")) {
-                  document.getElementById('cloudStatus').innerText = 'Signed in. Folders mapped. Auto-sync active.';
-             }
-             fetchPublicShareId(); // Ensure it's fetched even if already synced
+            // Already triggered once, check if it's still initializing
+            if (driveStructurePromise) {
+                try { await driveStructurePromise; } catch(e) {}
+            }
+            const statusEl = document.getElementById('cloudStatus');
+            if (statusEl.innerText.includes("Not signed in") || statusEl.innerText === '' || statusEl.innerText.includes("Initializing")) {
+                 if (driveFolders.images) {
+                     statusEl.innerText = 'Signed in. Folders mapped. Auto-sync active.';
+                 } else if (hasDoneInitialSync) {
+                     statusEl.innerText = 'Signed in. Initializing Drive folders...';
+                 }
+            }
+            fetchPublicShareId(); // Ensure it's fetched even if already synced
         }
         updateCloudHeaderIcon();
     }
@@ -2509,11 +2711,11 @@ const MAP_ICONS = {
     function translateToLeaflet(gameX, gameY) {
         // The exact pixel location of the game's [0,0] origin on the Leaflet map
         const originX = 3753;
-        const originY = 2659;
+        const originY = 2675;
         
         // The averaged scale multipliers for this specific stitched image
         const scaleX = 0.662; 
-        const scaleY = 0.698;
+        const scaleY = 0.662;
         
         // Apply the offset and scale 
         const leafletX = Math.round((gameX * scaleX) + originX);
@@ -2521,6 +2723,19 @@ const MAP_ICONS = {
         
         // Return in standard Leaflet [Y, X] (Lat/Lng) format
         return [leafletY, leafletX]; 
+    }
+
+    function translateToGame(leafletY, leafletX) {
+        const originX = 3753;
+        const originY = 2675;
+        const scaleX = 0.662; 
+        const scaleY = 0.662;
+        
+        // GameX = (LeafletX - originX) / scaleX
+        const gameX = (leafletX - originX) / scaleX;
+        const gameY = (leafletY - originY) / scaleY;
+        
+        return [parseFloat(gameX.toFixed(3)), parseFloat(gameY.toFixed(3))];
     }
 
     // --- MAP FEATURE LOGIC ---
@@ -2540,7 +2755,7 @@ const MAP_ICONS = {
             maxBounds: mapBounds,
             maxBoundsViscosity: 1.0,
             minZoom: 0,
-            maxZoom: 5,
+            maxZoom: 6,
             attributionControl: false,
             zoomControl: false
         });
@@ -2550,10 +2765,24 @@ const MAP_ICONS = {
         L.tileLayer('https://raw.githubusercontent.com/insomanywords/MyGTAgarage-images/main/maps/tiles/{z}/{x}/{y}.png', {
             bounds: mapBounds,
             noWrap: true,
-            tileSize: 256
+            tileSize: 256,
+            maxNativeZoom: 5
         }).addTo(gtaMap);
 
         gtaMap.fitBounds(mapBounds);
+
+        // Update coordinates on move and click
+        const updateCoordsUI = (e) => {
+            const mapX = Math.round(e.latlng.lng);
+            const mapY = Math.round(e.latlng.lat);
+            const [gameX, gameY] = translateToGame(e.latlng.lat, e.latlng.lng);
+            
+            document.getElementById('mapCoords').innerText = `${mapX}, ${mapY}`;
+            document.getElementById('gameCoords').innerText = `${gameX}, ${gameY}`;
+        };
+
+        gtaMap.on('mousemove', updateCoordsUI);
+        gtaMap.on('click', updateCoordsUI);
 
         mapReady = true;
     }
@@ -2915,10 +3144,13 @@ const MAP_ICONS = {
         { key: "Penthouse Suite 2", target: "Eclipse Towers, Penthouse 2 (10)" }, 
         { key: "Penthouse Suite 3", target: "Eclipse Towers, Penthouse 3 (10)" }, 
         { key: "Vinewood Club", target: "Vinewood Club Garage (100)" },
+        { key: "The Vinewood Club Garage (100)", target: "Vinewood Club Garage (100)" },
         { key: "Eclipse Blvd", target: "Eclipse Blvd Garage (50)" },
         { key: "Richman", target: "Richman Villa (20)" },
-        { key: "Vinewood Residence", target: "The Vinewood Residence (20)" },
-        { key: "Tongva", target: "The Tongva Estate (20)" },
+        { key: "Vinewood Residence", target: "Vinewood Residence (20)" },
+        { key: "The Vinewood Residence (20)", target: "Vinewood Residence (20)" },
+        { key: "Tongva", target: "Tongva Estate (20)" },
+        { key: "The Tongva Estate (20)", target: "Tongva Estate (20)" },
         { key: "Office Garage 1", target: "Office Garage 1 (20)" },
         { key: "Office Garage 2", target: "Office Garage 2 (20)" },
         { key: "Office Garage 3", target: "Office Garage 3 (20)" },
@@ -2927,30 +3159,78 @@ const MAP_ICONS = {
         { key: "Arcade", target: "Arcade (10)" },
         { key: "Auto Shop", target: "Auto Shop (10)" },
         { key: "Salvage", target: "Salvage Yard (2)" },
-        { key: "Bail", target: "Bail Enforcement (2)" },
+        { key: "Bail", target: "Bail Enforcement (3)" },
         { key: "Clubhouse", target: "Clubhouse (10)" },
         { key: "Arena", target: "Arena Workshop (27)" },
+        { key: "Maze Bank Arena Workshop (31)", target: "Arena Workshop (27)" },
         { key: "Casino", target: "Casino Penthouse (10)" },
+        { key: "The Diamond Casino Master Penthouse (10)", target: "Casino Penthouse (10)" },
         { key: "Facility", target: "Facility (7)" },
-        { key: "Garment", target: "Garment Factory (10)" } 
+        { key: "Garment", target: "Garment Factory (10)" },
+        { key: "Darnell Bros Garment Factory (10)", target: "Garment Factory (10)" },
+        { key: "Kosatka Submarine (3)", target: "Kosatka (1)" },
+        { key: "Acid Lab (The Freakshop)", target: "Acid Lab" }
     ];
 
     const GARAGE_DATA = [
-        { grp: "Safehouses", items: ["Richman Villa (20)", "The Vinewood Residence (20)", "The Tongva Estate (20)"] },
+        { grp: "Safehouses", items: ["Richman Villa (20)", "Vinewood Residence (20)", "Tongva Estate (20)"] },
         { grp: "Massive", items: ["Vinewood Club Garage (100)", "Eclipse Blvd Garage (50)", "Office Garage 1 (20)", "Office Garage 2 (20)", "Office Garage 3 (20)"] },
-        { grp: "Apartments", items: ["Eclipse Towers, Penthouse 1 (10)", "Eclipse Towers, Penthouse 2 (10)", "Eclipse Towers, Penthouse 3 (10)", "Eclipse Towers, Apt 31 (10)", "Eclipse Towers, Apt 9 (10)", "Eclipse Towers, Apt 5 (10)", "Eclipse Towers, Apt 3 (10)", "Eclipse Towers, Apt 40 (10)", "Richards Majestic, Apt 51 (10)", "Richards Majestic, Apt 4 (10)", "Richards Majestic, Apt 2 (10)", "Tinsel Towers, Apt 42 (10)", "Tinsel Towers, Apt 29 (10)", "Tinsel Towers, Apt 45 (10)", "4 Integrity Way, Apt 30 (10)", "4 Integrity Way, Apt 35 (10)", "4 Integrity Way, Apt 28 (10)", "Del Perro Heights, Apt 7 (10)", "Del Perro Heights, Apt 20 (10)", "Del Perro Heights, Apt 4 (10)", "Weazel Plaza, Apt 101 (10)", "Weazel Plaza, Apt 70 (10)", "Weazel Plaza, Apt 26 (10)", "3 Alta St, Apt 10 (10)", "3 Alta St, Apt 57 (10)", "Dream Tower, Apt 15 (10)", "0604 Las Lagunas Blvd, Apt 4 (10)", "1162 Power St, Apt 3 (10)"] },
-        { grp: "Stilt Houses", items: ["2044 North Conker Ave (10)", "2045 North Conker Ave (10)", "2113 Mad Wayne Thunder Dr (10)", "2117 Milton Rd (10)", "2862 Hillcrest Ave (10)", "2868 Hillcrest Ave (10)", "2874 Hillcrest Ave (10)", "3655 Wild Oats Dr (10)", "3677 Milton Rd (10)"] },
-        { grp: "Standard Apts", items: ["0112 South Rockford Dr, Apt 13 (6)", "2057 Vespucci Canals, Apt 1 (6)", "0115 Bay City Ave, Apt 45 (6)", "0069 Cougar Ave, Apt 19 (6)", "1237 Prosperity St, Apt 21 (6)", "1561 San Vitas St, Apt 2 (6)", "1115 Blvd Del Perro, Apt 18 (6)", "0184 Milton Rd, Apt 13 (6)", "0325 South Rockford Dr (6)", "0605 Spanish Ave, Apt 1 (6)", "0120 Murrieta Heights (2)", "0432 Davis Ave (2)", "0504 South Mo Milton Dr (2)", "1893 Grapeseed Ave (2)", "1920 Senate St (2)", "1970 Popular St (2)", "2143 Las Lagunas Blvd (2)", "0012 Adam's Apple Blvd (2)", "1117 Milton Rd (2)"] },
-        { grp: "Garage Units", items: ["Unit 124 Popular St (10)", "Unit 14 Popular St (10)", "1623 South Shambles St (10)", "1337 Exceptionalists Way (10)", "Unit 1 Furnished (6)", "Unit 2 Popular St (6)", "870 Route 68 (6)", "8754 Route 68 (6)", "1200 Route 68 (6)", "0552 Roy Lowenstein Blvd (2)", "0602 Roy Lowenstein Blvd (2)", "1623 South Shambles St (2)", "1920 Senate St (2)", "2000 Great Ocean Hwy (2)"] },
-        { grp: "Business", items: ["Agency (20)", "Nightclub (31)", "Arcade (10)", "Auto Shop (10)", "Salvage Yard (2)", "Bail Enforcement (2)", "Clubhouse (10)", "Garment Factory (10)"] },
-        { grp: "Special", items: ["Arena Workshop (27)", "Casino Penthouse (10)", "Facility (7)", "Bunker", "Kosatka", "Terrorbyte", "Acid Lab", "Avenger", "MOC"] }
+        { grp: "Apartments", items: [
+            "Eclipse Towers, Penthouse 1 (10)", "Eclipse Towers, Penthouse 2 (10)", "Eclipse Towers, Penthouse 3 (10)", 
+            "Eclipse Towers, Apt 31 (10)", "Eclipse Towers, Apt 40 (10)", "Eclipse Towers, Apt 5 (10)", "Eclipse Towers, Apt 9 (10)", "Eclipse Towers, Apt 3 (10)",
+            "Weazel Plaza, Apt 101 (10)", "Weazel Plaza, Apt 70 (10)", "Weazel Plaza, Apt 26 (10)",
+            "Tinsel Towers, Apt 29 (10)", "Tinsel Towers, Apt 45 (10)", "Tinsel Towers, Apt 42 (10)",
+            "Richards Majestic, Apt 51 (10)", "Richards Majestic, Apt 4 (10)", "Richards Majestic, Apt 2 (10)",
+            "4 Integrity Way, Apt 35 (10)", "4 Integrity Way, Apt 30 (10)", "4 Integrity Way, Apt 28 (10)",
+            "Del Perro Heights, Apt 20 (10)", "Del Perro Heights, Apt 7 (10)", "Del Perro Heights, Apt 4 (10)",
+            "3 Alta St, Apt 57 (10)", "3 Alta St, Apt 10 (10)",
+            "Dream Tower, Apt 15 (6)", 
+            "1162 Power St, Apt 3 (6)",
+            "0605 Spanish Ave, Apt 1 (6)",
+            "0604 Las Lagunas Blvd, Apt 4 (6)",
+            "The Royale, Apt 19 (6)",
+            "4 Hangman Ave (6)",
+            "4401 Procopio Dr (6)",
+            "4584 Procopio Dr (6)",
+            "0115 Bay City Ave, Apt 45 (6)",
+            "0184 Milton Rd, Apt 13 (6)",
+            "12 Sustancia Rd (6)",
+            "0504 South Mo Milton Dr (6)",
+            "0325 South Rockford Dr (6)",
+            "0232 Paleto Blvd (2)",
+            "140 Zancudo Ave (2)",
+            "1893 Grapeseed Ave (2)",
+            "2143 Las Lagunas Blvd, Apt 9 (2)",
+            "0069 Cougar Ave, Apt 19 (2)",
+            "1237 Prosperity St, Apt 21 (2)",
+            "1561 San Vitas St, Apt 2 (2)",
+            "1115 Blvd Del Perro, Apt 18 (2)",
+            "2057 Vespucci Blvd, Apt 1 (2)",
+            "0112 South Rockford Dr, Apt 13 (2)"
+        ] },
+        { grp: "Stilt Houses", items: [
+            "2044 North Conker Ave (10)", "2045 North Conker Ave (10)", "2113 Mad Wayne Thunder Dr (10)", 
+            "2117 Milton Rd (10)", "2862 Hillcrest Ave (10)", "2866 Hillcrest Ave (10)", "2868 Hillcrest Ave (10)", 
+            "2874 Hillcrest Ave (10)", "3655 Wild Oats Dr (10)", "3677 Whispymound Dr (10)"
+        ] },
+        { grp: "Garage Units", items: [
+            "0120 Murrieta Heights (10)", "Popular St, Unit 2 (10)", "331 Supply St (10)", "Greenwich Pkwy, Unit 76 (10)", 
+            "1337 Exceptionalists Way (10)", "1623 South Shambles St (10)",
+            "0552 Roy Lowenstein Blvd (6)", "Popular St, Unit 14 (6)", "1905 Davis Ave (6)", "0432 Davis Ave (6)", 
+            "Olympic Fwy, Unit 1 (6)", "4531 Dry Dock St (6)", "8754 Route 68 (6)", "870 Route 68 Approach (6)",
+            "0897 Mirror Park Blvd (2)", "Garage Innocence Blvd (2)", "634 Blvd Del Perro (2)", "12 Little Bighorn Ave (2)", 
+            "1920 Senora Way (2)", "2000 Great Ocean Hwy (2)", "0754 Roy Lowenstein Blvd (2)", "197 Route 68 (2)", 
+            "1200 Route 68 (2)", "1932 Grapeseed Ave (2)", "142 Paleto Blvd (2)", "1 Strawberry Ave (2)", "Popular St, Unit 124 (2)"
+        ] },
+        { grp: "Business", items: ["Agency (20)", "Nightclub (31)", "Arcade (10)", "Auto Shop (10)", "Salvage Yard (2)", "Bail Enforcement (3)", "Clubhouse (10)", "Garment Factory (10)"] },
+        { grp: "Special", items: ["Arena Workshop (27)", "Casino Penthouse (10)", "Facility (7)", "Bunker (1)", "Kosatka (1)", "Terrorbyte", "Acid Lab", "Avenger", "MOC"] }
     ];
 
     const CAPACITIES = {
         "Vinewood Club": 100, "Eclipse Blvd": 50, "Office": 20, "Agency": 20, "Nightclub": 31, 
         "Arena Workshop": 27, "Facility": 7, "Arcade": 10, "Auto Shop": 10, "Richman Villa": 20,
-        "Vinewood Residence": 20, "Tongva Estate": 20, "Salvage Yard": 2, "Bail Enforcement": 2, 
-        "Clubhouse": 10, "Garment Factory": 10, "Terrorbyte": 1, "Bunker": 1, "DEFAULT": 10
+        "Vinewood Residence": 20, "Tongva Estate": 20, "Salvage Yard": 2, "Bail Enforcement": 3, 
+        "Clubhouse": 10, "Garment Factory": 10, "Terrorbyte": 1, "Bunker": 1, "Kosatka": 1, "DEFAULT": 10
     };
 
     const FLOOR_MAP = {
@@ -2980,9 +3260,11 @@ const MAP_ICONS = {
         if (loc.includes("Arena")) return 9;
         
         if (loc.includes("Nightclub") && floor === "Service Entrance") return 1;
-        if (loc.includes("Salvage") || loc.includes("Bail")) return 2;
+        if (loc.includes("Salvage")) return 2;
+        if (loc.includes("Bail")) return 3;
         if (loc.includes("Facility")) return 7;
-        if (loc.includes("Terrorbyte") || loc.includes("Bunker")) return 1;
+        if (loc.includes("Terrorbyte") || loc.includes("Acid Lab") || loc.includes("MOC")) return 1;
+        if (loc.includes("Bunker") || loc.includes("Kosatka")) return 1;
 
         // Auto-detect capacity from name for non-special types
         if (loc.includes("(6)")) return 6;
