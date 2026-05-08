@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.63.4</title>
+    <title>My GTA Garage v1.64.0</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -452,6 +452,7 @@
             <button id="tabBtn_share" class="tab-btn" onclick="switchSettingsTab('share')">Share Settings</button>
             <button id="tabBtn_local" class="tab-btn" onclick="switchSettingsTab('local')">Local Data</button>
             <button id="tabBtn_theme" class="tab-btn" onclick="switchSettingsTab('theme')">App Settings</button>
+            <button id="tabBtn_plates" class="tab-btn" onclick="switchSettingsTab('plates')">Custom Plates</button>
         </div>
 
         <div id="tabContent_chars" class="tab-content active">
@@ -571,6 +572,14 @@
             <div class="form-section" style="border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05);">
                 <span class="label" style="color: var(--wep);">Danger Zone</span>
                 <button class="btn-sec" style="width:100%; color: var(--wep); border-color: rgba(239,68,68,0.5);" onclick="factoryReset()">Factory Reset All Data</button>
+            </div>
+        </div>
+
+        <div id="tabContent_plates" class="tab-content">
+            <div class="form-section">
+                <span class="label">Custom Plate Text</span>
+                <p style="font-size:0.8rem; color:#aaa; margin-top:0;">Enter up to 8 characters to apply by default to all vehicle license plates.</p>
+                <input type="text" id="defaultPlateInput" maxlength="8" class="input" style="width:100%; text-transform: uppercase;" placeholder="OUTATIME" onkeyup="saveDefaultPlateText()">
             </div>
         </div>
 
@@ -821,7 +830,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.63.4</div>
+        <div class="modal-title">About My GTA Garage v1.64.0</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1071,15 +1080,20 @@
                 </label>
             </div>
             
-            <div class="modal-row" style="margin-bottom:0;">
+            <div class="modal-row" style="margin-bottom:15px;">
                 <div><span class="label">Wheels</span><select id="inWheels"><option value="Stock">Stock</option><option value="F1">F1 Wheels</option><option value="Benny">Benny's</option></select></div>
-                <div><span class="label">Plate</span><select id="inPlate">
+                <div><span class="label">Plate Background</span><select id="inPlate">
                     <option value="Standard">Standard</option><option value="Yankton">Yankton</option>
                     <option value="LS Car Meet">LS Car Meet</option>
                     <option value="Liberty City">Liberty City</option><option value="Panic">Panic</option>
                     <option value="Pounders">Pounders</option><option value="Las Venturas">Las Venturas</option>
                     <option value="E-Cola">E-Cola</option><option value="Sprunk">Sprunk</option>
                 </select></div>
+            </div>
+            
+            <div class="form-group" style="margin-bottom:15px;">
+                <span class="label">Plate Text</span>
+                <input type="text" id="inPlateText" maxlength="8" class="input" style="width:100%; text-transform:uppercase;" placeholder="OUTATIME">
             </div>
         </div>
 
@@ -1236,7 +1250,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.63.4 (Current)</strong><br>• Updated map markers to dynamically group multiple properties (like Office garages and apartment towers) into a single map pin with a scrollable list.</p>
+            <p><strong>v1.64.0 (Current)</strong><br>• Increased the size of license plate images in the detail card for better visibility while maintaining optimal text proportions.</p>
+            <p><strong>v1.63.4</strong><br>• Custom License Plates! Add a custom 8-character plate text overlay for your large vehicle detail cards.<br>• Set a default Custom Plate globally via the new "Custom Plates" tab in Settings, and override it per-vehicle.<br>• Updated map markers to dynamically group multiple properties (like Office garages and apartment towers) into a single map pin with a scrollable list.</p>
             <p><strong>v1.63.3</strong><br>• Removed 10-second timeout from token refresh mechanism as it interfered with the intended sign-in process.<br>• Reverted token refresh to the flawlessly working v1.62.15 behavior.<br>• Verified vehicle manufacturer logos render correctly on small and large cards.<br>• Increased the size of vehicle manufacturer logos across all card types for better visibility.</p>
             <p><strong>v1.63.2</strong><br>• Fixed naming of "The Vinewood Residence" and "The Tongva Estate" to prevent data migration issues for existing users.<br>• Updated coordinate lookups and capacities to account for the corrected naming convention.<br>• Optimized map icon logic to ensure markers accurately reflect location types (e.g., house icons for mansions).<br>• Improved "Group by: Garages" view to organize properties by type followed by alphabetical order.<br>• Added visual feedback for active advanced filters; the filter icon now highlights when filters are applied.<br>• Enhanced garage name normalization for more reliable data mapping and coordinate lookups.</p>
             <p><strong>v1.63.1</strong><br>• Updated Bunker and Kosatka capacity to 1 vehicle (MOC and Kosatka Sparrow/Kraken/etc. equivalents).<br>• User-confirmed coordinates for "Eclipse Blvd Garage (50)" and "Richman Villa (20)".<br>• Fine-tuned map coordinate origin and translation logic for improved pin placement accuracy.</p>
@@ -1361,6 +1376,47 @@
     function getManufLogo(manuf) {
         if (!manuf || manuf === "Custom") return "";
         return `${LOGO_BASE_URL}${manuf.toLowerCase().replace(/\s+/g, '-')}.png`;
+    }
+
+    function getPlateHtml(plateType, userText) {
+        const map = {
+            "E-Cola": "ecola.png",
+            "Las Venturas": "lasventuras.png",
+            "Liberty City": "libertycity.png",
+            "LS Car Meet": "lscm.png",
+            "Panic": "panic.png",
+            "Pounders": "pounders.png",
+            "Standard": "sanandreas1.png",
+            "Sprunk": "sprunk.png",
+            "Yankton": "yankton.png"
+        };
+        const fileName = map[plateType] || map["Standard"];
+        const imgUrl = `${BASE_URL}plates/${fileName}`;
+        
+        let text = userText || safeStorage.getItem('gta_default_plate') || 'OUTATIME';
+        text = text.substring(0, 8).toUpperCase();
+        
+        let textColor = '#1f2b47'; // default for San Andreas (blue)
+        if (plateType === 'Panic') textColor = '#e8d223'; // Panic yellow
+        else if (plateType === 'Pounders') textColor = '#e8d223'; // Yellow
+        else if (plateType === 'E-Cola') textColor = '#fff'; // White
+        else if (plateType === 'Las Venturas') textColor = '#1b325f'; // Blue
+        else if (plateType === 'LS Car Meet') textColor = '#111'; // Black
+        else if (plateType === 'Liberty City') textColor = '#1b325f'; // Blue
+        else if (plateType === 'Sprunk') textColor = '#fff'; // White
+        else if (plateType === 'Yankton') textColor = '#132644'; // Dark Blue
+        else if (plateType === 'Standard') textColor = '#1b325f'; // Blue
+        
+        return `<div style="margin-top:2px; margin-bottom:12px; display:inline-block;">
+            <div style="padding:0; background:transparent; display:inline-flex; align-items:center; justify-content:center; position:relative; width:auto; border:none; box-shadow:0 0 3px rgba(0,0,0,0.5); border-radius:4px;">
+                <img src="${imgUrl}" style="height:46px; width:auto; display:block; border-radius:4px;" alt="${plateType}">
+                <div style="position:absolute; top:54%; left:50%; transform:translate(-50%, -50%); width: 100%; text-align: center;
+                            font-family: 'Arial Heavy', 'Arial Black', Impact, sans-serif; font-size: 13px; 
+                            color: ${textColor}; letter-spacing: 1px; white-space: nowrap; font-weight:900;">
+                    ${text}
+                </div>
+            </div>
+        </div>`;
     }
 
     const RAW_GAME_COORDINATES = {
@@ -2705,6 +2761,11 @@ const MAP_ICONS = {
         handleThemeColorChange('#9b59b6');
     }
 
+    function saveDefaultPlateText() {
+        const val = document.getElementById('defaultPlateInput').value.toUpperCase().substring(0, 8);
+        safeStorage.setItem('gta_default_plate', val);
+    }
+
     // --- SETTINGS TABS ---
     function switchSettingsTab(tab) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -2714,6 +2775,7 @@ const MAP_ICONS = {
         if (tab === 'gamertag') renderGamertagSettings();
         if (tab === 'share') checkPublicPermissions();
         if (tab === 'map') renderMapSettings();
+        if (tab === 'plates') document.getElementById('defaultPlateInput').value = safeStorage.getItem('gta_default_plate') || 'OUTATIME';
     }
 
     function translateToLeaflet(gameX, gameY) {
@@ -3752,7 +3814,9 @@ const MAP_ICONS = {
         if(v.isImani) badges += `<span class="detail-badge imani">IMANI TECH</span> `;
         if(v.wheels === 'F1') badges += `<span class="detail-badge f">F1 WHEELS</span> `;
         if(v.wheels?.includes('Benny')) badges += `<span class="detail-badge b">BENNY'S</span> `;
-        if(v.plate && v.plate !== 'Standard') badges += `<span class="detail-badge">${v.plate} PLATE</span>`;
+        
+        let plateDisplay = "";
+        if(v.plate && v.plate !== 'Standard') plateDisplay = getPlateHtml(v.plate, v.plateText);
         
         let priceHtml = "";
         if(v.lscmPrice || v.sellPrice) {
@@ -3781,6 +3845,7 @@ const MAP_ICONS = {
                 ${!isViewOnly ? `<button id="detailEditBtn" class="action-btn" style="color:#fff; background:rgba(255,255,255,0.1); border-radius:6px; margin-left:10px; flex-shrink:0;" onclick="closeModal('detailModal'); editVehicle('${v.id}')"><i class="fas fa-pencil-alt"></i></button>` : ''}
             </div>
             <div style="margin-bottom:15px; display:flex; flex-wrap:wrap; gap:5px;">${badges}</div>
+            ${plateDisplay}
             <div class="detail-row"><span class="detail-chip"><i class="fas fa-tag"></i> ${(db.class||v.class||'-').replace(/_/g, ' ')}</span><span class="detail-chip"><i class="fas fa-cog"></i> ${db.drive||v.drive||'-'}</span><span class="detail-chip"><i class="fas fa-user"></i> ${db.seats||v.seats||'2'} Seats</span>${v.isWeapon ? `<span class="detail-chip"><i class="fas fa-crosshairs"></i> Weapon</span>` : ''}${v.isHsw ? `<span class="detail-chip"><i class="fas fa-tachometer-alt"></i> HSW</span>` : ''}${v.isDrift ? `<span class="detail-chip"><i class="fas fa-wind"></i> Drift</span>` : ''}${v.isImani ? `<span class="detail-chip"><i class="fas fa-shield-alt"></i> Imani</span>` : ''}</div>
             <div class="detail-loc" style="cursor:pointer" onclick="closeModal('detailModal'); openMapModal('${v.loc.replace(/'/g, "\\'")}')">
                 <div style="font-size:0.8rem; color:#888; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
@@ -4048,6 +4113,7 @@ const MAP_ICONS = {
         document.getElementById('inImani').checked = v.isImani || false; 
         document.getElementById('inWheels').value = v.wheels||"Stock";
         document.getElementById('inPlate').value = v.plate||"Standard";
+        document.getElementById('inPlateText').value = v.plateText || safeStorage.getItem('gta_default_plate') || "OUTATIME";
         
         document.getElementById('inLscmPrice').value = v.lscmPrice ? Number(v.lscmPrice).toLocaleString('en-US') : "";
         document.getElementById('inSellPrice').value = v.sellPrice ? Number(v.sellPrice).toLocaleString('en-US') : "";
@@ -4099,6 +4165,7 @@ const MAP_ICONS = {
         document.getElementById('inImani').checked = v.isImani || false; 
         document.getElementById('inWheels').value = v.wheels||"Stock";
         document.getElementById('inPlate').value = v.plate||"Standard";
+        document.getElementById('inPlateText').value = v.plateText || safeStorage.getItem('gta_default_plate') || "OUTATIME";
         
         document.getElementById('inLscmPrice').value = v.lscmPrice ? Number(v.lscmPrice).toLocaleString('en-US') : "";
         document.getElementById('inSellPrice').value = v.sellPrice ? Number(v.sellPrice).toLocaleString('en-US') : "";
@@ -4301,6 +4368,7 @@ const MAP_ICONS = {
             isImani: document.getElementById('inImani').checked,
             wheels: document.getElementById('inWheels').value,
             plate: document.getElementById('inPlate').value,
+            plateText: document.getElementById('inPlateText').value.toUpperCase(),
             lscmPrice: document.getElementById('inLscmPrice').value.replace(/\D/g, ''),
             sellPrice: document.getElementById('inSellPrice').value.replace(/\D/g, ''),
             notes: document.getElementById('inNotes').value,
@@ -4689,7 +4757,9 @@ const MAP_ICONS = {
         if(v.isImani) badges += `<span class="detail-badge imani">IMANI TECH</span> `;
         if(v.wheels === 'F1') badges += `<span class="detail-badge f">F1 WHEELS</span> `;
         if(v.wheels?.includes('Benny')) badges += `<span class="detail-badge b">BENNY'S</span> `;
-        if(v.plate && v.plate !== 'Standard') badges += `<span class="detail-badge">${v.plate} PLATE</span>`;
+        
+        let plateDisplay = "";
+        if(v.plate && v.plate !== 'Standard') plateDisplay = getPlateHtml(v.plate, v.plateText);
 
         let priceHtml = "";
         if(v.lscmPrice || v.sellPrice) {
@@ -4716,6 +4786,7 @@ const MAP_ICONS = {
             </div>
             <div class="detail-title" style="font-size:1.5rem; font-weight:800; margin-bottom:8px; color:#fff;">${v.model}</div>
             <div style="margin-bottom:10px; display:flex; flex-wrap:wrap; gap:5px;">${badges}</div>
+            ${plateDisplay}
             <div class="detail-row" style="display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
                 <span class="detail-chip" style="background:#252525; padding:4px 10px; border-radius:6px; font-size:0.8rem; border:1px solid #333; color:#ddd; display:flex; align-items:center; gap:6px;"><i class="fas fa-tag"></i> ${(db.class||v.class||'-').replace(/_/g, ' ')}</span>
                 <span class="detail-chip" style="background:#252525; padding:4px 10px; border-radius:6px; font-size:0.8rem; border:1px solid #333; color:#ddd; display:flex; align-items:center; gap:6px;"><i class="fas fa-cog"></i> ${db.drive||v.drive||'-'}</span>
@@ -5028,6 +5099,7 @@ const MAP_ICONS = {
         document.getElementById('inImani').checked = false; 
         document.getElementById('inWheels').value = "Stock";
         document.getElementById('inPlate').value = "Standard";
+        document.getElementById('inPlateText').value = safeStorage.getItem('gta_default_plate') || "OUTATIME";
         
         document.getElementById('inLscmPrice').value = "";
         document.getElementById('inSellPrice').value = "";
