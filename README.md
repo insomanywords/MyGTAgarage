@@ -1,6 +1,6 @@
 # My GTA Garage 🚗💨
 
-[![Version](https://img.shields.io/badge/version-1.63.4-blue.svg)](https://github.com/insomanywords/MyGTAgarage)
+[![Version](https://img.shields.io/badge/version-1.64.0-blue.svg)](https://github.com/insomanywords/MyGTAgarage)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **My GTA Garage** is the ultimate, offline-first, Progressive Web App (PWA) designed for Grand Theft Auto Online car collectors. It provides a clean, fast, and feature-rich interface to track, organize, and manage your massive vehicle fleets across multiple characters. 
@@ -15,7 +15,7 @@ Built with zero backend requirements, your data lives securely in your browser a
 
 ### 🏢 Comprehensive Vehicle Management
 * **Add/Edit Vehicles:** Track your Make, Model, Garage, and Floor location.
-* **Granular Details:** Assign exact Slot numbers, Plate types (Yankton, Liberty City, Panic, E-Cola, etc.), and Wheel types (Stock, F1, Benny's).
+* **Granular Details:** Assign exact Slot numbers, Plate types (Yankton, Liberty City, Panic, E-Cola, etc.), **Custom License Plate text overlay**, and Wheel types (Stock, F1, Benny's).
 * **Status Tags:** Instantly visually flag vehicles as **Favorite**, **Weaponized**, **HSW**, **Drift**, or **Imani Tech**.
 * **Financial Tracking:** Log the *LSCM Price* (Value) and *Sell Price* of your assets.
 * **Custom Images:** Ditch the stock photos! Upload your own custom screenshots. They auto-sync securely to your Google Drive to save local storage.
@@ -86,7 +86,7 @@ My GTA Garage utilizes **Google Identity Services (GIS)** and the **Google Drive
 
 ## 📝 Changelog
 
-See the in-app **About > View Changelog** modal for a detailed history of updates and bug fixes, including the latest **v1.63.4** improvements.
+See the in-app **About > View Changelog** modal for a detailed history of updates and bug fixes, including the latest **v1.64.0** improvements.
 
 ---
 
