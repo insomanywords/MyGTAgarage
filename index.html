@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.63.3</title>
+    <title>My GTA Garage v1.63.4</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -244,7 +244,7 @@
         .card-info { flex: 1; padding: 8px 12px; min-width: 0; display: flex; flex-direction: column; }
         .card-top { margin-bottom: 4px; padding-right: 75px; } 
         .card-manuf { font-size: 0.65rem; color: var(--accent); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; display: flex; align-items: center; gap: 4px; }
-        .manuf-logo { width: 14px; height: 14px; object-fit: contain; flex-shrink: 0; }
+        .manuf-logo { width: 18px; height: 18px; object-fit: contain; flex-shrink: 0; }
         .card-model { font-size: 1.05rem; font-weight: 700; color: #fff; line-height: 1.2; white-space: normal; word-wrap: break-word; }
         .card-chips { display: flex; gap: 5px; margin-bottom: 6px; flex-wrap: wrap; }
         .chip { background: #252525; color: #ccc; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; display: flex; align-items: center; gap: 4px; border: 1px solid #333; }
@@ -266,7 +266,7 @@
         .detail-img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .detail-title { font-size: 1.8rem; font-weight: 800; color: #fff; line-height: 1.2; margin-bottom: 5px; }
         .detail-manuf { color: var(--accent); font-weight: 700; text-transform: uppercase; font-size: 0.9rem; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
-        .detail-manuf .manuf-logo { width: 20px; height: 20px; }
+        .detail-manuf .manuf-logo { width: 28px; height: 28px; }
         .detail-row { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
         .detail-chip { background: #252525; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; color: #ddd; border: 1px solid #333; display: flex; align-items: center; gap: 6px; }
         .detail-loc { background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #333; margin-bottom: 15px; }
@@ -821,7 +821,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.63.3</div>
+        <div class="modal-title">About My GTA Garage v1.63.4</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1236,7 +1236,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.63.3 (Current)</strong><br>• Removed 10-second timeout from token refresh mechanism as it interfered with the intended sign-in process.<br>• Reverted token refresh to the flawlessly working v1.62.15 behavior.<br>• Verified vehicle manufacturer logos render correctly on small and large cards.</p>
+            <p><strong>v1.63.4 (Current)</strong><br>• Updated map markers to dynamically group multiple properties (like Office garages and apartment towers) into a single map pin with a scrollable list.</p>
+            <p><strong>v1.63.3</strong><br>• Removed 10-second timeout from token refresh mechanism as it interfered with the intended sign-in process.<br>• Reverted token refresh to the flawlessly working v1.62.15 behavior.<br>• Verified vehicle manufacturer logos render correctly on small and large cards.<br>• Increased the size of vehicle manufacturer logos across all card types for better visibility.</p>
             <p><strong>v1.63.2</strong><br>• Fixed naming of "The Vinewood Residence" and "The Tongva Estate" to prevent data migration issues for existing users.<br>• Updated coordinate lookups and capacities to account for the corrected naming convention.<br>• Optimized map icon logic to ensure markers accurately reflect location types (e.g., house icons for mansions).<br>• Improved "Group by: Garages" view to organize properties by type followed by alphabetical order.<br>• Added visual feedback for active advanced filters; the filter icon now highlights when filters are applied.<br>• Enhanced garage name normalization for more reliable data mapping and coordinate lookups.</p>
             <p><strong>v1.63.1</strong><br>• Updated Bunker and Kosatka capacity to 1 vehicle (MOC and Kosatka Sparrow/Kraken/etc. equivalents).<br>• User-confirmed coordinates for "Eclipse Blvd Garage (50)" and "Richman Villa (20)".<br>• Fine-tuned map coordinate origin and translation logic for improved pin placement accuracy.</p>
             <p><strong>v1.63.0</strong><br>• Fully calibrated interactive GTA V map with precise data-mined engine coordinates [X, Y].<br>• Implemented advanced coordinate translation logic with custom scaling for accurate pin placement.<br>• Expanded map view area in the modal and relocated navigation controls for better visibility.<br>• Support for dynamic business locations (Nightclubs, Offices, Agencies, etc.) with sub-location selection.</p>
@@ -2927,6 +2928,8 @@ const MAP_ICONS = {
         const ownedGarages = [...new Set(vehicles.map(v => v.loc))];
         let focusedMarker = null;
 
+        const groupedGarages = {};
+
         for (const loc of ownedGarages) {
             let coords = getGarageCoordinates(loc);
             
@@ -2940,39 +2943,95 @@ const MAP_ICONS = {
             }
 
             if (coords) {
-                const normLoc = normalizeGarageName(loc);
-                const garageInfo = GARAGE_DATA.find(g => g.items.includes(normLoc) || g.items.includes(loc));
-                const type = garageInfo ? garageInfo.grp : "Default";
-                const iconClass = getGarageIcon(normLoc, type);
-                
-                const customIcon = L.divIcon({
-                    className: 'custom-div-icon',
-                    html: `<div class="map-pin"><i class="fas ${iconClass}"></i></div>`,
-                    iconSize: [30, 30],
-                    iconAnchor: [15, 15]
-                });
+                const coordKey = `${coords[0]},${coords[1]}`;
+                if (!groupedGarages[coordKey]) {
+                    groupedGarages[coordKey] = {
+                        coords: coords,
+                        garages: []
+                    };
+                }
+                groupedGarages[coordKey].garages.push(loc);
+            }
+        }
 
+        for (const key in groupedGarages) {
+            const group = groupedGarages[key];
+            const coords = group.coords;
+            const locs = group.garages;
+
+            const baseLoc = locs[0];
+            const normLoc = normalizeGarageName(baseLoc);
+            const garageInfo = GARAGE_DATA.find(g => g.items.includes(normLoc) || g.items.includes(baseLoc));
+            const type = garageInfo ? garageInfo.grp : "Default";
+            const iconClass = getGarageIcon(normLoc, type);
+            
+            const customIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div class="map-pin"><i class="fas ${iconClass}"></i></div>`,
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+            });
+
+            const marker = L.marker(translateToLeaflet(coords[0], coords[1]), { icon: customIcon }).addTo(gtaMap);
+            
+            let popupContent = `<div style="text-align:center; max-height:200px; overflow-y:auto; padding-right:5px;">`;
+            
+            if (locs.length > 1) {
+                let title = "Multiple Properties";
+                if (locs.every(l => l.includes("Office") || l.includes("CEO "))) {
+                    const saved = safeStorage.getItem('gta_map_Office');
+                    title = saved || "CEO Office Garages";
+                } else if (locs.every(l => l.includes("Nightclub") || l.includes("Terrorbyte"))) {
+                    const saved = safeStorage.getItem('gta_map_Nightclub');
+                    title = saved || "Nightclub";
+                } else if (locs.every(l => l.includes("Arena Workshop"))) {
+                    title = "Arena Workshop";
+                } else if (locs.every(l => l.includes("Eclipse Towers"))) {
+                    title = "Eclipse Towers";
+                } else if (locs.every(l => l.includes("Weazel Plaza"))) {
+                    title = "Weazel Plaza";
+                } else if (locs.every(l => l.includes("Tinsel Towers"))) {
+                    title = "Tinsel Towers";
+                } else if (locs.every(l => l.includes("Richards Majestic"))) {
+                    title = "Richards Majestic";
+                }
+                
+                popupContent += `<div style="font-weight:800; font-size:1.1rem; color:var(--accent); margin-bottom:10px; position:sticky; top:0; background:var(--bg); padding-bottom:5px; z-index:2; border-bottom:1px solid #333;">${title}</div>`;
+                
+                for (const loc of locs) {
+                    const count = vehicles.filter(v => v.loc === loc).length;
+                    const cleanName = normalizeGarageName(loc).split(" (")[0]; 
+                    const capKey = Object.keys(CAPACITIES).find(m => cleanName.includes(m)) || "DEFAULT";
+                    const cap = CAPACITIES[capKey];
+                    popupContent += `
+                        <div style="background:var(--bg-lighter); padding:8px; border-radius:6px; margin-bottom:8px; text-align:left;">
+                            <div style="font-weight:700; font-size:0.95rem; color:#fff; margin-bottom:2px;">${loc.replace(/\s\(\d+\)$/, '')}</div>
+                            <div style="font-size:0.8rem; color:var(--text-dim); margin-bottom:6px;">${count} / ${cap} Slots Used</div>
+                            <button class="btn-sec" style="width:100%; font-size:0.75rem; padding:4px;" onclick="closeModal('mapModal'); filterByGarageFromMap('${loc}')">View Vehicles</button>
+                        </div>
+                    `;
+                }
+            } else {
+                const loc = locs[0];
                 const count = vehicles.filter(v => v.loc === loc).length;
-                const cleanName = normLoc.split(" (")[0]; 
+                const cleanName = normalizeGarageName(loc).split(" (")[0]; 
                 const capKey = Object.keys(CAPACITIES).find(m => cleanName.includes(m)) || "DEFAULT";
                 const cap = CAPACITIES[capKey];
-
-                const marker = L.marker(translateToLeaflet(coords[0], coords[1]), { icon: customIcon }).addTo(gtaMap);
                 
-                const popupContent = `
-                    <div style="text-align:center">
-                        <div style="font-weight:800; font-size:1.1rem; color:var(--accent); margin-bottom:5px;">${loc.replace(/\s\(\d+\)$/, '')}</div>
-                        <div style="font-size:0.9rem; color:var(--text-dim); margin-bottom:12px;">${count} / ${cap} Slots Used</div>
-                        <button class="btn-pri" style="width:100%; font-size:0.8rem; padding:8px;" onclick="closeModal('mapModal'); filterByGarageFromMap('${loc}')">View Vehicles</button>
-                    </div>
+                popupContent += `
+                    <div style="font-weight:800; font-size:1.1rem; color:var(--accent); margin-bottom:5px;">${loc.replace(/\s\(\d+\)$/, '')}</div>
+                    <div style="font-size:0.9rem; color:var(--text-dim); margin-bottom:12px;">${count} / ${cap} Slots Used</div>
+                    <button class="btn-pri" style="width:100%; font-size:0.8rem; padding:8px;" onclick="closeModal('mapModal'); filterByGarageFromMap('${loc}')">View Vehicles</button>
                 `;
-                
-                marker.bindPopup(popupContent);
-                mapMarkers.push(marker);
+            }
+            
+            popupContent += `</div>`;
+            
+            marker.bindPopup(popupContent, { maxWidth: 280, minWidth: 200 });
+            mapMarkers.push(marker);
 
-                if (loc === focusLoc) {
-                    focusedMarker = marker;
-                }
+            if (locs.includes(focusLoc)) {
+                focusedMarker = marker;
             }
         }
 
@@ -4652,7 +4711,7 @@ const MAP_ICONS = {
                 ${imgTag}
             </div>
             <div class="detail-manuf" style="color:var(--accent); font-weight:700; text-transform:uppercase; font-size:0.8rem; margin-bottom:2px; display:flex; align-items:center; gap:6px;">
-                <img src="${getManufLogo(v.manuf)}" class="manuf-logo" style="width:16px; height:16px; object-fit:contain;" onerror="this.style.display='none'">
+                <img src="${getManufLogo(v.manuf)}" class="manuf-logo" style="width:24px; height:24px; object-fit:contain;" onerror="this.style.display='none'">
                 ${v.manuf}
             </div>
             <div class="detail-title" style="font-size:1.5rem; font-weight:800; margin-bottom:8px; color:#fff;">${v.model}</div>
