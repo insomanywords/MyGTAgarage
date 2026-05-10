@@ -1,6 +1,6 @@
 # My GTA Garage 🚗💨
 
-[![Version](https://img.shields.io/badge/version-1.64.3-blue.svg)](https://github.com/insomanywords/MyGTAgarage)
+[![Version](https://img.shields.io/badge/version-1.64.4-blue.svg)](https://github.com/insomanywords/MyGTAgarage)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **My GTA Garage** is the ultimate, offline-first, Progressive Web App (PWA) designed for Grand Theft Auto Online car collectors. It provides a clean, fast, and feature-rich interface to track, organize, and manage your massive vehicle fleets across multiple characters. 
@@ -43,8 +43,13 @@ Built with zero backend requirements, your data lives securely in your browser a
 * **Public View-Only Mode:** Generate a time-stamped, read-only link to your garage. Share it with friends or the LS Car Meet community so they can browse your collection without modifying your data.
 * **Vehicle Snapshots:** Generate a clean, styled image card of a specific vehicle to instantly share to Discord, Reddit, or Messages.
 * **Deep Linking:** Share a public link that opens directly to a specific vehicle's detail card.
-* **PDF Export:** Generate a professional, multi-page PDF catalog of your entire collection (or filtered groups) in either compact list or large detail format.
+* **PDF Export:** Generate a professional, multi-page (or continuous digital) PDF catalog of your entire collection in either compact list or large detail format.
 * **Gamertag Integration:** Personalize your public links, snapshots, and PDFs by displaying your specific Gamertag and Platform icon.
+
+### 🗺️ Interactive Map & Properties
+* **High-Res Los Santos Map:** Visualize your empire with a fully interactive map using data-mined engine coordinates.
+* **Dynamic Locations:** Precisely map business properties like Nightclubs, Offices, and Agencies with sub-location support.
+* **Cloud-Synced Pins:** Your property choices roam with your character data, ensuring your map is consistent across devices.
 
 ---
 
@@ -86,7 +91,7 @@ My GTA Garage utilizes **Google Identity Services (GIS)** and the **Google Drive
 
 ## 📝 Changelog
 
-See the in-app **About > View Changelog** modal for a detailed history of updates and bug fixes, including the latest **v1.64.3** improvements.
+See the in-app **About > View Changelog** modal for a detailed history of updates and bug fixes, including the latest **v1.64.4** improvements.
 
 ---
 
