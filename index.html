@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.64.3</title>
+    <title>My GTA Garage v1.64.4</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -830,7 +830,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.64.3</div>
+        <div class="modal-title">About My GTA Garage v1.64.4</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -876,6 +876,13 @@
                 <li style="margin-bottom: 12px;"><strong>Manual Cloud Backups:</strong> Use the "Create Manual Cloud Backup" button in Settings to save a timestamped snapshot of your garage to Google Drive, ensuring you always have a fallback.</li>
                 <li style="margin-bottom: 12px;"><strong>Local Backups:</strong> Prefer local files? Use the "Local Data" tab in Settings to download your garage as a JSON file to your device, or load an existing JSON file.</li>
                 <li style="margin-bottom: 12px;"><strong>Cloud Deletion:</strong> If you delete a character or Factory Reset the app from the Danger Zone, you will be prompted with the option to also completely delete your associated Cloud Backup folders from Google Drive to save space.</li>
+            </ul>
+
+            <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">6. Interactive Map & Property Sync</h4>
+            <ul style="padding-left:20px; margin-bottom:15px; line-height: 1.6;">
+                <li style="margin-bottom: 12px;"><strong>Interactive GTA Map:</strong> Access a high-resolution, data-mined map of Los Santos via the <strong>Tools > View Map</strong> menu. The map accurately translates game engine coordinates to visual pins for all your properties.</li>
+                <li style="margin-bottom: 12px;"><strong>Dynamic Property Locations:</strong> Properties with multiple variations (like Nightclubs, Executive Offices, and Agencies) support sub-location selection. The app precisely maps these to their real-world engine coordinates.</li>
+                <li style="margin-bottom: 12px;"><strong>Cloud Synced Properties:</strong> Your property selections and custom business locations are fully synced across devices via Google Drive, ensuring your map icons always reflect your real empire locations across all platforms.</li>
             </ul>
         </div>
         
@@ -1250,7 +1257,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.64.3 (Current)</strong><br>• Dynamic Map Locations are now fully synced: your saved business locations (Nightclubs, Offices, etc.) now roam across devices via your cloud settings.<br>• Fixed "View Only Mode" coordination: viewers can now see your business locations on the map correctly without being prompted to select them.<br>• Improved reliability of map pinning for shared snapshots.</p>
+            <p><strong>v1.64.4 (Current)</strong><br>• Fixed PDF export layout to produce a single continuous document, optimized for digital viewing on mobile and desktop.<br>• Updated the "About" page and project documentation with details on the Interactive Map and Dynamic Location features.<br>• Fixed various initialization errors related to Google API library loading order.</p>
+            <p><strong>v1.64.3</strong><br>• Dynamic Map Locations are now fully synced: your saved business locations (Nightclubs, Offices, etc.) now roam across devices via your cloud settings.<br>• Fixed "View Only Mode" coordination: viewers can now see your business locations on the map correctly without being prompted to select them.<br>• Improved reliability of map pinning for shared snapshots.</p>
             <p><strong>v1.64.2</strong><br>• Fully restored the "Disconnected" modal window for all silent refresh failure scenarios.<br>• Improved session state synchronization between the header icon and background auth processes.<br>• Fixed an issue where the cloud icon would stay grey indefinitely instead of prompting for a re-sign-in.<br>• Enhanced overall session resilience by allowing longer-lived background tokens to trigger corrective actions.</p>
             <p><strong>v1.64.1</strong><br>• Fixed a critical hang during Google Drive initialization caused by silent token refresh timeouts.<br>• Improved session awareness: the app now correctly identifies expired sessions before attempting synchronization.<br>• Restored the "Disconnected" modal visibility: the app will now properly alert you when a re-sign-in is required instead of silently failing or refreshing the page.<br>• Re-introduced 15-second safety timeouts to the background authentication process to prevent the app from stalling in restricted environments.</p>
             <p><strong>v1.64.0</strong><br>• Increased the size of license plate images in the detail card for better visibility while maintaining optimal text proportions.</p>
@@ -2175,6 +2183,14 @@ const MAP_ICONS = {
         return mappings;
     }
 
+    function getMapping(type) {
+        if (!type) return null;
+        if (isViewOnly && sharedData && sharedData.mapMappings) {
+            return sharedData.mapMappings[type];
+        }
+        return safeStorage.getItem('gta_map_' + type);
+    }
+
     async function pushAppSettings() {
         if (!driveFolders.root || isViewOnly) return;
         try {
@@ -2929,7 +2945,7 @@ const MAP_ICONS = {
             div.style.marginBottom = "8px";
             div.innerHTML = `
                 <span class="label" style="font-size:0.75rem">${type}</span>
-                <select onchange="safeStorage.setItem('gta_map_${type}', this.value)" style="width:100%">
+                <select onchange="safeStorage.setItem('gta_map_${type}', this.value); pushAppSettings();" style="width:100%">
                     <option value="">-- Select Location --</option>
                     ${options.map(opt => `<option value="${opt}" ${current === opt ? 'selected' : ''}>${opt}</option>`).join('')}
                 </select>
@@ -2984,14 +3000,9 @@ const MAP_ICONS = {
         // 4. Dynamic match (Nightclub, Arcade, etc)
         const dynamicKeys = Object.keys(RAW_GAME_COORDINATES.dynamic)
             .sort((a,b) => b.length - a.length);
-        const dynamicType = dynamicKeys.find(k => cleanLoc.includes(k));
+        const dynamicType = dynamicKeys.find(k => cleanLoc.includes(k) || k.includes(cleanLoc));
         if (dynamicType) {
-            let saved = null;
-            if (isViewOnly && sharedData && sharedData.mapMappings) {
-                saved = sharedData.mapMappings[dynamicType];
-            } else {
-                saved = safeStorage.getItem('gta_map_' + dynamicType);
-            }
+            let saved = getMapping(dynamicType);
             
             if (saved && RAW_GAME_COORDINATES.dynamic[dynamicType][saved]) {
                 return RAW_GAME_COORDINATES.dynamic[dynamicType][saved];
@@ -3016,10 +3027,11 @@ const MAP_ICONS = {
             const options = Object.keys(RAW_GAME_COORDINATES.dynamic[type]);
             sel.innerHTML = options.map(o => `<option value="${o}">${o}</option>`).join('');
             
-            document.getElementById('dynLocConfirm').onclick = () => {
+            document.getElementById('dynLocConfirm').onclick = async () => {
                 const val = sel.value;
                 safeStorage.setItem('gta_map_' + type, val);
                 closeModal('dynamicLocModal');
+                pushAppSettings();
                 resolve(RAW_GAME_COORDINATES.dynamic[type][val]);
             };
             
@@ -3108,10 +3120,10 @@ const MAP_ICONS = {
             if (locs.length > 1) {
                 let title = "Multiple Properties";
                 if (locs.every(l => l.includes("Office") || l.includes("CEO "))) {
-                    const saved = safeStorage.getItem('gta_map_Office');
+                    const saved = getMapping('Office');
                     title = saved || "CEO Office Garages";
                 } else if (locs.every(l => l.includes("Nightclub") || l.includes("Terrorbyte"))) {
-                    const saved = safeStorage.getItem('gta_map_Nightclub');
+                    const saved = getMapping('Nightclub (31)');
                     title = saved || "Nightclub";
                 } else if (locs.every(l => l.includes("Arena Workshop"))) {
                     title = "Arena Workshop";
@@ -4667,15 +4679,23 @@ const MAP_ICONS = {
 
         try {
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
+            const margin = 10;
+            const gap = 5;
+            const cardWidth = exportType === 'large' ? 92.5 : 90; 
+            const cardsPerRow = exportType === 'large' ? 2 : 2; 
+
+            // Estimate total height needed for a single continuous page
+            const cardHeightEst = exportType === 'large' ? 160 : 45; 
+            const rowsEst = Math.ceil(filtered.length / cardsPerRow);
+            const headerHeight = 25;
+            const totalHeightNeeded = headerHeight + (rowsEst * (cardHeightEst + gap)) + gap + margin;
+
+            // Initialize PDF with A4 width but custom height for "continuous" document
+            const pdf = new jsPDF('p', 'mm', [210, Math.max(297, totalHeightNeeded)]);
             const pageWidth = pdf.internal.pageSize.getWidth();
             const pageHeight = pdf.internal.pageSize.getHeight();
-            const margin = 10;
             
-            const cardWidth = exportType === 'large' ? 92.5 : 90; 
             const cardHeight = exportType === 'large' ? 125 : 30; 
-            const gap = 5;
-            const cardsPerRow = exportType === 'large' ? 2 : Math.floor((pageWidth - 2 * margin + gap) / (cardWidth + gap));
             
             const addBg = () => {
                 pdf.setFillColor(30, 30, 30); // #1e1e1e
@@ -4689,7 +4709,6 @@ const MAP_ICONS = {
                 groupBy, 
                 groupValue: "" 
             });
-            const headerHeight = 25; 
             pdf.addImage(headerImg, 'JPEG', 0, 0, pageWidth, headerHeight);
             
             const container = document.createElement('div');
@@ -4767,13 +4786,7 @@ const MAP_ICONS = {
                 rowMaxHeight = Math.max(rowMaxHeight, actualCardHeight);
 
                 if (rowCards.length === cardsPerRow || i === totalVehicles - 1) {
-                    if (currentY + rowMaxHeight > pageHeight - margin) {
-                        pdf.addPage();
-                        addBg();
-                        pdf.addImage(headerImg, 'JPEG', 0, 0, pageWidth, headerHeight);
-                        currentY = headerHeight + gap;
-                    }
-
+                    // No paging for continuous document
                     rowCards.forEach((rc, idx) => {
                         const drawX = startX + idx * (cardWidth + gap);
                         pdf.addImage(rc.imgData, 'JPEG', drawX, currentY, cardWidth, rc.height);
@@ -5498,6 +5511,7 @@ const MAP_ICONS = {
                 accentColor: safeStorage.getItem('gta_accent_color') || '#9b59b6',
                 gamertag: char.showGamertagLink ? char.gamertag : undefined,
                 platform: char.showGamertagLink ? char.platform : undefined,
+                mapMappings: getMapMappings(),
                 vehicles: vehicles.map(v => {
                     const vCopy = { ...v };
                     if (!includeImages) delete vCopy.customImg;
