@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.64.5</title>
+    <title>My GTA Garage v1.64.6</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -383,6 +383,7 @@
         </div>
         <div class="header-actions">
             <button id="timerBtn" class="timer-btn" onclick="openTimerModal()">💲</button>
+            <button id="viewMapBtn" class="btn-sec" style="width:44px; display:none;" onclick="openMapModal()" title="View Map">🗺️</button>
             <button class="btn-sec" style="width:44px" onclick="openStats()">📊</button>
             <button class="btn-sec" style="width:44px" onclick="openPdfExportModal()" title="Export PDF"><i class="fas fa-file-pdf"></i></button>
             <button id="cloudHeaderBtn" class="btn-sec" style="width:44px" onclick="handleHeaderCloudClick()" title="Cloud Sync"><i class="fas fa-plug" style="color: #aaa;"></i></button>
@@ -830,7 +831,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.64.5</div>
+        <div class="modal-title">About My GTA Garage v1.64.6</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1257,7 +1258,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.64.5 (Current)</strong><br>• Fixed dynamic map location syncing for shared View-Only mode links: ensured property mappings correctly resolve for guest viewers.<br>• Major improvements to Google Drive session management: the app now proactively detects failed token refreshes and immediately prompts for re-authentication via the "Disconnected" modal.<br>• Optimized silent token refresh logic to prevent silent failures that previously required a manual page refresh after a few hours of inactivity.</p>
+            <p><strong>v1.64.6 (Current)</strong><br>• Fixed an issue where the Google token refresh process would repeatedly display the "Disconnected" modal when refresh failed: the app now stops renewal attempts once a session is marked as expired.<br>• Added a "View Map" button to the header in shared "View Only" mode, allowing guests to see vehicle locations on the interactive map.<br>• Improved map mapping logic with a "Smart Fallback" deep search: property names that contain a location name but don't match the exact capacity string (e.g., "Strawberry Nightclub") now resolve correctly.<br>• Fixed potential callback collisions in the Google Identity Services client by ensuring single-use callback handlers.</p>
+            <p><strong>v1.64.5</strong><br>• Fixed dynamic map location syncing for shared View-Only mode links: ensured property mappings correctly resolve for guest viewers.<br>• Major improvements to Google Drive session management: the app now proactively detects failed token refreshes and immediately prompts for re-authentication via the "Disconnected" modal.<br>• Optimized silent token refresh logic to prevent silent failures that previously required a manual page refresh after a few hours of inactivity.</p>
             <p><strong>v1.64.4</strong><br>• Fixed PDF export layout to produce a single continuous document, optimized for digital viewing on mobile and desktop.<br>• Updated the "About" page and project documentation with details on the Interactive Map and Dynamic Location features.<br>• Fixed various initialization errors related to Google API library loading order.</p>
             <p><strong>v1.64.3</strong><br>• Dynamic Map Locations are now fully synced: your saved business locations (Nightclubs, Offices, etc.) now roam across devices via your cloud settings.<br>• Fixed "View Only Mode" coordination: viewers can now see your business locations on the map correctly without being prompted to select them.<br>• Improved reliability of map pinning for shared snapshots.</p>
             <p><strong>v1.64.2</strong><br>• Fully restored the "Disconnected" modal window for all silent refresh failure scenarios.<br>• Improved session state synchronization between the header icon and background auth processes.<br>• Fixed an issue where the cloud icon would stay grey indefinitely instead of prompting for a re-sign-in.<br>• Enhanced overall session resilience by allowing longer-lived background tokens to trigger corrective actions.</p>
@@ -1791,6 +1793,7 @@ const MAP_ICONS = {
     }
 
     function scheduleTokenRefresh() {
+        if (driveStatus === 'expired' || driveStatus === 'disconnected') return;
         if (refreshTimeout) clearTimeout(refreshTimeout);
         let storedStr = safeStorage.getItem('gta_gdrive_token');
         if (storedStr) {
@@ -1821,6 +1824,7 @@ const MAP_ICONS = {
     });
 
     async function ensureValidToken() {
+        if (driveStatus === 'expired' || driveStatus === 'disconnected') return false;
         let stored = null; try { stored = JSON.parse(safeStorage.getItem('gta_gdrive_token')); } catch(e) {}
         if (!stored) {
             if (safeStorage.getItem('gta_cloud_intent') === 'true') {
@@ -1847,6 +1851,7 @@ const MAP_ICONS = {
     }
 
     function silentlyRefreshToken() {
+        if (driveStatus === 'expired' || driveStatus === 'disconnected') return Promise.reject('Session inactive');
         if (isMobile && document.visibilityState !== 'visible') {
             return Promise.reject('Mobile: blocked background refresh');
         }
@@ -1889,6 +1894,7 @@ const MAP_ICONS = {
                 } else {
                     console.warn("Silent token refresh failed:", tokenResponse);
                     driveStatus = 'expired'; 
+                    safeStorage.removeItem('gta_gdrive_token');
                     reject(tokenResponse);
                 }
             };
@@ -1901,6 +1907,7 @@ const MAP_ICONS = {
                 
                 console.error("GIS Error during silent refresh:", err);
                 driveStatus = 'expired';
+                safeStorage.removeItem('gta_gdrive_token');
                 reject(err);
             };
 
@@ -1947,6 +1954,7 @@ const MAP_ICONS = {
     let isValidatingSession = false;
     async function validateSessionOnStart() {
         if (isValidatingSession) return;
+        if (driveStatus === 'expired') return;
         if (!gapiInited || !gisInited) return; // Wait for libraries
         if (safeStorage.getItem('gta_cloud_intent') !== 'true') return;
 
@@ -2097,7 +2105,8 @@ const MAP_ICONS = {
     }
     
     function handleAuthClick() { 
-        tokenClient.callback = (tokenResponse) => {
+        tokenClient._currentCallback = (tokenResponse) => {
+            tokenClient._currentCallback = null;
             if (tokenResponse && tokenResponse.access_token) {
                 safeStorage.setItem('gta_gdrive_token', JSON.stringify({
                     token: tokenResponse.access_token,
@@ -2211,15 +2220,45 @@ const MAP_ICONS = {
 
     function getMapping(type) {
         if (!type) return null;
+        const cleanType = type.split(' (')[0].trim().toLowerCase();
+        
         if (isViewOnly && sharedData && sharedData.mapMappings) {
+            // 1. Direct match
             if (sharedData.mapMappings[type]) return sharedData.mapMappings[type];
-            // Tolerance matching for keys
+            
+            // 2. Case-insensitive exact match
             const keys = Object.keys(sharedData.mapMappings);
-            const fuzzyKey = keys.find(k => k.includes(type) || type.includes(k));
+            const exactKey = keys.find(k => k.toLowerCase() === type.toLowerCase());
+            if (exactKey) return sharedData.mapMappings[exactKey];
+            
+            // 3. Tolerance matching for keys (base name comparison)
+            const fuzzyKey = keys.find(k => {
+                const kBase = k.split(' (')[0].trim().toLowerCase();
+                return kBase.includes(cleanType) || cleanType.includes(kBase);
+            });
             if (fuzzyKey) return sharedData.mapMappings[fuzzyKey];
             return null;
         }
-        return safeStorage.getItem('gta_map_' + type);
+        
+        // Normal mode
+        const val = safeStorage.getItem('gta_map_' + type);
+        if (val) return val;
+        
+        // Fallback for normal mode: try without capacity or with case-insensitivity
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('gta_map_')) {
+                    const kType = key.replace('gta_map_', '');
+                    const kBase = kType.split(' (')[0].trim().toLowerCase();
+                    if (kBase === cleanType || kType.toLowerCase() === type.toLowerCase()) {
+                        return localStorage.getItem(key);
+                    }
+                }
+            }
+        } catch (e) {}
+        
+        return null;
     }
 
     async function pushAppSettings() {
@@ -3022,27 +3061,43 @@ const MAP_ICONS = {
         }
         
         // 3. Cluster match (Generic apartments)
-        // Sort by length descending to catch most specific first
         const clusterKeys = Object.keys(RAW_GAME_COORDINATES.clusters)
             .sort((a,b) => b.length - a.length);
         const clusterKey = clusterKeys.find(k => cleanLoc.includes(k));
         if (clusterKey) return RAW_GAME_COORDINATES.clusters[clusterKey];
+
+        // 4. Smart Fallback: Deep Search Property Name in all dynamic locations
+        // This helps if mapping is missing but garage name contains the location name (e.g., "Strawberry Nightclub")
+        for (const type in RAW_GAME_COORDINATES.dynamic) {
+            const options = RAW_GAME_COORDINATES.dynamic[type];
+            for (const optionName in options) {
+                if (cleanLoc.toLowerCase().includes(optionName.toLowerCase())) {
+                    return options[optionName];
+                }
+            }
+        }
         
-        // 4. Dynamic match (Nightclub, Arcade, etc)
+        // 5. Dynamic match (Nightclub, Arcade, etc)
         const dynamicKeys = Object.keys(RAW_GAME_COORDINATES.dynamic)
             .sort((a,b) => b.length - a.length);
-        const dynamicType = dynamicKeys.find(k => cleanLoc.includes(k) || k.includes(cleanLoc));
+            
+        const dynamicType = dynamicKeys.find(k => {
+            const kBase = k.split(' (')[0].toLowerCase();
+            const locBase = cleanLoc.split(' (')[0].toLowerCase();
+            return locBase.includes(kBase) || kBase.includes(locBase);
+        });
+        
         if (dynamicType) {
             let saved = getMapping(dynamicType);
             
             if (saved && RAW_GAME_COORDINATES.dynamic[dynamicType][saved]) {
                 return RAW_GAME_COORDINATES.dynamic[dynamicType][saved];
             }
-            if (isViewOnly) return null; // Don't prompt in view only mode
+            if (isViewOnly) return null; 
             return { needsResolution: true, type: dynamicType };
         }
         
-        // 5. Try stripped match (no capacity)
+        // 6. Try stripped match (no capacity)
         const stripped = cleanLoc.split(" (")[0];
         if (RAW_GAME_COORDINATES.exact[stripped]) return RAW_GAME_COORDINATES.exact[stripped];
         
@@ -5891,6 +5946,10 @@ const MAP_ICONS = {
         // Hide "Timer" button
         const timerBtn = document.getElementById('timerBtn');
         if (timerBtn) timerBtn.style.display = 'none';
+
+        // Show "View Map" button
+        const viewMapBtn = document.getElementById('viewMapBtn');
+        if (viewMapBtn) viewMapBtn.style.display = 'flex';
 
         // Disable "Google Drive" tab in settings
         const cloudTab = document.getElementById('tabBtn_cloud');
