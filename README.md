@@ -1,6 +1,6 @@
 # My GTA Garage 🚗💨
 
-[![Version](https://img.shields.io/badge/version-1.64.6-blue.svg)](https://github.com/insomanywords/MyGTAgarage)
+[![Version](https://img.shields.io/badge/version-1.64.7-blue.svg)](https://github.com/insomanywords/MyGTAgarage)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **My GTA Garage** is the ultimate, offline-first, Progressive Web App (PWA) designed for Grand Theft Auto Online car collectors. It provides a clean, fast, and feature-rich interface to track, organize, and manage your massive vehicle fleets across multiple characters. 
@@ -36,6 +36,7 @@ Built with zero backend requirements, your data lives securely in your browser a
 ### ☁️ Data Security & Cloud Sync
 * **Offline-First PWA:** Install it on your phone or desktop. The app works flawlessly offline, reading and writing to your local browser storage.
 * **Google Drive Sync:** Sign in to Google, and the app creates a private `My GTA Garage` folder in your Drive. Every change you make locally is instantly and silently auto-synced in the background. 
+* **Settings Roaming:** Your UI accent colors, custom license plate defaults, and business location preferences roam with you across all your characters and devices.
 * **Conflict Resolution:** Swapping between your phone and PC? The app detects sync conflicts and prompts you to keep your local data or download the latest cloud save.
 * **Local Backups:** Manually export or import your raw `.json` database at any time.
 
@@ -91,7 +92,7 @@ My GTA Garage utilizes **Google Identity Services (GIS)** and the **Google Drive
 
 ## 📝 Changelog
 
-See the in-app **About > View Changelog** modal for a detailed history of updates and bug fixes, including the latest **v1.64.6** improvements.
+See the in-app **About > View Changelog** modal for a detailed history of updates and bug fixes, including the latest **v1.64.7** improvements.
 
 ---
 
