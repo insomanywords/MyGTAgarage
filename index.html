@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.64.7</title>
+    <title>My GTA Garage v1.64.8</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -831,7 +831,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.64.7</div>
+        <div class="modal-title">About My GTA Garage v1.64.8</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1258,7 +1258,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.64.7 (Current)</strong><br>• Fully synchronized all App Settings across devices via Google Drive, including Custom Plate Text and Accent Colors.<br>• Fixed an issue where Custom Plate Text was not visible to guests in "View Only" Mode: public snapshots now include your global plate settings.<br>• Improved session resilience and map coordinate resolution for shared garage views.</p>
+            <p><strong>v1.64.8 (Current)</strong><br>• Fixed an issue where "View Only" Mode was not correctly displaying your default Custom Plate Text from settings.<br>• Enhanced vehicle card UI: All special license plates are now rendered as high-fidelity visual badges instead of text tags.<br>• Improved consistent rendering of custom plate text across all view modes (Local, Cloud, and Shared).<br>• Fixed visual alignment of plate badges in the fleet view.</p>
+            <p><strong>v1.64.7</strong><br>• Fully synchronized all App Settings across devices via Google Drive, including Custom Plate Text and Accent Colors.<br>• Fixed an issue where Custom Plate Text was not visible to guests in "View Only" Mode: public snapshots now include your global plate settings.<br>• Improved session resilience and map coordinate resolution for shared garage views.</p>
             <p><strong>v1.64.6</strong><br>• Fixed an issue where the Google token refresh process would repeatedly display the "Disconnected" modal when refresh failed: the app now stops renewal attempts once a session is marked as expired.<br>• Added a "View Map" button to the header in shared "View Only" mode, allowing guests to see vehicle locations on the interactive map.<br>• Improved map mapping logic with a "Smart Fallback" deep search: property names that contain a location name but don't match the exact capacity string (e.g., "Strawberry Nightclub") now resolve correctly.<br>• Fixed potential callback collisions in the Google Identity Services client by ensuring single-use callback handlers.</p>
             <p><strong>v1.64.5</strong><br>• Fixed dynamic map location syncing for shared View-Only mode links: ensured property mappings correctly resolve for guest viewers.<br>• Major improvements to Google Drive session management: the app now proactively detects failed token refreshes and immediately prompts for re-authentication via the "Disconnected" modal.<br>• Optimized silent token refresh logic to prevent silent failures that previously required a manual page refresh after a few hours of inactivity.</p>
             <p><strong>v1.64.4</strong><br>• Fixed PDF export layout to produce a single continuous document, optimized for digital viewing on mobile and desktop.<br>• Updated the "About" page and project documentation with details on the Interactive Map and Dynamic Location features.<br>• Fixed various initialization errors related to Google API library loading order.</p>
@@ -1393,7 +1394,7 @@
         return `${LOGO_BASE_URL}${manuf.toLowerCase().replace(/\s+/g, '-')}.png`;
     }
 
-    function getPlateHtml(plateType, userText) {
+    function getPlateHtml(plateType, userText, height = 46) {
         const map = {
             "E-Cola": "ecola.png",
             "Las Venturas": "lasventuras.png",
@@ -1416,7 +1417,7 @@
                 text = safeStorage.getItem('gta_default_plate') || 'OUTATIME';
             }
         }
-        text = text.substring(0, 8).toUpperCase();
+        text = (text || "").substring(0, 8).toUpperCase();
         
         let textColor = '#1f2b47'; // default for San Andreas (blue)
         if (plateType === 'Panic') textColor = '#e8d223'; // Panic yellow
@@ -1429,12 +1430,14 @@
         else if (plateType === 'Yankton') textColor = '#132644'; // Dark Blue
         else if (plateType === 'Standard') textColor = '#1b325f'; // Blue
         
-        return `<div style="margin-top:2px; margin-bottom:12px; display:inline-block;">
+        const fontSize = Math.floor(height * 0.28);
+
+        return `<div style="display:inline-block; vertical-align:middle;">
             <div style="padding:0; background:transparent; display:inline-flex; align-items:center; justify-content:center; position:relative; width:auto; border:none; box-shadow:0 0 3px rgba(0,0,0,0.5); border-radius:4px;">
-                <img src="${imgUrl}" style="height:46px; width:auto; display:block; border-radius:4px;" alt="${plateType}">
+                <img src="${imgUrl}" style="height:${height}px; width:auto; display:block; border-radius:4px;" alt="${plateType}">
                 <div style="position:absolute; top:54%; left:50%; transform:translate(-50%, -50%); width: 100%; text-align: center;
-                            font-family: 'Arial Heavy', 'Arial Black', Impact, sans-serif; font-size: 13px; 
-                            color: ${textColor}; letter-spacing: 1px; white-space: nowrap; font-weight:900;">
+                            font-family: 'Arial Heavy', 'Arial Black', Impact, sans-serif; font-size: ${fontSize}px; 
+                            color: ${textColor}; letter-spacing: 0.5px; white-space: nowrap; font-weight:900;">
                     ${text}
                 </div>
             </div>
@@ -3928,13 +3931,8 @@ const MAP_ICONS = {
         if(v.isImani) badges += `<span class="badge imani">IMANI</span> `;
         if(v.wheels === 'F1') badges += `<span class="badge f">F1</span>`;
         if(v.wheels?.includes('Benny')) badges += `<span class="badge b">BENNY'S</span> `;
-        if(v.plate && v.plate !== 'Standard') {
-            let pClass = "";
-            if(v.plate === "Yankton") pClass = "y"; else if(v.plate === "Liberty City") pClass = "l";
-            else if(v.plate === "Panic") pClass = "p"; else if(v.plate === "Pounders") pClass = "pd";
-            else if(v.plate === "Las Venturas") pClass = "v"; else if(v.plate === "E-Cola") pClass = "e";
-            else if(v.plate === "Sprunk") pClass = "s";
-            badges += `<span class="badge ${pClass}">${v.plate.toUpperCase()}</span>`;
+        if(v.plate) {
+            badges += getPlateHtml(v.plate, v.plateText, 24);
         }
 
         const cardClass = v.isWishlist ? 'card card-wishlist' : 'card';
@@ -3994,7 +3992,7 @@ const MAP_ICONS = {
         if(v.wheels?.includes('Benny')) badges += `<span class="detail-badge b">BENNY'S</span> `;
         
         let plateDisplay = "";
-        if(v.plate && v.plate !== 'Standard') plateDisplay = getPlateHtml(v.plate, v.plateText);
+        if(v.plate) plateDisplay = `<div style="margin-top:2px; margin-bottom:12px;">${getPlateHtml(v.plate, v.plateText)}</div>`;
         
         let priceHtml = "";
         if(v.lscmPrice || v.sellPrice) {
@@ -4938,7 +4936,7 @@ const MAP_ICONS = {
         if(v.wheels?.includes('Benny')) badges += `<span class="detail-badge b">BENNY'S</span> `;
         
         let plateDisplay = "";
-        if(v.plate && v.plate !== 'Standard') plateDisplay = getPlateHtml(v.plate, v.plateText);
+        if(v.plate) plateDisplay = `<div style="margin-top:2px; margin-bottom:12px;">${getPlateHtml(v.plate, v.plateText)}</div>`;
 
         let priceHtml = "";
         if(v.lscmPrice || v.sellPrice) {
