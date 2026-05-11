@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.64.6</title>
+    <title>My GTA Garage v1.64.7</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -831,7 +831,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.64.6</div>
+        <div class="modal-title">About My GTA Garage v1.64.7</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -871,7 +871,7 @@
             <h4 style="color:var(--accent); margin-top:20px; margin-bottom:10px;">5. Data & Cloud Sync</h4>
             <ul style="padding-left:20px; margin-bottom:15px; line-height: 1.6;">
                 <li style="margin-bottom: 12px;"><strong>Character Management:</strong> Manage multiple, completely isolated vehicle collections per character via the Settings menu. You can add, rename, or delete characters. Renaming a character locally will automatically rename their corresponding Cloud folder.</li>
-                <li style="margin-bottom: 12px;"><strong>Google Drive Sync:</strong> Sign in via the "Google Drive" tab in Settings. The app automatically creates a "My GTA Garage" folder and auto-syncs your database to the cloud after every change. Custom car images are also stored securely in your Drive.</li>
+                <li style="margin-bottom: 12px;"><strong>Google Drive Sync:</strong> Sign in via the "Google Drive" tab in Settings. The app automatically creates a "My GTA Garage" folder and auto-syncs your database, custom images, and app settings (Colors, Plates, Map locations) to the cloud after every change. Custom car images are also stored securely in your Drive.</li>
                 <li style="margin-bottom: 12px;"><strong>Offline Mode & Safety:</strong> The app saves everything locally to your browser first. If you lose internet, your data remains safe and will sync the next time you connect. The app checks for conflicts when signing in on a new device to prevent accidental overwrites, prompting you to choose between Local or Cloud data if there is an actual data conflict.</li>
                 <li style="margin-bottom: 12px;"><strong>Sessions & Timeouts:</strong> The app actively monitors your connection and will silently renew your Google session in the background. You will remain signed in indefinitely without interruptions unless you explicitly sign out or your Google account requires re-authentication.</li>
                 <li style="margin-bottom: 12px;"><strong>Manual Cloud Backups:</strong> Use the "Create Manual Cloud Backup" button in Settings to save a timestamped snapshot of your garage to Google Drive, ensuring you always have a fallback.</li>
@@ -1258,7 +1258,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.64.6 (Current)</strong><br>• Fixed an issue where the Google token refresh process would repeatedly display the "Disconnected" modal when refresh failed: the app now stops renewal attempts once a session is marked as expired.<br>• Added a "View Map" button to the header in shared "View Only" mode, allowing guests to see vehicle locations on the interactive map.<br>• Improved map mapping logic with a "Smart Fallback" deep search: property names that contain a location name but don't match the exact capacity string (e.g., "Strawberry Nightclub") now resolve correctly.<br>• Fixed potential callback collisions in the Google Identity Services client by ensuring single-use callback handlers.</p>
+            <p><strong>v1.64.7 (Current)</strong><br>• Fully synchronized all App Settings across devices via Google Drive, including Custom Plate Text and Accent Colors.<br>• Fixed an issue where Custom Plate Text was not visible to guests in "View Only" Mode: public snapshots now include your global plate settings.<br>• Improved session resilience and map coordinate resolution for shared garage views.</p>
+            <p><strong>v1.64.6</strong><br>• Fixed an issue where the Google token refresh process would repeatedly display the "Disconnected" modal when refresh failed: the app now stops renewal attempts once a session is marked as expired.<br>• Added a "View Map" button to the header in shared "View Only" mode, allowing guests to see vehicle locations on the interactive map.<br>• Improved map mapping logic with a "Smart Fallback" deep search: property names that contain a location name but don't match the exact capacity string (e.g., "Strawberry Nightclub") now resolve correctly.<br>• Fixed potential callback collisions in the Google Identity Services client by ensuring single-use callback handlers.</p>
             <p><strong>v1.64.5</strong><br>• Fixed dynamic map location syncing for shared View-Only mode links: ensured property mappings correctly resolve for guest viewers.<br>• Major improvements to Google Drive session management: the app now proactively detects failed token refreshes and immediately prompts for re-authentication via the "Disconnected" modal.<br>• Optimized silent token refresh logic to prevent silent failures that previously required a manual page refresh after a few hours of inactivity.</p>
             <p><strong>v1.64.4</strong><br>• Fixed PDF export layout to produce a single continuous document, optimized for digital viewing on mobile and desktop.<br>• Updated the "About" page and project documentation with details on the Interactive Map and Dynamic Location features.<br>• Fixed various initialization errors related to Google API library loading order.</p>
             <p><strong>v1.64.3</strong><br>• Dynamic Map Locations are now fully synced: your saved business locations (Nightclubs, Offices, etc.) now roam across devices via your cloud settings.<br>• Fixed "View Only Mode" coordination: viewers can now see your business locations on the map correctly without being prompted to select them.<br>• Improved reliability of map pinning for shared snapshots.</p>
@@ -1407,7 +1408,14 @@
         const fileName = map[plateType] || map["Standard"];
         const imgUrl = `${BASE_URL}plates/${fileName}`;
         
-        let text = userText || safeStorage.getItem('gta_default_plate') || 'OUTATIME';
+        let text = userText;
+        if (!text) {
+            if (isViewOnly && sharedData && sharedData.defaultPlate) {
+                text = sharedData.defaultPlate;
+            } else {
+                text = safeStorage.getItem('gta_default_plate') || 'OUTATIME';
+            }
+        }
         text = text.substring(0, 8).toUpperCase();
         
         let textColor = '#1f2b47'; // default for San Andreas (blue)
@@ -2267,6 +2275,7 @@ const MAP_ICONS = {
             const data = {
                 characters: characters,
                 accentColor: safeStorage.getItem('gta_accent_color') || '#9b59b6',
+                defaultPlate: safeStorage.getItem('gta_default_plate') || 'OUTATIME',
                 includePublicImages: safeStorage.getItem('gta_include_images') === 'true',
                 mapMappings: getMapMappings()
             };
@@ -2309,6 +2318,9 @@ const MAP_ICONS = {
                 if (cloudSettings.accentColor) {
                     safeStorage.setItem('gta_accent_color', cloudSettings.accentColor);
                     applyCustomColor(cloudSettings.accentColor);
+                }
+                if (cloudSettings.defaultPlate) {
+                    safeStorage.setItem('gta_default_plate', cloudSettings.defaultPlate);
                 }
                 if (cloudSettings.includePublicImages !== undefined) {
                     safeStorage.setItem('gta_include_images', cloudSettings.includePublicImages);
@@ -2910,6 +2922,7 @@ const MAP_ICONS = {
     function saveDefaultPlateText() {
         const val = document.getElementById('defaultPlateInput').value.toUpperCase().substring(0, 8);
         safeStorage.setItem('gta_default_plate', val);
+        pushAppSettings();
     }
 
     // --- SETTINGS TABS ---
@@ -5595,6 +5608,7 @@ const MAP_ICONS = {
                 timestamp: new Date().toISOString(),
                 characterName: charName,
                 accentColor: safeStorage.getItem('gta_accent_color') || '#9b59b6',
+                defaultPlate: safeStorage.getItem('gta_default_plate') || 'OUTATIME',
                 gamertag: char.showGamertagLink ? char.gamertag : undefined,
                 platform: char.showGamertagLink ? char.platform : undefined,
                 mapMappings: getMapMappings(),
