@@ -1,6 +1,6 @@
 # My GTA Garage 🚗💨
 
-[![Version](https://img.shields.io/badge/version-1.64.8-blue.svg)](https://github.com/insomanywords/MyGTAgarage)
+[![Version](https://img.shields.io/badge/version-1.65.0-blue.svg)](https://github.com/insomanywords/MyGTAgarage)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **My GTA Garage** is the ultimate, offline-first, Progressive Web App (PWA) designed for Grand Theft Auto Online car collectors. It provides a clean, fast, and feature-rich interface to track, organize, and manage your massive vehicle fleets across multiple characters. 
@@ -24,7 +24,7 @@ Built with zero backend requirements, your data lives securely in your browser a
 ### 🔄 Fleet Operations
 * **Move Vehicles:** Effortlessly migrate cars between properties. The app auto-detects full garages and prompts you to select a vehicle to swap places with.
 * **Swap Entire Garages:** Relocating? Instantly swap the entire contents of two different garages with a single click.
-* **Sales Cooldown Timer:** Simulate selling a car. The app logs the transaction in your **Sales History** and automatically starts the real-time 18-hour Daily Sell Limit cooldown timer.
+* **Sales Cooldown & Penalty Tracker:** Simulate selling a car. The app logs the transaction in your **Sales History**, starts the real-time 18-hour Daily Sell Limit cooldown timer, applies the $500k vehicle value cap, and tracks the 7-day penalty multiplier for consecutive sales.
 
 ### 🗂️ Advanced Organization & Filtering
 * **Dynamic Grouping:** Collapse or expand your collection grouped by Garage, Brand, Class, Drive Type, Wheels, Plates, Weaponized, or HSW status. 
@@ -92,7 +92,7 @@ My GTA Garage utilizes **Google Identity Services (GIS)** and the **Google Drive
 
 ## 📝 Changelog
 
-See the in-app **About > View Changelog** modal for a detailed history of updates and bug fixes, including the latest **v1.64.8** improvements.
+See the in-app **About > View Changelog** modal for a detailed history of updates and bug fixes, including the latest **v1.65.0** improvements.
 
 ---
 
