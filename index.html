@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.64.8</title>
+    <title>My GTA Garage v1.65.0</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -195,7 +195,7 @@
         .card-img-box { width: 130px; background: #000; flex-shrink: 0; position: relative; display: flex; align-items: center; justify-content: center; cursor: zoom-in; border-right: 1px solid #222; align-self: stretch; }
         .card-img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
         
-        .card-badges { position: absolute; bottom: 4px; left: 4px; display: flex; gap: 3px; flex-wrap: wrap; z-index: 2; }
+        .card-badges { position: absolute; bottom: 4px; left: 4px; display: flex; align-items: center; gap: 3px; flex-wrap: wrap; z-index: 2; }
         .badge { font-size: 0.55rem; padding: 2px 5px; border-radius: 4px; font-weight: 800; text-transform: uppercase; color: #fff; background: rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(2px); }
         .badge.w { background: var(--wep); border-color: var(--wep); }
         .badge.f { background: var(--f1); border-color: var(--f1); color: #000; }
@@ -831,7 +831,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.64.8</div>
+        <div class="modal-title">About My GTA Garage v1.65.0</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1107,7 +1107,7 @@
 
         <div class="modal-row" style="margin-bottom:15px;">
             <div><span class="label" id="lscmPriceLabel">LSCM Price ($)</span><input type="text" id="inLscmPrice" placeholder="Purchase price..." oninput="formatCurrency(this)"></div>
-            <div><span class="label">Sell Price ($)</span><input type="text" id="inSellPrice" placeholder="Resale price..." oninput="formatCurrency(this)"></div>
+            <div><span class="label">Sell Price ($500K CAP)</span><input type="text" id="inSellPrice" placeholder="Resale price (Cap $500K)..." oninput="formatCurrency(this)"></div>
         </div>
 
         <div class="form-group"><span class="label">Notes</span><input type="text" id="inNotes" style="width:100%" placeholder="Paint, livery, upgrades..."></div>
@@ -1182,11 +1182,16 @@
     <div class="modal-box">
         <div class="modal-title">Sales Dashboard</div>
         <div style="text-align:center; padding:10px 0;">
-            <span class="label">Cooldown Status</span>
+            <span class="label">18-Hour Cooldown Status</span>
             <div id="timerBigDisplay" class="timer-big">READY</div>
             <div id="dashNext" style="color:var(--accent); font-weight:bold; font-size:1rem;">Ready Now</div>
         </div>
-        <div style="display:flex; justify-content:space-between; background:#252525; padding:15px; border-radius:10px; margin-top:20px; align-items:center;">
+        <div style="background:#252525; padding:15px; border-radius:10px; margin-top:10px; text-align:center;">
+            <span class="label">7-Day Penalty Status</span>
+            <div id="penaltyLevelDisplay" style="font-size:1.2rem; font-weight:bold; color:#fff; margin:5px 0;">Next Sale Value: 100%</div>
+            <div id="penaltyTimerDisplay" style="color:var(--accent); font-size:0.9rem;">No recent sales penalty</div>
+        </div>
+        <div style="display:flex; justify-content:space-between; background:#252525; padding:15px; border-radius:10px; margin-top:10px; align-items:center;">
             <span class="label" style="margin:0">Last Sold:</span>
             <span id="dashLast" style="font-weight:bold; color:#fff;">--</span>
         </div>
@@ -1258,7 +1263,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.64.8 (Current)</strong><br>• Fixed an issue where "View Only" Mode was not correctly displaying your default Custom Plate Text from settings.<br>• Enhanced vehicle card UI: All special license plates are now rendered as high-fidelity visual badges instead of text tags.<br>• Improved consistent rendering of custom plate text across all view modes (Local, Cloud, and Shared).<br>• Fixed visual alignment of plate badges in the fleet view.</p>
+            <p><strong>v1.65.0 (Current)</strong><br>• Fully updated Sell Vehicle logic to align with recent GTA Online resale value adjustments, including the $500,000 price cap.<br>• Implemented 7-day penalty tracker for consecutive vehicle sales.<br>• Added a new 7-Day Penalty Status countdown alongside the existing 18-Hour Sales Cooldown dashboard.<br>• Fixed visual alignment of badge text on small vehicle cards for clearer legibility.</p>
+            <p><strong>v1.64.8</strong><br>• Fixed an issue where "View Only" Mode was not correctly displaying your default Custom Plate Text from settings.<br>• Enhanced vehicle card UI: All special license plates are now rendered as high-fidelity visual badges instead of text tags.<br>• Improved consistent rendering of custom plate text across all view modes (Local, Cloud, and Shared).<br>• Fixed visual alignment of plate badges in the fleet view.</p>
             <p><strong>v1.64.7</strong><br>• Fully synchronized all App Settings across devices via Google Drive, including Custom Plate Text and Accent Colors.<br>• Fixed an issue where Custom Plate Text was not visible to guests in "View Only" Mode: public snapshots now include your global plate settings.<br>• Improved session resilience and map coordinate resolution for shared garage views.</p>
             <p><strong>v1.64.6</strong><br>• Fixed an issue where the Google token refresh process would repeatedly display the "Disconnected" modal when refresh failed: the app now stops renewal attempts once a session is marked as expired.<br>• Added a "View Map" button to the header in shared "View Only" mode, allowing guests to see vehicle locations on the interactive map.<br>• Improved map mapping logic with a "Smart Fallback" deep search: property names that contain a location name but don't match the exact capacity string (e.g., "Strawberry Nightclub") now resolve correctly.<br>• Fixed potential callback collisions in the Google Identity Services client by ensuring single-use callback handlers.</p>
             <p><strong>v1.64.5</strong><br>• Fixed dynamic map location syncing for shared View-Only mode links: ensured property mappings correctly resolve for guest viewers.<br>• Major improvements to Google Drive session management: the app now proactively detects failed token refreshes and immediately prompts for re-authentication via the "Disconnected" modal.<br>• Optimized silent token refresh logic to prevent silent failures that previously required a manual page refresh after a few hours of inactivity.</p>
@@ -5065,6 +5071,36 @@ const MAP_ICONS = {
                 next.innerText = forSaleCount > 0 ? `Sale window is open. You have ${forSaleCount} vehicle(s) For Sale.` : "Sale window is open."; 
             }
         }
+
+        const pDisp = document.getElementById('penaltyLevelDisplay');
+        const pTimer = document.getElementById('penaltyTimerDisplay');
+        if (pDisp && pTimer) {
+            const cd7 = 7 * 24 * 3600000;
+            const now = Date.now();
+            const recentSales = salesHistory.filter(s => s.date && (now - s.date) < cd7);
+            
+            let multiplierStr = "100%";
+            let pColor = "#fff";
+            if (recentSales.length === 1) { multiplierStr = "50%"; pColor = "#f39c12"; }
+            else if (recentSales.length === 2) { multiplierStr = "10%"; pColor = "#e67e22"; }
+            else if (recentSales.length >= 3) { multiplierStr = "2.5%"; pColor = "#e74c3c"; }
+            
+            pDisp.innerHTML = `Next Sale Value: <span style="color:${pColor}">${multiplierStr}</span>`;
+            
+            if (recentSales.length > 0) {
+                const oldestRecent = recentSales[recentSales.length - 1];
+                const rem7 = cd7 - (now - oldestRecent.date);
+                const d7 = Math.floor(rem7/(24*3600000));
+                const h7 = Math.floor((rem7%(24*3600000))/3600000);
+                const m7 = Math.floor((rem7%3600000)/60000);
+                
+                pTimer.innerText = `Penalty reduces in: ${d7}d ${h7}h ${m7}m`;
+                pTimer.style.color = "var(--timer)";
+            } else {
+                pTimer.innerText = "No active sales penalty";
+                pTimer.style.color = "var(--sell)";
+            }
+        }
     }
 
     function openSalesHistory() {
@@ -5158,22 +5194,47 @@ const MAP_ICONS = {
 
     function sellVehicle() { 
         if (isViewOnly) return;
-        const cd = 18 * 3600000;
+        const vehicleToSell = vehicles.find(c => c.id == editingId);
+
+        const cd18 = 18 * 3600000;
         const timeSinceLastSell = Date.now() - lastSell;
-        if (lastSell > 0 && timeSinceLastSell < cd) {
-            const rem = cd - timeSinceLastSell;
+        if (lastSell > 0 && timeSinceLastSell < cd18) {
+            const rem = cd18 - timeSinceLastSell;
             const h = Math.floor(rem/3600000);
             const m = Math.floor((rem%3600000)/60000);
-            openAlert("Sale Cooldown", `You cannot sell another vehicle yet.<br>Time remaining: ${h}h ${m}m.`);
+            openAlert("Sale Cooldown", `You cannot sell another vehicle yet.<br>18-hour Cooldown remaining: ${h}h ${m}m.`);
             return;
         }
-        openConfirm("Sell Vehicle", "Are you sure you want to sell this vehicle?", () => { 
+        
+        let rawPrice = Number(vehicleToSell && vehicleToSell.sellPrice ? vehicleToSell.sellPrice : 0);
+        let basePrice = Math.min(rawPrice, 500000);
+        
+        const cd = 7 * 24 * 3600000;
+        const recentSales = salesHistory.filter(s => s.date && (Date.now() - s.date) < cd).length;
+        
+        let multiplier = 1;
+        if (recentSales === 1) multiplier = 0.50;
+        else if (recentSales === 2) multiplier = 0.10;
+        else if (recentSales >= 3) multiplier = 0.025;
+        
+        let finalPrice = Math.floor(basePrice * multiplier);
+        
+        let message = `Are you sure you want to sell this vehicle? It will be permanently removed from your garage.`;
+        if (rawPrice > 0 || finalPrice > 0) {
+            if (recentSales > 0) {
+                message += `<br><br><div style="background:rgba(255,85,85,0.1); border:1px solid #ff5555; padding:10px; border-radius:5px;"><span style="color:#ff5555;font-size:0.9rem;"><strong>7-Day Sales Penalty Active (${multiplier*100}%)</strong><br>Adjusted Sale Price: $${finalPrice.toLocaleString('en-US')}</span></div>`;
+            } else if (rawPrice > 500000) {
+                message += `<br><br><div style="background:rgba(243,156,18,0.1); border:1px solid #f39c12; padding:10px; border-radius:5px;"><span style="color:#f39c12;font-size:0.9rem;"><strong>Sale Cap Applied</strong><br>Adjusted Sale Price: $${finalPrice.toLocaleString('en-US')}</span></div>`;
+            } else {
+                message += `<br><br><span style="color:var(--sell);font-size:0.9rem;">Sale Price: $${finalPrice.toLocaleString('en-US')}</span>`;
+            }
+        }
+
+        openConfirm("Sell Vehicle", message, () => { 
             lastSell = Date.now(); 
-            const vehicleToSell = vehicles.find(c => c.id == editingId);
             lastSoldName = vehicleToSell ? vehicleToSell.model : "Unknown"; 
-            let soldPrice = vehicleToSell && vehicleToSell.sellPrice ? vehicleToSell.sellPrice : "Unknown";
             
-            salesHistory.unshift({ name: lastSoldName, date: lastSell, price: soldPrice });
+            salesHistory.unshift({ name: lastSoldName, date: lastSell, price: (rawPrice > 0) ? finalPrice : "Unknown" });
             if(salesHistory.length > 100) salesHistory.pop();
 
             vehicles = vehicles.filter(v => v.id != editingId); 
