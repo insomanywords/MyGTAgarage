@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.66.0</title>
+    <title>My GTA Garage v1.66.1</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -831,7 +831,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.66.0</div>
+        <div class="modal-title">About My GTA Garage v1.66.1</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1247,7 +1247,23 @@
                 <option value="wheels">Wheel Type (Stock, F1, Benny's)</option>
             </select>
         </div>
-        <div class="modal-actions">
+        <div class="form-group" style="margin-top:15px;">
+            <span class="label">Algorithm Strategy</span>
+            <select id="bpStrategy">
+                <option value="affinity">Affinity (Minimize moves, keep categories where they are)</option>
+                <option value="sequential">Strict Sequential (Wipe & Sort Alphabetically)</option>
+            </select>
+        </div>
+        <div class="form-group" style="margin-top:15px;">
+            <span class="label" style="display:flex; justify-content:space-between; align-items:center;">
+                <span>Garages to Include <span style="font-size:0.75rem;font-weight:normal;color:#aaa;">(Unchecked garages ignored)</span></span>
+                <span style="font-size:0.75rem; color:var(--accent); cursor:pointer;" onclick="document.querySelectorAll('.bp-garage-cb').forEach(c=>c.checked=true)">Select All</span>
+            </span>
+            <div id="bpGaragesDiv" style="max-height: 150px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; border: 1px solid #333; display: flex; flex-direction: column; gap: 6px;">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+        <div class="modal-actions" style="margin-top: 20px;">
             <button class="btn-sec" onclick="closeModal('blueprintSetupModal')">Cancel</button>
             <button class="btn-pri" onclick="generateBlueprint()">Generate Plan</button>
         </div>
@@ -1299,7 +1315,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.66.0 (Current)</strong><br>• Added the "Auto-Organize Blueprint" feature! You can now calculate a perfectly organized layout of your entire collection grouped by Class, Brand, Drive Type, or Wheels.<br>• The blueprint creates a persistent, interactive checklist that live-updates as you manually move your vehicles, showing exactly where to move each car and marking them off as you go, without maliciously overwriting your hard work.<br>• Allowed moving vehicles directly from the Active Blueprint window by clicking on a vehicle to open its detail view.</p>
+            <p><strong>v1.66.1 (Current)</strong><br>• Fixed an issue where the garage selection checkboxes on the blueprint setup window were disproportionately large.</p>
+            <p><strong>v1.66.0</strong><br>• Added the "Auto-Organize Blueprint" feature! You can now calculate a perfectly organized layout of your entire collection grouped by Class, Brand, Drive Type, or Wheels.<br>• The blueprint creates a persistent, interactive checklist that live-updates as you manually move your vehicles, showing exactly where to move each car and marking them off as you go, without maliciously overwriting your hard work.<br>• Added an "Affinity" sorting strategy to the blueprint generator to minimize overall moves and respect heavily populated garages.<br>• Allowed selecting exactly which garages you want included in a blueprint generation.</p>
             <p><strong>v1.65.0</strong><br>• Fully updated Sell Vehicle logic to align with recent GTA Online resale value adjustments, including the $500,000 price cap.<br>• Implemented 7-day penalty tracker for consecutive vehicle sales.<br>• Added a new 7-Day Penalty Status countdown alongside the existing 18-Hour Sales Cooldown dashboard.<br>• Fixed visual alignment of badge text on small vehicle cards for clearer legibility.</p>
             <p><strong>v1.64.8</strong><br>• Fixed an issue where "View Only" Mode was not correctly displaying your default Custom Plate Text from settings.<br>• Enhanced vehicle card UI: All special license plates are now rendered as high-fidelity visual badges instead of text tags.<br>• Improved consistent rendering of custom plate text across all view modes (Local, Cloud, and Shared).<br>• Fixed visual alignment of plate badges in the fleet view.</p>
             <p><strong>v1.64.7</strong><br>• Fully synchronized all App Settings across devices via Google Drive, including Custom Plate Text and Accent Colors.<br>• Fixed an issue where Custom Plate Text was not visible to guests in "View Only" Mode: public snapshots now include your global plate settings.<br>• Improved session resilience and map coordinate resolution for shared garage views.</p>
@@ -6160,74 +6177,155 @@ const MAP_ICONS = {
             openModal('blueprintModal');
             renderBlueprint();
         } else {
-            openModal('blueprintSetupModal');
+            openBlueprintSetup();
         }
+    }
+
+    function openBlueprintSetup() {
+        if (isViewOnly) return;
+        const garDiv = document.getElementById('bpGaragesDiv');
+        const ownedGarages = [...new Set(vehicles.map(v => v.loc))].sort();
+        garDiv.innerHTML = ownedGarages.map(g => `<label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" class="bp-garage-cb" value="${g}" checked style="width:18px; height:18px; margin:0; accent-color:var(--accent); flex-shrink:0;"> <span style="font-size:0.9rem;">${g}</span></label>`).join('');
+        openModal('blueprintSetupModal');
     }
 
     function generateBlueprint() {
         if (isViewOnly) return;
         const criteria = document.getElementById('bpCriteria').value;
+        const strategy = document.getElementById('bpStrategy').value;
+        const checkboxes = document.querySelectorAll('.bp-garage-cb:checked');
+        const selectedGarages = Array.from(checkboxes).map(cb => cb.value);
         
-        // 1. Identify owned garages and calculate available slots
-        const ownedGarages = [...new Set(vehicles.map(v => v.loc))].sort();
+        if (selectedGarages.length === 0) {
+            return openAlert("Error", "Please select at least one garage to organize.");
+        }
+        
+        const vehiclesToOrganize = vehicles.filter(v => selectedGarages.includes(v.loc));
+        
+        // 1. Calculate available slots ONLY for selected garages.
         let availableSlots = [];
+        let bins = []; 
         
-        ownedGarages.forEach(loc => {
+        selectedGarages.forEach(loc => {
             const cleanName = normalizeGarageName(loc).split(" (")[0];
             const mapKey = Object.keys(FLOOR_MAP).find(k => loc.includes(k));
             
             if (mapKey) {
                 FLOOR_MAP[mapKey].forEach(floor => {
                     const cap = getFloorCap(loc, floor);
-                    for (let i = 1; i <= cap; i++) {
-                        availableSlots.push({ loc, floor, slot: String(i) });
-                    }
+                    bins.push({ loc, floor, cap });
                 });
             } else {
                 const capKey = Object.keys(CAPACITIES).find(m => cleanName.includes(m)) || "DEFAULT";
                 const cap = CAPACITIES[capKey];
-                for (let i = 1; i <= cap; i++) {
-                    availableSlots.push({ loc, floor: "Main Floor", slot: String(i) });
-                }
+                bins.push({ loc, floor: "Main Floor", cap });
             }
         });
 
-        // 2. Sort vehicles based on user criteria
-        let sortedVehicles = [...vehicles].sort((a, b) => {
-            let valA = "Unknown", valB = "Unknown";
-            const dbA = masterDB.find(d => d.model === a.model) || {};
-            const dbB = masterDB.find(d => d.model === b.model) || {};
-            
-            if (criteria === 'class') {
-                valA = (dbA.class || a.class || 'Unknown').replace(/_/g, ' ');
-                valB = (dbB.class || b.class || 'Unknown').replace(/_/g, ' ');
-            } else if (criteria === 'manuf') {
-                valA = a.manuf || 'Unknown';
-                valB = b.manuf || 'Unknown';
-            } else if (criteria === 'drive') {
-                valA = dbA.drive || a.drive || 'Unknown';
-                valB = dbB.drive || b.drive || 'Unknown';
-            } else if (criteria === 'wheels') {
-                valA = a.wheels || 'Stock';
-                valB = b.wheels || 'Stock';
-            }
-
-            if (valA !== valB) return valA.localeCompare(valB);
-            if (a.manuf !== b.manuf) return (a.manuf||'').localeCompare(b.manuf||'');
-            return (a.model||'').localeCompare(b.model||'');
-        });
-
-        // 3. Map sorted vehicles into slots and save to state
         let targets = {};
-        sortedVehicles.forEach((v, index) => {
-            if (availableSlots[index]) {
-                targets[v.id] = {
-                    loc: availableSlots[index].loc,
-                    floor: availableSlots[index].floor,
-                    slot: availableSlots[index].slot
-                };
-            }
-        });
+        
+        function getVal(v) {
+            const db = masterDB.find(d => d.model === v.model) || {};
+            if (criteria === 'class') return (db.class || v.class || 'Unknown').replace(/_/g, ' ');
+            if (criteria === 'manuf') return v.manuf || 'Unknown';
+            if (criteria === 'drive') return db.drive || v.drive || 'Unknown';
+            if (criteria === 'wheels') return v.wheels || 'Stock';
+            return 'Unknown';
+        }
+
+        if (strategy === 'sequential') {
+            let sortedVehicles = [...vehiclesToOrganize].sort((a, b) => {
+                let valA = getVal(a), valB = getVal(b);
+                if (valA !== valB) return valA.localeCompare(valB);
+                if (a.manuf !== b.manuf) return (a.manuf||'').localeCompare(b.manuf||'');
+                return (a.model||'').localeCompare(b.model||'');
+            });
+            
+            bins.forEach(b => {
+                 for(let i=1; i<=b.cap; i++) availableSlots.push({loc: b.loc, floor: b.floor, slot: String(i)});
+            });
+            
+            sortedVehicles.forEach((v, index) => {
+                if (availableSlots[index]) {
+                    targets[v.id] = {
+                        loc: availableSlots[index].loc,
+                        floor: availableSlots[index].floor,
+                        slot: availableSlots[index].slot
+                    };
+                }
+            });
+        } else {
+            // AFFINITY ALGORITHM (Minimize moves)
+            bins.forEach(b => {
+                b.availableSlots = [];
+                for(let i=1; i<=b.cap; i++) b.availableSlots.push(String(i));
+                b.affinity = {};
+            });
+            
+            vehiclesToOrganize.forEach(v => {
+                const val = getVal(v);
+                const b = bins.find(bin => bin.loc === v.loc && bin.floor === (v.floor || "Main Floor"));
+                if (b) {
+                    b.affinity[val] = (b.affinity[val] || 0) + 1;
+                }
+            });
+            
+            let groups = {};
+            vehiclesToOrganize.forEach(v => {
+                const val = getVal(v);
+                if (!groups[val]) groups[val] = [];
+                groups[val].push(v);
+            });
+            
+            Object.keys(groups).forEach(val => {
+                groups[val].sort((a, b) => {
+                    if (a.manuf !== b.manuf) return (a.manuf||'').localeCompare(b.manuf||'');
+                    return (a.model||'').localeCompare(b.model||'');
+                });
+            });
+            
+            const sortedGroupNames = Object.keys(groups).sort((a, b) => groups[b].length - groups[a].length);
+            
+            sortedGroupNames.forEach(groupName => {
+                let carsToPlace = groups[groupName];
+                
+                while (carsToPlace.length > 0) {
+                    let availableBins = bins.filter(b => b.availableSlots.length > 0);
+                    if (availableBins.length === 0) break;
+                    
+                    availableBins.sort((a, b) => {
+                        const affA = a.affinity[groupName] || 0;
+                        const affB = b.affinity[groupName] || 0;
+                        if (affA !== affB) return affB - affA; 
+                        return b.availableSlots.length - a.availableSlots.length;
+                    });
+                    
+                    const bestBin = availableBins[0];
+                    const carsTakingThisBin = carsToPlace.splice(0, bestBin.availableSlots.length);
+                    
+                    carsTakingThisBin.forEach(v => {
+                        let assignedSlot = null;
+                        if (v.loc === bestBin.loc && (v.floor || "Main Floor") === bestBin.floor) {
+                            const originalSlot = String(v.slot);
+                            const slotIndex = bestBin.availableSlots.indexOf(originalSlot);
+                            if (slotIndex !== -1) {
+                                bestBin.availableSlots.splice(slotIndex, 1);
+                                assignedSlot = originalSlot;
+                            }
+                        }
+                        if (!assignedSlot) {
+                            assignedSlot = bestBin.availableSlots.shift();
+                        }
+                        
+                        targets[v.id] = {
+                            loc: bestBin.loc,
+                            floor: bestBin.floor,
+                            slot: assignedSlot
+                        };
+                    });
+                }
+            });
+        }
 
         const bp = {
             isActive: true,
@@ -6312,7 +6410,14 @@ const MAP_ICONS = {
                         badge.style.cssText = "position:absolute; top:8px; left:8px; z-index:10; font-weight:900; font-size:0.75rem; text-transform:uppercase; padding:4px 8px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.5); pointer-events:none;";
                         
                         const currentFloorText = (v.floor && v.floor !== "Main Floor") ? ` - ${v.floor}` : "";
-                        badge.innerHTML = `MOVE TO SLOT ${t.slot}<br><span style="font-size:0.65rem; font-weight:600;">Currently in: ${v.loc}${currentFloorText}</span>`;
+                        
+                        const occupant = vehicles.find(o => o.loc === t.loc && (o.floor || "Main Floor") === t.floor && String(o.slot || "") === String(t.slot));
+                        let occupantText = "";
+                        if (occupant && occupant.id !== v.id) {
+                            occupantText = `<br><span style="font-size:0.65rem; font-weight:600; color:#fff;">Swap with: ${occupant.model}</span>`;
+                        }
+                        
+                        badge.innerHTML = `MOVE TO SLOT ${t.slot}<br><span style="font-size:0.65rem; font-weight:600;">Currently in: ${v.loc}${currentFloorText}</span>${occupantText}`;
                         badge.style.background = "rgba(239, 68, 68, 0.95)"; // Wep Red
                         badge.style.color = "#fff";
                         cardNode.style.border = "2px solid var(--wep)";
