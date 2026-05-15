@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.65.0</title>
+    <title>My GTA Garage v1.66.0</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -831,7 +831,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.65.0</div>
+        <div class="modal-title">About My GTA Garage v1.66.0</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -895,7 +895,7 @@
     </div>
 </div>
 
-<div id="alertModal" class="modal">
+<div id="alertModal" class="modal" style="z-index: 2000;">
     <div class="modal-box" style="text-align:center;">
         <div style="font-size:2rem; margin-bottom:10px;">⚠️</div>
         <h2 id="alertTitle" style="color:#fff; margin:0 0 10px 0;">Alert</h2>
@@ -904,7 +904,7 @@
     </div>
 </div>
 
-<div id="confirmModal" class="modal">
+<div id="confirmModal" class="modal" style="z-index: 1500;">
     <div class="modal-box" style="text-align:center;">
         <div style="font-size:2rem; margin-bottom:10px;">❓</div>
         <h2 id="confTitle" style="color:#fff; margin:0 0 10px 0;">Confirm</h2>
@@ -943,7 +943,7 @@
     </div>
 </div>
 
-        <div id="detailModal" class="modal">
+        <div id="detailModal" class="modal" style="z-index: 1010;">
     <div class="modal-box">
         <div id="detailContentWrapper" style="padding: 10px; border-radius: 12px; background: var(--card); border: 1px solid #333; overflow: hidden;">
             <div id="detailContent"></div>
@@ -1006,7 +1006,7 @@
     </div>
 </div>
 
-<div id="vehicleModal" class="modal">
+<div id="vehicleModal" class="modal" style="z-index: 1020;">
     <div class="modal-box">
         <div id="modalTitle" class="modal-title">Vehicle Details</div>
         
@@ -1214,6 +1214,9 @@
     <div class="modal-box">
         <div class="modal-title">Garage Tools</div>
         <div style="display:flex; flex-direction:column; gap:15px;">
+            <button class="btn-sec" style="width:100%; justify-content: center; font-size: 1.1rem; padding: 15px; color: var(--f1); border-color: rgba(245, 158, 11, 0.5);" onclick="closeModal('garageToolsModal'); openBlueprintMenu();">
+                <i class="fas fa-sitemap" style="margin-right: 8px; font-size: 1.2rem;"></i> Auto-Organize Blueprint
+            </button>
             <button class="btn-sec" style="width:100%; justify-content: center; font-size: 1.1rem; padding: 15px;" onclick="closeModal('garageToolsModal'); openSwapAllModal();">
                 <i class="fas fa-exchange-alt" style="margin-right: 8px; font-size: 1.2rem;"></i> Swap Entire Garage
             </button>
@@ -1230,6 +1233,39 @@
 </div>
 
 <div id="swapAllModal" class="modal"><div class="modal-box"><div class="modal-title">Swap Entire Garage</div><div class="form-group"><span class="label">From</span><select id="saFrom" style="width:100%"></select></div><div style="text-align:center; padding:10px;"><i class="fas fa-arrow-down" style="color:var(--accent); font-size:1.5rem;"></i></div><div class="form-group"><span class="label">To</span><select id="saTo" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('swapAllModal')">Cancel</button><button class="btn-pri" onclick="performSwapAll()">Confirm Swap</button></div></div></div>
+
+<div id="blueprintSetupModal" class="modal">
+    <div class="modal-box">
+        <div class="modal-title">Create Organization Blueprint</div>
+        <p style="color:#ccc; font-size:0.9rem; margin-bottom:15px; line-height: 1.5;">Calculate a perfect organization layout. This will <strong>not</strong> move your cars in the app—it creates an interactive checklist for you to follow.</p>
+        <div class="form-group">
+            <span class="label">Group & Sort By</span>
+            <select id="bpCriteria">
+                <option value="class">Vehicle Class (Super, Sports, Muscle, etc.)</option>
+                <option value="manuf">Brand / Manufacturer</option>
+                <option value="drive">Drive Type (AWD, RWD, etc.)</option>
+                <option value="wheels">Wheel Type (Stock, F1, Benny's)</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-sec" onclick="closeModal('blueprintSetupModal')">Cancel</button>
+            <button class="btn-pri" onclick="generateBlueprint()">Generate Plan</button>
+        </div>
+    </div>
+</div>
+
+<div id="blueprintModal" class="modal">
+    <div class="modal-box" style="max-width: 800px;">
+        <div class="modal-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Active Blueprint</span>
+            <button class="btn-sec" style="font-size:0.8rem; padding:4px 8px; height:auto; color:var(--wep); border-color:var(--wep);" onclick="clearBlueprint()">Discard Plan</button>
+        </div>
+        <div id="blueprintProgress" style="margin-bottom:15px; font-weight:bold; color:var(--accent);"></div>
+        <div id="blueprintContent" style="max-height: 65vh; overflow-y: auto; padding-right:5px; overflow-x: hidden;">
+            </div>
+        <button class="btn-sec" style="width:100%; margin-top:15px;" onclick="closeModal('blueprintModal')">Close</button>
+    </div>
+</div>
 
 <div id="mapModal" class="modal">
     <div class="modal-box" style="padding: 0; width: 98%; max-width: 1600px; overflow: hidden; height: 96vh; display: flex; flex-direction: column; position: relative; border: 1px solid var(--accent);">
@@ -1256,14 +1292,15 @@
         </div>
     </div>
 </div>
-<div id="moveModal" class="modal"><div class="modal-box"><div class="modal-title">Move Vehicle</div><p id="moveCarName" style="color:var(--accent); font-weight:bold; margin-bottom:20px; font-size:1.1rem;"></p><div class="form-group"><span class="label">Destination</span><select id="moveDest" style="width:100%" onchange="checkMoveCap()"></select></div><div id="moveSwapUI" style="display:none; background:rgba(245,158,11,0.1); padding:15px; border-radius:10px; border:1px solid var(--f1); margin-bottom:15px;"><span class="label" style="color:var(--f1)">Garage Full! Select car to swap with:</span><select id="moveSwapTarget" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('moveModal')">Cancel</button><button class="btn-pri" onclick="commitMove()">Confirm Move</button></div></div></div>
+<div id="moveModal" class="modal" style="z-index: 1030;"><div class="modal-box"><div class="modal-title">Move Vehicle</div><p id="moveCarName" style="color:var(--accent); font-weight:bold; margin-bottom:20px; font-size:1.1rem;"></p><div class="form-group"><span class="label">Destination</span><select id="moveDest" style="width:100%" onchange="checkMoveCap()"></select></div><div id="moveSwapUI" style="display:none; background:rgba(245,158,11,0.1); padding:15px; border-radius:10px; border:1px solid var(--f1); margin-bottom:15px;"><span class="label" style="color:var(--f1)">Garage Full! Select car to swap with:</span><select id="moveSwapTarget" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('moveModal')">Cancel</button><button class="btn-pri" onclick="commitMove()">Confirm Move</button></div></div></div>
 <div id="migrationModal" class="modal"><div class="modal-box"><div class="modal-title" style="color:var(--accent)">Data Migration</div><p style="color:#ccc; font-size:0.9rem;">Syncing vehicle data with cloud database (Images & Drive stats).</p><div id="migLog" style="height:120px; overflow:auto; background:#000; padding:10px; font-family:monospace; color:var(--sell); border-radius:8px;"></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('migrationModal')">Cancel</button><button class="btn-pri" onclick="runMigration()">Run Update</button></div></div></div>
 
 <div id="changelogModal" class="modal">
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.65.0 (Current)</strong><br>• Fully updated Sell Vehicle logic to align with recent GTA Online resale value adjustments, including the $500,000 price cap.<br>• Implemented 7-day penalty tracker for consecutive vehicle sales.<br>• Added a new 7-Day Penalty Status countdown alongside the existing 18-Hour Sales Cooldown dashboard.<br>• Fixed visual alignment of badge text on small vehicle cards for clearer legibility.</p>
+            <p><strong>v1.66.0 (Current)</strong><br>• Added the "Auto-Organize Blueprint" feature! You can now calculate a perfectly organized layout of your entire collection grouped by Class, Brand, Drive Type, or Wheels.<br>• The blueprint creates a persistent, interactive checklist that live-updates as you manually move your vehicles, showing exactly where to move each car and marking them off as you go, without maliciously overwriting your hard work.<br>• Allowed moving vehicles directly from the Active Blueprint window by clicking on a vehicle to open its detail view.</p>
+            <p><strong>v1.65.0</strong><br>• Fully updated Sell Vehicle logic to align with recent GTA Online resale value adjustments, including the $500,000 price cap.<br>• Implemented 7-day penalty tracker for consecutive vehicle sales.<br>• Added a new 7-Day Penalty Status countdown alongside the existing 18-Hour Sales Cooldown dashboard.<br>• Fixed visual alignment of badge text on small vehicle cards for clearer legibility.</p>
             <p><strong>v1.64.8</strong><br>• Fixed an issue where "View Only" Mode was not correctly displaying your default Custom Plate Text from settings.<br>• Enhanced vehicle card UI: All special license plates are now rendered as high-fidelity visual badges instead of text tags.<br>• Improved consistent rendering of custom plate text across all view modes (Local, Cloud, and Shared).<br>• Fixed visual alignment of plate badges in the fleet view.</p>
             <p><strong>v1.64.7</strong><br>• Fully synchronized all App Settings across devices via Google Drive, including Custom Plate Text and Accent Colors.<br>• Fixed an issue where Custom Plate Text was not visible to guests in "View Only" Mode: public snapshots now include your global plate settings.<br>• Improved session resilience and map coordinate resolution for shared garage views.</p>
             <p><strong>v1.64.6</strong><br>• Fixed an issue where the Google token refresh process would repeatedly display the "Disconnected" modal when refresh failed: the app now stops renewal attempts once a session is marked as expired.<br>• Added a "View Map" button to the header in shared "View Only" mode, allowing guests to see vehicle locations on the interactive map.<br>• Improved map mapping logic with a "Smart Fallback" deep search: property names that contain a location name but don't match the exact capacity string (e.g., "Strawberry Nightclub") now resolve correctly.<br>• Fixed potential callback collisions in the Google Identity Services client by ensuring single-use callback handlers.</p>
@@ -4571,6 +4608,11 @@ const MAP_ICONS = {
         safeStorage.setItem(keys.sh, JSON.stringify(salesHistory));
         render(); updateTimerLogic();
         syncToCloud();
+        
+        // NEW: Live update the Blueprint if it's currently open
+        if (document.getElementById('blueprintModal') && document.getElementById('blueprintModal').style.display === 'flex') {
+            renderBlueprint();
+        }
     }
 
     function openNickModal() {
@@ -6104,6 +6146,258 @@ const MAP_ICONS = {
         const url = new URL(window.location.href);
         url.searchParams.delete('share');
         window.location.href = url.origin + url.pathname;
+    }
+
+    // --- AUTO-ORGANIZE BLUEPRINT LOGIC ---
+    function getBlueprintKey() {
+        return 'gta_org_blueprint_v1' + (activeCharId === 'default' ? '' : '_' + activeCharId);
+    }
+
+    function openBlueprintMenu() {
+        if (isViewOnly) return;
+        const bpStr = safeStorage.getItem(getBlueprintKey());
+        if (bpStr) {
+            openModal('blueprintModal');
+            renderBlueprint();
+        } else {
+            openModal('blueprintSetupModal');
+        }
+    }
+
+    function generateBlueprint() {
+        if (isViewOnly) return;
+        const criteria = document.getElementById('bpCriteria').value;
+        
+        // 1. Identify owned garages and calculate available slots
+        const ownedGarages = [...new Set(vehicles.map(v => v.loc))].sort();
+        let availableSlots = [];
+        
+        ownedGarages.forEach(loc => {
+            const cleanName = normalizeGarageName(loc).split(" (")[0];
+            const mapKey = Object.keys(FLOOR_MAP).find(k => loc.includes(k));
+            
+            if (mapKey) {
+                FLOOR_MAP[mapKey].forEach(floor => {
+                    const cap = getFloorCap(loc, floor);
+                    for (let i = 1; i <= cap; i++) {
+                        availableSlots.push({ loc, floor, slot: String(i) });
+                    }
+                });
+            } else {
+                const capKey = Object.keys(CAPACITIES).find(m => cleanName.includes(m)) || "DEFAULT";
+                const cap = CAPACITIES[capKey];
+                for (let i = 1; i <= cap; i++) {
+                    availableSlots.push({ loc, floor: "Main Floor", slot: String(i) });
+                }
+            }
+        });
+
+        // 2. Sort vehicles based on user criteria
+        let sortedVehicles = [...vehicles].sort((a, b) => {
+            let valA = "Unknown", valB = "Unknown";
+            const dbA = masterDB.find(d => d.model === a.model) || {};
+            const dbB = masterDB.find(d => d.model === b.model) || {};
+            
+            if (criteria === 'class') {
+                valA = (dbA.class || a.class || 'Unknown').replace(/_/g, ' ');
+                valB = (dbB.class || b.class || 'Unknown').replace(/_/g, ' ');
+            } else if (criteria === 'manuf') {
+                valA = a.manuf || 'Unknown';
+                valB = b.manuf || 'Unknown';
+            } else if (criteria === 'drive') {
+                valA = dbA.drive || a.drive || 'Unknown';
+                valB = dbB.drive || b.drive || 'Unknown';
+            } else if (criteria === 'wheels') {
+                valA = a.wheels || 'Stock';
+                valB = b.wheels || 'Stock';
+            }
+
+            if (valA !== valB) return valA.localeCompare(valB);
+            if (a.manuf !== b.manuf) return (a.manuf||'').localeCompare(b.manuf||'');
+            return (a.model||'').localeCompare(b.model||'');
+        });
+
+        // 3. Map sorted vehicles into slots and save to state
+        let targets = {};
+        sortedVehicles.forEach((v, index) => {
+            if (availableSlots[index]) {
+                targets[v.id] = {
+                    loc: availableSlots[index].loc,
+                    floor: availableSlots[index].floor,
+                    slot: availableSlots[index].slot
+                };
+            }
+        });
+
+        const bp = {
+            isActive: true,
+            criteria: criteria,
+            generatedOn: Date.now(),
+            targets: targets
+        };
+
+        safeStorage.setItem(getBlueprintKey(), JSON.stringify(bp));
+        
+        closeModal('blueprintSetupModal');
+        openModal('blueprintModal');
+        renderBlueprint();
+    }
+
+    function renderBlueprint() {
+        const container = document.getElementById('blueprintContent');
+        const progressEl = document.getElementById('blueprintProgress');
+        const bpStr = safeStorage.getItem(getBlueprintKey());
+        if (!bpStr) {
+            container.innerHTML = "No blueprint found.";
+            return;
+        }
+        
+        const bp = JSON.parse(bpStr);
+        let completed = 0;
+        let total = 0;
+
+        // Group the targets by Loc -> Floor for clean display
+        const groupedPlan = {};
+        const completedVehicles = [];
+        
+        Object.keys(bp.targets).forEach(vid => {
+            const t = bp.targets[vid];
+            const v = vehicles.find(veh => veh.id === vid);
+            if (!v) return; // Ignore vehicles deleted since blueprint generation
+            
+            total++;
+            
+            const isDone = (v.loc === t.loc && (v.floor || "Main Floor") === t.floor);
+            if (isDone) {
+                completed++;
+                completedVehicles.push({ target: t, vehicle: v });
+            } else {
+                if (!groupedPlan[t.loc]) groupedPlan[t.loc] = {};
+                if (!groupedPlan[t.loc][t.floor]) groupedPlan[t.loc][t.floor] = [];
+                groupedPlan[t.loc][t.floor].push({ target: t, vehicle: v });
+            }
+        });
+
+        // Use a DocumentFragment so we don't trigger reflows while building
+        const frag = document.createDocumentFragment();
+
+        let hasPending = false;
+        for (const loc in groupedPlan) {
+            hasPending = true;
+            const locHeader = document.createElement('div');
+            locHeader.style.cssText = "font-weight:800; font-size:1.1rem; color:var(--accent); margin-top:15px; border-bottom:1px solid #333; padding-bottom:5px;";
+            locHeader.innerText = loc;
+            frag.appendChild(locHeader);
+            
+            for (const floor in groupedPlan[loc]) {
+                const floorHeader = document.createElement('div');
+                floorHeader.style.cssText = "font-weight:bold; color:#aaa; font-size:0.9rem; margin-top:10px; margin-bottom:10px;";
+                floorHeader.innerHTML = `<i class="fas fa-layer-group"></i> ${floor}`;
+                frag.appendChild(floorHeader);
+                
+                const gridDiv = document.createElement('div');
+                gridDiv.className = 'vehicle-grid';
+                
+                groupedPlan[loc][floor].sort((a,b) => parseInt(a.target.slot) - parseInt(b.target.slot)).forEach(item => {
+                    const v = item.vehicle;
+                    const t = item.target;
+                    
+                    // Generate the standard small card
+                    const cardNode = createCard(v);
+                    if (cardNode) {
+                        cardNode.style.position = "relative";
+                        
+                        // Construct the Tracker Badge Overlay
+                        const badge = document.createElement('div');
+                        badge.style.cssText = "position:absolute; top:8px; left:8px; z-index:10; font-weight:900; font-size:0.75rem; text-transform:uppercase; padding:4px 8px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.5); pointer-events:none;";
+                        
+                        const currentFloorText = (v.floor && v.floor !== "Main Floor") ? ` - ${v.floor}` : "";
+                        badge.innerHTML = `MOVE TO SLOT ${t.slot}<br><span style="font-size:0.65rem; font-weight:600;">Currently in: ${v.loc}${currentFloorText}</span>`;
+                        badge.style.background = "rgba(239, 68, 68, 0.95)"; // Wep Red
+                        badge.style.color = "#fff";
+                        cardNode.style.border = "2px solid var(--wep)";
+                        
+                        // Hide the pencil edit icon so they don't misclick it
+                        const actions = cardNode.querySelector('.card-actions-top');
+                        if (actions) actions.style.display = 'none';
+
+                        cardNode.onclick = () => openDetailModal(v.id);
+
+                        cardNode.appendChild(badge);
+                        gridDiv.appendChild(cardNode); 
+                    }
+                });
+                frag.appendChild(gridDiv);
+            }
+        }
+
+        if (!hasPending && total > 0) {
+            const allDone = document.createElement('div');
+            allDone.style.cssText = "text-align:center; padding:30px; font-size:1.2rem; color:var(--sell); font-weight:bold;";
+            allDone.innerHTML = `<i class="fas fa-check-circle" style="font-size:2rem; display:block; margin-bottom:10px;"></i> All vehicles are organized!`;
+            frag.appendChild(allDone);
+        }
+
+        if (completedVehicles.length > 0) {
+            const compHeader = document.createElement('div');
+            compHeader.style.cssText = "font-weight:800; font-size:1.1rem; color:var(--sell); margin-top:30px; border-bottom:1px solid #333; padding-bottom:5px;";
+            compHeader.innerHTML = `<i class="fas fa-check"></i> Completed (${completed})`;
+            frag.appendChild(compHeader);
+
+            const compGridDiv = document.createElement('div');
+            compGridDiv.className = 'vehicle-grid';
+            compGridDiv.style.marginTop = "15px";
+
+            completedVehicles.sort((a,b) => {
+                if (a.target.loc !== b.target.loc) return a.target.loc.localeCompare(b.target.loc);
+                if (a.target.floor !== b.target.floor) return (a.target.floor || "").localeCompare(b.target.floor || "");
+                return parseInt(a.target.slot) - parseInt(b.target.slot);
+            }).forEach(item => {
+                const v = item.vehicle;
+                const t = item.target;
+
+                const cardNode = createCard(v);
+                if (cardNode) {
+                    cardNode.style.position = "relative";
+                    
+                    const badge = document.createElement('div');
+                    badge.style.cssText = "position:absolute; top:8px; left:8px; z-index:10; font-weight:900; font-size:0.75rem; text-transform:uppercase; padding:4px 8px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.5); pointer-events:none;";
+                    badge.innerHTML = `<i class="fas fa-check"></i> Slot ${t.slot} - MATCH`;
+                    badge.style.background = "var(--sell)";
+                    badge.style.color = "#fff";
+                    
+                    cardNode.style.opacity = "0.35"; // Ghost out completed cars
+                    cardNode.style.filter = "grayscale(100%)";
+                    
+                    const actions = cardNode.querySelector('.card-actions-top');
+                    if (actions) actions.style.display = 'none';
+
+                    cardNode.onclick = () => openDetailModal(v.id);
+
+                    cardNode.appendChild(badge);
+                    compGridDiv.appendChild(cardNode);
+                }
+            });
+            frag.appendChild(compGridDiv);
+        }
+
+        container.innerHTML = "";
+        container.appendChild(frag);
+        
+        // Status Bar text
+        const missingCount = vehicles.length - total;
+        let missingHtml = missingCount > 0 ? `<span style="color:var(--wep); font-size:0.8rem; margin-left:10px;">(${missingCount} unsorted cars - Re-generate plan to include)</span>` : "";
+        
+        const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
+        progressEl.innerHTML = `Progress: ${completed} / ${total} Cars Placed (${pct}%)${missingHtml}`;
+    }
+
+    function clearBlueprint() {
+        openConfirm("Discard Blueprint", "Are you sure you want to discard your current organization plan?", () => {
+            safeStorage.removeItem(getBlueprintKey());
+            closeModal('blueprintModal');
+            showSuccess("Blueprint Discarded", "Your organization plan has been cleared.");
+        });
     }
 
     // PWA SERVICE WORKER REGISTRATION
