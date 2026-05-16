@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.66.2</title>
+    <title>My GTA Garage v1.66.3</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -831,7 +831,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.66.2</div>
+        <div class="modal-title">About My GTA Garage v1.66.3</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1326,7 +1326,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.66.2 (Current)</strong><br>• Redesigned the Active Blueprint UI with a clearer view showing exactly where to move vehicles.<br>• Added an "Execute Move" button to active blueprint vehicles to instantly apply the planned move or swap without manual editing.<br>• Improved visual styling for completed items in the blueprint view.</p>
+            <p><strong>v1.66.3 (Current)</strong><br>• Improved active blueprint swapping logic to prioritize evicting vehicles that don't belong in the target garage, optimizing layout flow.</p>
+            <p><strong>v1.66.2</strong><br>• Redesigned the Active Blueprint UI with a clearer view showing exactly where to move vehicles.<br>• Added an "Execute Move" button to active blueprint vehicles to instantly apply the planned move or swap without manual editing.<br>• Improved visual styling for completed items in the blueprint view.</p>
             <p><strong>v1.66.1</strong><br>• Fixed an issue where the garage selection checkboxes on the blueprint setup window were disproportionately large.</p>
             <p><strong>v1.66.0</strong><br>• Added the "Auto-Organize Blueprint" feature! You can now calculate a perfectly organized layout of your entire collection grouped by Class, Brand, Drive Type, or Wheels.<br>• The blueprint creates a persistent, interactive checklist that live-updates as you manually move your vehicles, showing exactly where to move each car and marking them off as you go, without maliciously overwriting your hard work.<br>• Added an "Affinity" sorting strategy to the blueprint generator to minimize overall moves and respect heavily populated garages.<br>• Allowed selecting exactly which garages you want included in a blueprint generation.</p>
             <p><strong>v1.65.0</strong><br>• Fully updated Sell Vehicle logic to align with recent GTA Online resale value adjustments, including the $500,000 price cap.<br>• Implemented 7-day penalty tracker for consecutive vehicle sales.<br>• Added a new 7-Day Penalty Status countdown alongside the existing 18-Hour Sales Cooldown dashboard.<br>• Fixed visual alignment of badge text on small vehicle cards for clearer legibility.</p>
@@ -6353,6 +6354,41 @@ const MAP_ICONS = {
         renderBlueprint();
     }
 
+    function getBlueprintOccupant(tLoc, tFloor, tSlotInt, movingVehicleId, bp) {
+        const residents = vehicles.filter(o => o.loc === tLoc && (o.floor || "Main Floor") === tFloor && o.id !== movingVehicleId);
+        
+        let exactSlotOccupant = residents.find(o => parseInt(o.slot || "-1") === tSlotInt);
+        
+        // Priority 1: Exact slot occupant IF they do NOT belong in this garage
+        if (bp && exactSlotOccupant) {
+            const oT = bp.targets[exactSlotOccupant.id];
+            if (!oT || oT.loc !== tLoc || oT.floor !== tFloor) {
+                return exactSlotOccupant;
+            }
+        }
+        
+        // Priority 2: Anyone else who does NOT belong in this garage
+        if (bp) {
+            let evictionCandidate = residents.find(o => {
+                const oT = bp.targets[o.id];
+                return !oT || oT.loc !== tLoc || oT.floor !== tFloor;
+            });
+            if (evictionCandidate) return evictionCandidate;
+        }
+        
+        // At this point, everyone in the garage belongs here.
+        // We do not want to evict someone who belongs here if we can avoid it.
+        let cap = getFloorCap(tLoc, tFloor) || 10;
+        
+        // Priority 3: Only if the garage is full, we must swap with someone to make room.
+        if (residents.length >= cap) {
+            return exactSlotOccupant || residents[0] || null;
+        }
+
+        // If the garage isn't full and everyone belongs here, no swap needed.
+        return null;
+    }
+
     function renderBlueprint() {
         const container = document.getElementById('blueprintContent');
         const progressEl = document.getElementById('blueprintProgress');
@@ -6433,9 +6469,9 @@ const MAP_ICONS = {
                         let statusText = `<span style="font-size:0.7rem; font-weight:600; opacity:0.9;">Currently: ${v.loc}${currentFloorText}</span>`;
                         
                         const targetSlotInt = parseInt(t.slot);
-                        const occupant = vehicles.find(o => o.loc === t.loc && (o.floor || "Main Floor") === t.floor && parseInt(o.slot || "-1") === targetSlotInt);
+                        const occupant = getBlueprintOccupant(t.loc, t.floor, targetSlotInt, v.id, bp);
                         
-                        if (occupant && occupant.id !== v.id) {
+                        if (occupant) {
                             statusText += `<span style="font-size:0.75rem; font-weight:700; color:#ffd700; margin-top:2px; display:flex; align-items:center; gap:5px;"><i class="fas fa-exchange-alt"></i> Swap with: ${occupant.model}</span>`;
                         }
                         
