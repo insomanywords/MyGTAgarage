@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.66.1</title>
+    <title>My GTA Garage v1.66.2</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -831,7 +831,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.66.1</div>
+        <div class="modal-title">About My GTA Garage v1.66.2</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1283,6 +1283,17 @@
     </div>
 </div>
 
+<div id="bpMoveModal" class="modal" style="z-index: 1200;">
+    <div class="modal-box">
+        <div class="modal-title">Execute Move</div>
+        <div id="bpMoveDetails" style="color:#ccc; font-size:0.95rem; margin-bottom:20px; line-height:1.6; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid #333;"></div>
+        <div class="modal-actions">
+            <button class="btn-sec" onclick="closeModal('bpMoveModal')">Cancel</button>
+            <button class="btn-pri" id="bpMoveExecuteBtn">Confirm Move</button>
+        </div>
+    </div>
+</div>
+
 <div id="mapModal" class="modal">
     <div class="modal-box" style="padding: 0; width: 98%; max-width: 1600px; overflow: hidden; height: 96vh; display: flex; flex-direction: column; position: relative; border: 1px solid var(--accent);">
         <button class="btn-sec" style="position: absolute; top: 15px; right: 15px; z-index: 1000; width: 44px; height: 44px; border-radius: 50%; background: var(--head); border: 2px solid var(--accent); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.5);" onclick="closeModal('mapModal')">✕</button>
@@ -1315,7 +1326,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.66.1 (Current)</strong><br>• Fixed an issue where the garage selection checkboxes on the blueprint setup window were disproportionately large.</p>
+            <p><strong>v1.66.2 (Current)</strong><br>• Redesigned the Active Blueprint UI with a clearer view showing exactly where to move vehicles.<br>• Added an "Execute Move" button to active blueprint vehicles to instantly apply the planned move or swap without manual editing.<br>• Improved visual styling for completed items in the blueprint view.</p>
+            <p><strong>v1.66.1</strong><br>• Fixed an issue where the garage selection checkboxes on the blueprint setup window were disproportionately large.</p>
             <p><strong>v1.66.0</strong><br>• Added the "Auto-Organize Blueprint" feature! You can now calculate a perfectly organized layout of your entire collection grouped by Class, Brand, Drive Type, or Wheels.<br>• The blueprint creates a persistent, interactive checklist that live-updates as you manually move your vehicles, showing exactly where to move each car and marking them off as you go, without maliciously overwriting your hard work.<br>• Added an "Affinity" sorting strategy to the blueprint generator to minimize overall moves and respect heavily populated garages.<br>• Allowed selecting exactly which garages you want included in a blueprint generation.</p>
             <p><strong>v1.65.0</strong><br>• Fully updated Sell Vehicle logic to align with recent GTA Online resale value adjustments, including the $500,000 price cap.<br>• Implemented 7-day penalty tracker for consecutive vehicle sales.<br>• Added a new 7-Day Penalty Status countdown alongside the existing 18-Hour Sales Cooldown dashboard.<br>• Fixed visual alignment of badge text on small vehicle cards for clearer legibility.</p>
             <p><strong>v1.64.8</strong><br>• Fixed an issue where "View Only" Mode was not correctly displaying your default Custom Plate Text from settings.<br>• Enhanced vehicle card UI: All special license plates are now rendered as high-fidelity visual badges instead of text tags.<br>• Improved consistent rendering of custom plate text across all view modes (Local, Cloud, and Shared).<br>• Fixed visual alignment of plate badges in the fleet view.</p>
@@ -6403,33 +6415,65 @@ const MAP_ICONS = {
                     // Generate the standard small card
                     const cardNode = createCard(v);
                     if (cardNode) {
-                        cardNode.style.position = "relative";
+                        const wrapper = document.createElement('div');
+                        wrapper.style.display = 'flex';
+                        wrapper.style.flexDirection = 'column';
+                        wrapper.style.borderRadius = '12px';
+                        wrapper.style.overflow = 'hidden';
+                        wrapper.style.border = '2px solid var(--wep)';
+                        wrapper.style.boxShadow = '0 4px 6px rgba(0,0,0,0.3)';
+                        wrapper.style.cursor = 'pointer';
                         
-                        // Construct the Tracker Badge Overlay
-                        const badge = document.createElement('div');
-                        badge.style.cssText = "position:absolute; top:8px; left:8px; z-index:10; font-weight:900; font-size:0.75rem; text-transform:uppercase; padding:4px 8px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.5); pointer-events:none;";
+                        wrapper.onclick = () => openDetailModal(v.id);
+                        
+                        const banner = document.createElement('div');
+                        banner.style.cssText = "padding:8px 12px; background:var(--wep); color:#fff; font-size:0.85rem; font-weight:800; display:flex; flex-direction:column; gap:4px; line-height:1.2;";
                         
                         const currentFloorText = (v.floor && v.floor !== "Main Floor") ? ` - ${v.floor}` : "";
+                        let statusText = `<span style="font-size:0.7rem; font-weight:600; opacity:0.9;">Currently: ${v.loc}${currentFloorText}</span>`;
                         
-                        const occupant = vehicles.find(o => o.loc === t.loc && (o.floor || "Main Floor") === t.floor && String(o.slot || "") === String(t.slot));
-                        let occupantText = "";
+                        const targetSlotInt = parseInt(t.slot);
+                        const occupant = vehicles.find(o => o.loc === t.loc && (o.floor || "Main Floor") === t.floor && parseInt(o.slot || "-1") === targetSlotInt);
+                        
                         if (occupant && occupant.id !== v.id) {
-                            occupantText = `<br><span style="font-size:0.65rem; font-weight:600; color:#fff;">Swap with: ${occupant.model}</span>`;
+                            statusText += `<span style="font-size:0.75rem; font-weight:700; color:#ffd700; margin-top:2px; display:flex; align-items:center; gap:5px;"><i class="fas fa-exchange-alt"></i> Swap with: ${occupant.model}</span>`;
                         }
                         
-                        badge.innerHTML = `MOVE TO SLOT ${t.slot}<br><span style="font-size:0.65rem; font-weight:600;">Currently in: ${v.loc}${currentFloorText}</span>${occupantText}`;
-                        badge.style.background = "rgba(239, 68, 68, 0.95)"; // Wep Red
-                        badge.style.color = "#fff";
-                        cardNode.style.border = "2px solid var(--wep)";
+                        const headDiv = document.createElement('div');
+                        headDiv.style.cssText = "display:flex; justify-content:space-between; align-items:center;";
+                        headDiv.innerHTML = `<div><i class="fas fa-arrow-right" style="margin-right:5px;"></i> MOVE TO SLOT ${t.slot}</div>`;
                         
-                        // Hide the pencil edit icon so they don't misclick it
+                        const execBtnWrap = document.createElement('div');
+                        const execBtn = document.createElement('button');
+                        execBtn.className = 'btn-pri';
+                        execBtn.style.cssText = "padding:2px 8px; height:auto; font-size:0.7rem; border-radius:4px; min-height:22px;";
+                        execBtn.innerHTML = "<i class=\"fas fa-truck-loading\" style=\"margin-right:4px;\"></i> Move";
+                        execBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            openBpMoveModal(v.id, t.loc, t.floor, t.slot, occupant ? occupant.id : null);
+                        };
+                        execBtnWrap.appendChild(execBtn);
+                        headDiv.appendChild(execBtnWrap);
+                        
+                        banner.appendChild(headDiv);
+                        if (statusText) {
+                            const statDiv = document.createElement('div');
+                            statDiv.innerHTML = statusText;
+                            banner.appendChild(statDiv);
+                        }
+                        
+                        cardNode.style.border = 'none';
+                        cardNode.style.borderRadius = '0';
+                        cardNode.style.boxShadow = 'none';
+                        
                         const actions = cardNode.querySelector('.card-actions-top');
                         if (actions) actions.style.display = 'none';
-
-                        cardNode.onclick = () => openDetailModal(v.id);
-
-                        cardNode.appendChild(badge);
-                        gridDiv.appendChild(cardNode); 
+                        
+                        cardNode.onclick = (e) => { e.stopPropagation(); openDetailModal(v.id); };
+                        
+                        wrapper.appendChild(banner);
+                        wrapper.appendChild(cardNode);
+                        gridDiv.appendChild(wrapper); 
                     }
                 });
                 frag.appendChild(gridDiv);
@@ -6463,24 +6507,35 @@ const MAP_ICONS = {
 
                 const cardNode = createCard(v);
                 if (cardNode) {
-                    cardNode.style.position = "relative";
+                    const wrapper = document.createElement('div');
+                    wrapper.style.display = 'flex';
+                    wrapper.style.flexDirection = 'column';
+                    wrapper.style.borderRadius = '12px';
+                    wrapper.style.overflow = 'hidden';
+                    wrapper.style.border = '2px solid var(--sell)';
+                    wrapper.style.boxShadow = 'none';
+                    wrapper.style.cursor = 'pointer';
+                    wrapper.style.opacity = "0.5";
+                    wrapper.style.filter = "grayscale(100%)";
                     
-                    const badge = document.createElement('div');
-                    badge.style.cssText = "position:absolute; top:8px; left:8px; z-index:10; font-weight:900; font-size:0.75rem; text-transform:uppercase; padding:4px 8px; border-radius:6px; box-shadow:0 2px 5px rgba(0,0,0,0.5); pointer-events:none;";
-                    badge.innerHTML = `<i class="fas fa-check"></i> Slot ${t.slot} - MATCH`;
-                    badge.style.background = "var(--sell)";
-                    badge.style.color = "#fff";
+                    wrapper.onclick = () => openDetailModal(v.id);
                     
-                    cardNode.style.opacity = "0.35"; // Ghost out completed cars
-                    cardNode.style.filter = "grayscale(100%)";
+                    const banner = document.createElement('div');
+                    banner.style.cssText = "padding:6px 12px; background:var(--sell); color:#fff; font-size:0.8rem; font-weight:800; display:flex; align-items:center; line-height:1;";
+                    banner.innerHTML = `<i class="fas fa-check" style="margin-right:6px;"></i> MATCHED SLOT ${t.slot}`;
+                    
+                    cardNode.style.border = 'none';
+                    cardNode.style.borderRadius = '0';
+                    cardNode.style.boxShadow = 'none';
                     
                     const actions = cardNode.querySelector('.card-actions-top');
                     if (actions) actions.style.display = 'none';
 
-                    cardNode.onclick = () => openDetailModal(v.id);
+                    cardNode.onclick = (e) => { e.stopPropagation(); openDetailModal(v.id); };
 
-                    cardNode.appendChild(badge);
-                    compGridDiv.appendChild(cardNode);
+                    wrapper.appendChild(banner);
+                    wrapper.appendChild(cardNode);
+                    compGridDiv.appendChild(wrapper);
                 }
             });
             frag.appendChild(compGridDiv);
@@ -6503,6 +6558,57 @@ const MAP_ICONS = {
             closeModal('blueprintModal');
             showSuccess("Blueprint Discarded", "Your organization plan has been cleared.");
         });
+    }
+
+    function openBpMoveModal(vid, tLoc, tFloor, tSlot, occupantId) {
+        const v = vehicles.find(veh => veh.id === vid);
+        if (!v) return;
+
+        let details = `<p>Move <strong>${v.model}</strong> to:<br>
+                       <span style="color:var(--accent); font-weight:bold; font-size:1.1rem;">${tLoc} - ${tFloor}</span><br>
+                       <span style="color:white; font-size:1.1rem;">Slot: ${tSlot}</span></p>`;
+
+        let occupant = null;
+        if (occupantId) occupant = vehicles.find(o => o.id === occupantId);
+
+        if (occupant) {
+            const oldLocDisplay = v.loc;
+            const oldFloorDisplay = v.floor || "Main Floor";
+            const oldSlotDisplay = v.slot || "Any";
+            
+            details += `<div style="margin-top:15px; background:rgba(239, 68, 68, 0.1); border-left:4px solid var(--wep); padding:10px;">
+                        <p style="margin:0; font-size:0.9rem; color:#ccc;">This will swap places with:</p>
+                        <p style="margin:5px 0 0 0; font-size:1.1rem; color:#ffd700; font-weight:bold;">${occupant.model}</p>
+                        <p style="margin:5px 0 0 0; font-size:0.85rem; color:#ccc;">Moves to: ${oldLocDisplay} - ${oldFloorDisplay} - Slot ${oldSlotDisplay}</p>
+                        </div>`;
+        }
+
+        document.getElementById('bpMoveDetails').innerHTML = details;
+
+        const execBtn = document.getElementById('bpMoveExecuteBtn');
+        execBtn.onclick = () => {
+            const oldLoc = v.loc;
+            const oldFloor = v.floor || "";
+            const oldSlot = v.slot || "";
+
+            if (occupant) {
+                occupant.loc = oldLoc;
+                occupant.floor = oldFloor;
+                occupant.slot = oldSlot;
+            }
+
+            v.loc = tLoc;
+            v.floor = tFloor === "Main Floor" ? "" : tFloor;
+            v.slot = tSlot;
+
+            saveGarage();
+            
+            closeModal('bpMoveModal');
+            showSuccess("Move Executed", "The vehicle(s) have been successfully moved.");
+            renderBlueprint();
+        };
+
+        openModal('bpMoveModal');
     }
 
     // PWA SERVICE WORKER REGISTRATION
