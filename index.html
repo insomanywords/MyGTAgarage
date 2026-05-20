@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.66.5</title>
+    <title>My GTA Garage v1.66.6</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -831,7 +831,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.66.5</div>
+        <div class="modal-title">About My GTA Garage v1.66.6</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -916,7 +916,7 @@
     </div>
 </div>
 
-<div id="loggedOutModal" class="modal">
+<div id="loggedOutModal" class="modal" style="z-index: 9999;">
     <div class="modal-box" style="text-align:center;">
         <div style="font-size:3rem; margin-bottom:10px;">⚠️</div>
         <h2 style="color:#fff; margin:0 0 10px 0;">Disconnected</h2>
@@ -1330,7 +1330,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.66.5 (Current)</strong><br>• Improved the Active Blueprint UI by collapsing completed garages by default and adding a count badge.<br>• Fixed an issue where the destination slot on the blueprint move modal might not accurately indicate "Any Available" if some vehicles in the destination garage lacked a designated slot.</p>
+            <p><strong>v1.66.6 (Current)</strong><br>• Accurately aligned the 7-day sales penalty calculation logic with in-game mechanics.<br>• Ensure Disconnected alerts always appear above all other active window modals.</p>
+            <p><strong>v1.66.5</strong><br>• Improved the Active Blueprint UI by collapsing completed garages by default and adding a count badge.<br>• Fixed an issue where the destination slot on the blueprint move modal might not accurately indicate "Any Available" if some vehicles in the destination garage lacked a designated slot.</p>
             <p><strong>v1.66.4</strong><br>• Fixed an issue where multiple vehicles moving to the same garage might try to swap with the same occupant.<br>• Removed strict slot requirements from the active blueprint UI to better support the Affinity sorting strategy.<br>• The "Execute Move" confirmation now displays the vehicle's current location alongside the destination.</p>
             <p><strong>v1.66.3</strong><br>• Improved active blueprint swapping logic to prioritize evicting vehicles that don't belong in the target garage, optimizing layout flow.</p>
             <p><strong>v1.66.2</strong><br>• Redesigned the Active Blueprint UI with a clearer view showing exactly where to move vehicles.<br>• Added an "Execute Move" button to active blueprint vehicles to instantly apply the planned move or swap without manual editing.<br>• Improved visual styling for completed items in the blueprint view.</p>
@@ -5154,24 +5155,38 @@ const MAP_ICONS = {
         if (pDisp && pTimer) {
             const cd7 = 7 * 24 * 3600000;
             const now = Date.now();
-            const recentSales = salesHistory.filter(s => s.date && (now - s.date) < cd7);
             
+            let windowStart = 0;
+            let countInWindow = 0;
+            const sortedSales = [...salesHistory].filter(s => s.date).sort((a,b) => a.date - b.date);
+            for (let s of sortedSales) {
+                if (s.date >= windowStart + cd7) {
+                    windowStart = s.date;
+                    countInWindow = 1;
+                } else {
+                    countInWindow++;
+                }
+            }
+            if (now >= windowStart + cd7) {
+                countInWindow = 0;
+                windowStart = 0;
+            }
+
             let multiplierStr = "100%";
             let pColor = "#fff";
-            if (recentSales.length === 1) { multiplierStr = "50%"; pColor = "#f39c12"; }
-            else if (recentSales.length === 2) { multiplierStr = "10%"; pColor = "#e67e22"; }
-            else if (recentSales.length >= 3) { multiplierStr = "2.5%"; pColor = "#e74c3c"; }
+            if (countInWindow === 1) { multiplierStr = "50%"; pColor = "#f39c12"; }
+            else if (countInWindow === 2) { multiplierStr = "10%"; pColor = "#e67e22"; }
+            else if (countInWindow >= 3) { multiplierStr = "2.5%"; pColor = "#e74c3c"; }
             
             pDisp.innerHTML = `Next Sale Value: <span style="color:${pColor}">${multiplierStr}</span>`;
             
-            if (recentSales.length > 0) {
-                const oldestRecent = recentSales[recentSales.length - 1];
-                const rem7 = cd7 - (now - oldestRecent.date);
+            if (countInWindow > 0 && windowStart > 0) {
+                const rem7 = (windowStart + cd7) - now;
                 const d7 = Math.floor(rem7/(24*3600000));
                 const h7 = Math.floor((rem7%(24*3600000))/3600000);
                 const m7 = Math.floor((rem7%3600000)/60000);
                 
-                pTimer.innerText = `Penalty reduces in: ${d7}d ${h7}h ${m7}m`;
+                pTimer.innerText = `Penalty resets in: ${d7}d ${h7}h ${m7}m`;
                 pTimer.style.color = "var(--timer)";
             } else {
                 pTimer.innerText = "No active sales penalty";
@@ -5287,18 +5302,32 @@ const MAP_ICONS = {
         let basePrice = Math.min(rawPrice, 500000);
         
         const cd = 7 * 24 * 3600000;
-        const recentSales = salesHistory.filter(s => s.date && (Date.now() - s.date) < cd).length;
-        
+        let windowStart = 0;
+        let countInWindow = 0;
+        const sortedSales = [...salesHistory].filter(s => s.date).sort((a,b) => a.date - b.date);
+        for (let s of sortedSales) {
+            if (s.date >= windowStart + cd) {
+                windowStart = s.date;
+                countInWindow = 1;
+            } else {
+                countInWindow++;
+            }
+        }
+        if (Date.now() >= windowStart + cd) {
+            countInWindow = 0;
+            windowStart = 0;
+        }
+
         let multiplier = 1;
-        if (recentSales === 1) multiplier = 0.50;
-        else if (recentSales === 2) multiplier = 0.10;
-        else if (recentSales >= 3) multiplier = 0.025;
+        if (countInWindow === 1) multiplier = 0.50;
+        else if (countInWindow === 2) multiplier = 0.10;
+        else if (countInWindow >= 3) multiplier = 0.025;
         
         let finalPrice = Math.floor(basePrice * multiplier);
         
         let message = `Are you sure you want to sell this vehicle? It will be permanently removed from your garage.`;
         if (rawPrice > 0 || finalPrice > 0) {
-            if (recentSales > 0) {
+            if (countInWindow > 0) {
                 message += `<br><br><div style="background:rgba(255,85,85,0.1); border:1px solid #ff5555; padding:10px; border-radius:5px;"><span style="color:#ff5555;font-size:0.9rem;"><strong>7-Day Sales Penalty Active (${multiplier*100}%)</strong><br>Adjusted Sale Price: $${finalPrice.toLocaleString('en-US')}</span></div>`;
             } else if (rawPrice > 500000) {
                 message += `<br><br><div style="background:rgba(243,156,18,0.1); border:1px solid #f39c12; padding:10px; border-radius:5px;"><span style="color:#f39c12;font-size:0.9rem;"><strong>Sale Cap Applied</strong><br>Adjusted Sale Price: $${finalPrice.toLocaleString('en-US')}</span></div>`;
