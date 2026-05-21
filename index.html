@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.66.6</title>
+    <title>My GTA Garage v1.66.7</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -831,7 +831,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.66.6</div>
+        <div class="modal-title">About My GTA Garage v1.66.7</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1330,7 +1330,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.66.6 (Current)</strong><br>• Accurately aligned the 7-day sales penalty calculation logic with in-game mechanics.<br>• Ensure Disconnected alerts always appear above all other active window modals.</p>
+            <p><strong>v1.66.7 (Current)</strong><br>• Fixed missing 5% penalty tier for the 4th vehicle sold within a 7-day period (100% -> 50% -> 10% -> 5% -> 2.5%).</p>
+            <p><strong>v1.66.6</strong><br>• Accurately aligned the 7-day sales penalty calculation logic with in-game mechanics.<br>• Ensure Disconnected alerts always appear above all other active window modals.</p>
             <p><strong>v1.66.5</strong><br>• Improved the Active Blueprint UI by collapsing completed garages by default and adding a count badge.<br>• Fixed an issue where the destination slot on the blueprint move modal might not accurately indicate "Any Available" if some vehicles in the destination garage lacked a designated slot.</p>
             <p><strong>v1.66.4</strong><br>• Fixed an issue where multiple vehicles moving to the same garage might try to swap with the same occupant.<br>• Removed strict slot requirements from the active blueprint UI to better support the Affinity sorting strategy.<br>• The "Execute Move" confirmation now displays the vehicle's current location alongside the destination.</p>
             <p><strong>v1.66.3</strong><br>• Improved active blueprint swapping logic to prioritize evicting vehicles that don't belong in the target garage, optimizing layout flow.</p>
@@ -5176,7 +5177,8 @@ const MAP_ICONS = {
             let pColor = "#fff";
             if (countInWindow === 1) { multiplierStr = "50%"; pColor = "#f39c12"; }
             else if (countInWindow === 2) { multiplierStr = "10%"; pColor = "#e67e22"; }
-            else if (countInWindow >= 3) { multiplierStr = "2.5%"; pColor = "#e74c3c"; }
+            else if (countInWindow === 3) { multiplierStr = "5%"; pColor = "#d35400"; }
+            else if (countInWindow >= 4) { multiplierStr = "2.5%"; pColor = "#e74c3c"; }
             
             pDisp.innerHTML = `Next Sale Value: <span style="color:${pColor}">${multiplierStr}</span>`;
             
@@ -5321,7 +5323,8 @@ const MAP_ICONS = {
         let multiplier = 1;
         if (countInWindow === 1) multiplier = 0.50;
         else if (countInWindow === 2) multiplier = 0.10;
-        else if (countInWindow >= 3) multiplier = 0.025;
+        else if (countInWindow === 3) multiplier = 0.05;
+        else if (countInWindow >= 4) multiplier = 0.025;
         
         let finalPrice = Math.floor(basePrice * multiplier);
         
