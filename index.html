@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.66.7</title>
+    <title>My GTA Garage v1.66.8</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -564,7 +564,7 @@
         <div id="tabContent_local" class="tab-content">
             <div class="form-section">
                 <span class="label">Local Device Backup</span>
-                <p style="font-size:0.8rem; color:#aaa; margin-top:0;">Save or load a local .json file containing the current character's vehicles.</p>
+                <p style="font-size:0.8rem; color:#aaa; margin-top:0;">Save or load a local .json file containing the current character's vehicles, active blueprint, and global app settings.</p>
                 <button class="btn-sec" style="width:100%; margin-bottom:10px;" onclick="downloadBackup()">💾 Save to Device (JSON)</button>
                 <button class="btn-sec" style="width:100%;" onclick="document.getElementById('restoreInput').click()">📂 Load from Device (JSON)</button>
                 <input type="file" id="restoreInput" style="display:none" onchange="restoreBackup(this)">
@@ -831,7 +831,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.66.7</div>
+        <div class="modal-title">About My GTA Garage v1.66.8</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -875,7 +875,7 @@
                 <li style="margin-bottom: 12px;"><strong>Offline Mode & Safety:</strong> The app saves everything locally to your browser first. If you lose internet, your data remains safe and will sync the next time you connect. The app checks for conflicts when signing in on a new device to prevent accidental overwrites, prompting you to choose between Local or Cloud data if there is an actual data conflict.</li>
                 <li style="margin-bottom: 12px;"><strong>Sessions & Timeouts:</strong> The app actively monitors your connection and will silently renew your Google session in the background. You will remain signed in indefinitely without interruptions unless you explicitly sign out or your Google account requires re-authentication.</li>
                 <li style="margin-bottom: 12px;"><strong>Manual Cloud Backups:</strong> Use the "Create Manual Cloud Backup" button in Settings to save a timestamped snapshot of your garage to Google Drive, ensuring you always have a fallback.</li>
-                <li style="margin-bottom: 12px;"><strong>Local Backups:</strong> Prefer local files? Use the "Local Data" tab in Settings to download your garage as a JSON file to your device, or load an existing JSON file.</li>
+                <li style="margin-bottom: 12px;"><strong>Local Backups:</strong> Prefer local files? Use the "Local Data" tab in Settings to download an exhaustive backup of your garage, blueprint, and global app settings as a JSON file to your device, or load an existing JSON file.</li>
                 <li style="margin-bottom: 12px;"><strong>Cloud Deletion:</strong> If you delete a character or Factory Reset the app from the Danger Zone, you will be prompted with the option to also completely delete your associated Cloud Backup folders from Google Drive to save space.</li>
             </ul>
 
@@ -1330,7 +1330,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.66.7 (Current)</strong><br>• Fixed missing 5% penalty tier for the 4th vehicle sold within a 7-day period (100% -> 50% -> 10% -> 5% -> 2.5%).</p>
+            <p><strong>v1.66.8 (Current)</strong><br>• Local JSON backups and Cloud Sync now include your active Blueprint and App Settings.<br>• Improved Blueprint movement logic to accurately identify unobstructed empty slots and reduce unnecessary intermediate swaps.</p>
+            <p><strong>v1.66.7</strong><br>• Fixed missing 5% penalty tier for the 4th vehicle sold within a 7-day period (100% -> 50% -> 10% -> 5% -> 2.5%).</p>
             <p><strong>v1.66.6</strong><br>• Accurately aligned the 7-day sales penalty calculation logic with in-game mechanics.<br>• Ensure Disconnected alerts always appear above all other active window modals.</p>
             <p><strong>v1.66.5</strong><br>• Improved the Active Blueprint UI by collapsing completed garages by default and adding a count badge.<br>• Fixed an issue where the destination slot on the blueprint move modal might not accurately indicate "Any Available" if some vehicles in the destination garage lacked a designated slot.</p>
             <p><strong>v1.66.4</strong><br>• Fixed an issue where multiple vehicles moving to the same garage might try to swap with the same occupant.<br>• Removed strict slot requirements from the active blueprint UI to better support the Affinity sorting strategy.<br>• The "Execute Move" confirmation now displays the vehicle's current location alongside the destination.</p>
@@ -2461,7 +2462,8 @@ const MAP_ICONS = {
                     nicknames: floorNicknames,
                     lastSell: lastSell,
                     lastSoldName: lastSoldName,
-                    salesHistory: salesHistory
+                    salesHistory: salesHistory,
+                    blueprint: safeStorage.getItem(getBlueprintKey()) || null
                 };
                 const localDataStr = JSON.stringify(localDataObj);
 
@@ -2471,7 +2473,8 @@ const MAP_ICONS = {
                     nicknames: cd.nicknames || {},
                     lastSell: cd.lastSell || 0,
                     lastSoldName: cd.lastSoldName || "None",
-                    salesHistory: cd.salesHistory || []
+                    salesHistory: cd.salesHistory || [],
+                    blueprint: cd.blueprint || null
                 });
 
                 let hasLocal = vehicles.length > 0;
@@ -2562,6 +2565,11 @@ const MAP_ICONS = {
         lastSell = data.lastSell || 0;
         lastSoldName = data.lastSoldName || "None";
         salesHistory = data.salesHistory || [];
+        if (data.blueprint) {
+            safeStorage.setItem(getBlueprintKey(), typeof data.blueprint === 'string' ? data.blueprint : JSON.stringify(data.blueprint));
+        } else {
+            safeStorage.removeItem(getBlueprintKey());
+        }
         saveGarage(); 
     }
 
@@ -2694,7 +2702,7 @@ const MAP_ICONS = {
         updateCloudHeaderIcon();
         document.getElementById('cloudStatus').innerText = 'Signed in. Syncing...';
         try {
-            const data = { vehicles: vehicles, nicknames: floorNicknames, lastSell: lastSell, lastSoldName: lastSoldName, salesHistory: salesHistory };
+            const data = { vehicles: vehicles, nicknames: floorNicknames, lastSell: lastSell, lastSoldName: lastSoldName, salesHistory: salesHistory, blueprint: safeStorage.getItem(getBlueprintKey()) || null };
             const fileContent = JSON.stringify(data);
             const fileName = 'autosync_db.json';
             const query = `name='${fileName}' and '${driveFolders.db}' in parents and trashed=false`;
@@ -2765,7 +2773,7 @@ const MAP_ICONS = {
         if (isViewOnly) return;
         let token = getActiveToken();
         if (!token || !driveFolders.db) return openAlert("Error", "Not connected to Drive.");
-        const data = JSON.stringify({ vehicles, nicknames: floorNicknames, lastSell, lastSoldName, salesHistory });
+        const data = JSON.stringify({ vehicles, nicknames: floorNicknames, lastSell, lastSoldName, salesHistory, blueprint: safeStorage.getItem(getBlueprintKey()) || null });
         const fileName = `manual_backup_${Date.now()}.json`;
         await createDriveFile(fileName, driveFolders.db, data);
         showSuccess("Cloud Backup", "Manual backup saved to Google Drive.");
@@ -2813,6 +2821,11 @@ const MAP_ICONS = {
                 lastSell = data.lastSell || 0;
                 lastSoldName = data.lastSoldName || "None";
                 salesHistory = data.salesHistory || [];
+                if (data.blueprint) {
+                    safeStorage.setItem(getBlueprintKey(), typeof data.blueprint === 'string' ? data.blueprint : JSON.stringify(data.blueprint));
+                } else {
+                    safeStorage.removeItem(getBlueprintKey());
+                }
                 saveGarage(); 
                 closeModal('cloudRestoreListModal');
                 showSuccess("Restored", "Cloud backup loaded successfully.");
@@ -5482,7 +5495,25 @@ const MAP_ICONS = {
     function openTimerModal() { openModal('timerModal'); updateTimerLogic(); if(timerInt) clearInterval(timerInt); timerInt=setInterval(updateTimerLogic,1000); }
     function openSwapAllModal() { openModal('swapAllModal'); }
     function openLb(s) { document.getElementById('lbImg').src=s; openModal('lightbox'); }
-    function downloadBackup() { const b=new Blob([JSON.stringify(vehicles)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`gta_garage.json`; a.click(); }
+    function downloadBackup() { 
+        const data = {
+            vehicles: vehicles,
+            nicknames: floorNicknames,
+            lastSell: lastSell,
+            lastSoldName: lastSoldName,
+            salesHistory: salesHistory,
+            blueprint: safeStorage.getItem(getBlueprintKey()) || null,
+            appSettings: {
+                characters: characters,
+                accentColor: safeStorage.getItem('gta_accent_color') || '#9b59b6',
+                defaultPlate: safeStorage.getItem('gta_default_plate') || 'OUTATIME',
+                includePublicImages: safeStorage.getItem('gta_include_images') === 'true',
+                mapMappings: getMapMappings()
+            }
+        };
+        const b=new Blob([JSON.stringify(data, null, 2)],{type:'application/json'}); 
+        const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`gta_garage_${activeCharId}.json`; a.click(); 
+    }
     function restoreBackup(i) {
         if (isViewOnly) return;
         const f=i.files[0]; if(!f) return; 
@@ -5497,6 +5528,33 @@ const MAP_ICONS = {
                 lastSell = data.lastSell || 0;
                 lastSoldName = data.lastSoldName || "None";
                 salesHistory = data.salesHistory || [];
+                if (data.blueprint) {
+                    safeStorage.setItem(getBlueprintKey(), typeof data.blueprint === 'string' ? data.blueprint : JSON.stringify(data.blueprint));
+                } else {
+                    safeStorage.removeItem(getBlueprintKey());
+                }
+                
+                if (data.appSettings) {
+                    if (data.appSettings.characters) {
+                        characters = data.appSettings.characters;
+                        safeStorage.setItem('gta_chars_v1', JSON.stringify(characters));
+                    }
+                    if (data.appSettings.accentColor) {
+                        safeStorage.setItem('gta_accent_color', data.appSettings.accentColor);
+                    }
+                    if (data.appSettings.defaultPlate) {
+                        safeStorage.setItem('gta_default_plate', data.appSettings.defaultPlate);
+                    }
+                    if (data.appSettings.includePublicImages !== undefined) {
+                        safeStorage.setItem('gta_include_images', data.appSettings.includePublicImages);
+                    }
+                    if (data.appSettings.mapMappings) {
+                        for (let t in data.appSettings.mapMappings) {
+                            safeStorage.setItem('gta_map_' + t, data.appSettings.mapMappings[t]);
+                        }
+                    }
+                    pushAppSettings();
+                }
             }
             saveGarage(); location.reload(); 
         }; 
@@ -6377,70 +6435,96 @@ const MAP_ICONS = {
             sortedGroupNames.forEach(groupName => {
                 let carsToPlace = groups[groupName];
                 
-                while (carsToPlace.length > 0) {
-                    let availableBins = bins.filter(b => b.availableSlots.length > 0);
-                    if (availableBins.length === 0) break;
+                let targetBins = [];
+                let slotsAccumulated = 0;
+                
+                let availableBinsList = bins.filter(b => b.availableSlots.length > 0);
+                availableBinsList.sort((a, b) => {
+                    const affA = a.affinity[groupName] || 0;
+                    const affB = b.affinity[groupName] || 0;
+                    if (affA !== affB) return affB - affA; 
+                    return b.availableSlots.length - a.availableSlots.length;
+                });
+                
+                for (let b of availableBinsList) {
+                    targetBins.push(b);
+                    slotsAccumulated += b.availableSlots.length;
+                    if (slotsAccumulated >= carsToPlace.length) break;
+                }
+                
+                let unplacedCars = [];
+                
+                // Phase 1: Keep cars in their current bin if it's a target bin
+                carsToPlace.forEach(v => {
+                    let currentBin = targetBins.find(b => b.loc === v.loc && b.floor === (v.floor || "Main Floor"));
+                    if (currentBin && currentBin.availableSlots.length > 0) {
+                        let assignedSlot = null;
+                        const originalSlot = String(v.slot);
+                        const slotIndex = currentBin.availableSlots.indexOf(originalSlot);
+                        if (slotIndex !== -1) {
+                            currentBin.availableSlots.splice(slotIndex, 1);
+                            assignedSlot = originalSlot;
+                        } else {
+                            let emptySlotIndex = currentBin.availableSlots.findIndex(s => {
+                                return !vehicles.some(veh => veh.loc === currentBin.loc && (veh.floor || "Main Floor") === currentBin.floor && String(veh.slot) === s);
+                            });
+                            if (emptySlotIndex !== -1) {
+                                assignedSlot = currentBin.availableSlots.splice(emptySlotIndex, 1)[0];
+                            } else {
+                                assignedSlot = currentBin.availableSlots.shift();
+                            }
+                        }
+                        targets[v.id] = { loc: currentBin.loc, floor: currentBin.floor, slot: assignedSlot };
+                    } else {
+                        unplacedCars.push(v);
+                    }
+                });
+                
+                // Phase 2: Place remaining cars
+                while (unplacedCars.length > 0) {
+                    let nextBin = targetBins.find(b => b.availableSlots.length > 0);
+                    if (!nextBin) {
+                        let remainingBins = bins.filter(b => b.availableSlots.length > 0);
+                        if (remainingBins.length === 0) break;
+                        remainingBins.sort((a, b) => {
+                            const affA = a.affinity[groupName] || 0;
+                            const affB = b.affinity[groupName] || 0;
+                            if (affA !== affB) return affB - affA; 
+                            return b.availableSlots.length - a.availableSlots.length;
+                        });
+                        nextBin = remainingBins[0];
+                    }
                     
-                    availableBins.sort((a, b) => {
-                        const affA = a.affinity[groupName] || 0;
-                        const affB = b.affinity[groupName] || 0;
-                        if (affA !== affB) return affB - affA; 
-                        return b.availableSlots.length - a.availableSlots.length;
-                    });
-                    
-                    const bestBin = availableBins[0];
-                    
-                    carsToPlace.sort((a, b) => {
-                        const inBinA = (a.loc === bestBin.loc && (a.floor || "Main Floor") === bestBin.floor) ? 1 : 0;
-                        const inBinB = (b.loc === bestBin.loc && (b.floor || "Main Floor") === bestBin.floor) ? 1 : 0;
-                        if (inBinA !== inBinB) return inBinB - inBinA;
+                    unplacedCars.sort((a, b) => {
+                        const inLocA = (a.loc === nextBin.loc) ? 1 : 0;
+                        const inLocB = (b.loc === nextBin.loc) ? 1 : 0;
+                        if (inLocA !== inLocB) return inLocB - inLocA;
                         
-                        // NEW LOGIC: Pull cars from garages that have LOW affinity for this category first!
+                        // Pull from garages with lowest affinity first
                         if (strategy === 'affinity') {
                             const binA = bins.find(bin => bin.loc === a.loc && bin.floor === (a.floor || "Main Floor"));
                             const binB = bins.find(bin => bin.loc === b.loc && bin.floor === (b.floor || "Main Floor"));
                             const affA = binA ? (binA.affinity[groupName] || 0) : 0;
                             const affB = binB ? (binB.affinity[groupName] || 0) : 0;
-                            if (affA !== affB) return affA - affB; // Ascending: we want to pull from LOW affinity first!
+                            if (affA !== affB) return affA - affB;
                         }
-
-                        const inLocA = (a.loc === bestBin.loc) ? 1 : 0;
-                        const inLocB = (b.loc === bestBin.loc) ? 1 : 0;
-                        if (inLocA !== inLocB) return inLocB - inLocA;
-
+                        
                         if (a.manuf !== b.manuf) return (a.manuf||'').localeCompare(b.manuf||'');
                         return (a.model||'').localeCompare(b.model||'');
                     });
                     
-                    const carsTakingThisBin = carsToPlace.splice(0, bestBin.availableSlots.length);
+                    let v = unplacedCars.shift();
                     
-                    carsTakingThisBin.forEach(v => {
-                        let assignedSlot = null;
-                        if (v.loc === bestBin.loc && (v.floor || "Main Floor") === bestBin.floor) {
-                            const originalSlot = String(v.slot);
-                            const slotIndex = bestBin.availableSlots.indexOf(originalSlot);
-                            if (slotIndex !== -1) {
-                                bestBin.availableSlots.splice(slotIndex, 1);
-                                assignedSlot = originalSlot;
-                            }
-                        }
-                        if (!assignedSlot) {
-                            let emptySlotIndex = bestBin.availableSlots.findIndex(s => {
-                                return !vehicles.some(veh => veh.loc === bestBin.loc && (veh.floor || "Main Floor") === bestBin.floor && String(veh.slot) === s);
-                            });
-                            if (emptySlotIndex !== -1) {
-                                assignedSlot = bestBin.availableSlots.splice(emptySlotIndex, 1)[0];
-                            } else {
-                                assignedSlot = bestBin.availableSlots.shift();
-                            }
-                        }
-                        
-                        targets[v.id] = {
-                            loc: bestBin.loc,
-                            floor: bestBin.floor,
-                            slot: assignedSlot
-                        };
+                    let assignedSlot = null;
+                    let emptySlotIndex = nextBin.availableSlots.findIndex(s => {
+                        return !vehicles.some(veh => veh.loc === nextBin.loc && (veh.floor || "Main Floor") === nextBin.floor && String(veh.slot) === s);
                     });
+                    if (emptySlotIndex !== -1) {
+                        assignedSlot = nextBin.availableSlots.splice(emptySlotIndex, 1)[0];
+                    } else {
+                        assignedSlot = nextBin.availableSlots.shift();
+                    }
+                    targets[v.id] = { loc: nextBin.loc, floor: nextBin.floor, slot: assignedSlot };
                 }
             });
         }
@@ -6513,16 +6597,58 @@ const MAP_ICONS = {
         const busyVehicles = new Set();
         const moves = [];
 
-        // Pass 1: Empty Slots
-        pendingMovesArray.forEach(pm => {
-            if (!isGarageFull(pm.target.loc, pm.target.floor, pm.vehicle.id)) {
-                pm.priority = 1;
-                pm.reason = "Move to Empty Slot";
-                pm.occupant = null;
-                busyVehicles.add(pm.vehicle.id);
-                moves.push(pm);
+        const currentGarageCounts = {};
+        function getGarageCount(tLoc, tFloor) {
+            const key = tLoc + '||' + tFloor;
+            if (currentGarageCounts[key] !== undefined) return currentGarageCounts[key];
+            const c = vehicles.filter(o => o.loc === tLoc && (o.floor || "Main Floor") === tFloor).length;
+            currentGarageCounts[key] = c;
+            return c;
+        }
+        function getGarageCap(tLoc, tFloor) {
+            let cap = 10;
+            const cleanName = normalizeGarageName(tLoc).split(" (")[0];
+            const mapKey = Object.keys(FLOOR_MAP).find(k => tLoc.includes(k));
+            if (mapKey) cap = getFloorCap(tLoc, tFloor) || 10;
+            else {
+                const capKey = Object.keys(CAPACITIES).find(m => cleanName.includes(m)) || "DEFAULT";
+                cap = CAPACITIES[capKey] || 10;
             }
-        });
+            return cap;
+        }
+
+        // Pass 1: Empty Slots
+        let pass1Changed = true;
+        while (pass1Changed) {
+            pass1Changed = false;
+            pendingMovesArray.forEach(pm => {
+                if (busyVehicles.has(pm.vehicle.id)) return;
+                
+                const count = getGarageCount(pm.target.loc, pm.target.floor);
+                const cap = getGarageCap(pm.target.loc, pm.target.floor);
+                
+                const isSameGarage = (pm.vehicle.loc === pm.target.loc && (pm.vehicle.floor || "Main Floor") === pm.target.floor);
+                const effectiveOtherCount = isSameGarage ? (count - 1) : count;
+                
+                if (effectiveOtherCount < cap) {
+                    pm.priority = 1;
+                    pm.reason = "Move to Empty Slot";
+                    pm.occupant = null;
+                    busyVehicles.add(pm.vehicle.id);
+                    moves.push(pm);
+                    
+                    if (!isSameGarage) {
+                        const targetKey = pm.target.loc + '||' + pm.target.floor;
+                        currentGarageCounts[targetKey] = count + 1;
+                        
+                        const sourceKey = pm.vehicle.loc + '||' + (pm.vehicle.floor || "Main Floor");
+                        const sourceCount = getGarageCount(pm.vehicle.loc, pm.vehicle.floor || "Main Floor");
+                        currentGarageCounts[sourceKey] = Math.max(0, sourceCount - 1);
+                    }
+                    pass1Changed = true;
+                }
+            });
+        }
 
         // Pass 2: Perfect Swaps
         pendingMovesArray.forEach(pm => {
