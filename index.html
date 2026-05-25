@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.66.8</title>
+    <title>My GTA Garage v1.66.9</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -429,7 +429,7 @@
     <a onclick="openModal('aboutModal')">About</a>
 </footer>
 
-<div id="updateModal" class="modal">
+<div id="updateModal" class="modal" style="z-index: 2000;">
     <div class="modal-box" style="text-align:center; padding:30px;">
         <div style="font-size:3rem; margin-bottom:20px;">🚀</div>
         <div class="modal-title">Update Available!</div>
@@ -807,7 +807,7 @@
     </div>
 </div>
 
-<div id="pdfGeneratingModal" class="modal">
+<div id="pdfGeneratingModal" class="modal" style="z-index: 1300;">
     <div class="modal-box" style="text-align:center;">
         <div style="font-size:3rem; margin-bottom:10px;"><i class="fas fa-file-pdf fa-spin" style="color:var(--accent);"></i></div>
         <h2 style="margin:0 0 10px 0; color:#fff;">Generating PDF...</h2>
@@ -817,7 +817,7 @@
     </div>
 </div>
 
-<div id="pdfReadyModal" class="modal">
+<div id="pdfReadyModal" class="modal" style="z-index: 1300;">
     <div class="modal-box" style="text-align:center;">
         <div style="font-size:3rem; margin-bottom:10px;">📄</div>
         <h2 style="margin:0 0 10px 0; color:#fff;">PDF Ready</h2>
@@ -831,7 +831,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.66.8</div>
+        <div class="modal-title">About My GTA Garage v1.66.9</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -928,7 +928,7 @@
     </div>
 </div>
 
-<div id="syncConflictModal" class="modal">
+<div id="syncConflictModal" class="modal" style="z-index: 2000;">
     <div class="modal-box" style="text-align:left; max-width: 500px;">
         <div style="font-size:2.5rem; text-align:center; margin-bottom:10px;">☁️</div>
         <h2 style="color:#fff; margin:0 0 10px 0; text-align:center;">Sync Conflict Detected</h2>
@@ -1125,7 +1125,7 @@
     </div>
 </div>
 
-<div id="nickModal" class="modal">
+<div id="nickModal" class="modal" style="z-index: 1050;">
     <div class="modal-box">
         <div class="modal-title">Floor Nickname</div>
         <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;">Assign a nickname to this floor (e.g., "Muscle Cars").</p>
@@ -1169,7 +1169,7 @@
     </div>
 </div>
 
-<div id="successModal" class="modal">
+<div id="successModal" class="modal" style="z-index: 2000;">
     <div class="modal-box" style="text-align:center;">
         <div style="font-size:3rem; margin-bottom:10px;">✅</div>
         <h2 id="successTitle" style="margin:0 0 10px 0; color:#fff;">Success</h2>
@@ -1232,7 +1232,7 @@
     </div>
 </div>
 
-<div id="swapAllModal" class="modal"><div class="modal-box"><div class="modal-title">Swap Entire Garage</div><div class="form-group"><span class="label">From</span><select id="saFrom" style="width:100%"></select></div><div style="text-align:center; padding:10px;"><i class="fas fa-arrow-down" style="color:var(--accent); font-size:1.5rem;"></i></div><div class="form-group"><span class="label">To</span><select id="saTo" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('swapAllModal')">Cancel</button><button class="btn-pri" onclick="performSwapAll()">Confirm Swap</button></div></div></div>
+<div id="swapAllModal" class="modal" style="z-index: 1050;"><div class="modal-box"><div class="modal-title">Swap Entire Garage</div><div class="form-group"><span class="label">From</span><select id="saFrom" style="width:100%"></select></div><div style="text-align:center; padding:10px;"><i class="fas fa-arrow-down" style="color:var(--accent); font-size:1.5rem;"></i></div><div class="form-group"><span class="label">To</span><select id="saTo" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('swapAllModal')">Cancel</button><button class="btn-pri" onclick="performSwapAll()">Confirm Swap</button></div></div></div>
 
 <div id="blueprintSetupModal" class="modal">
     <div class="modal-box">
@@ -1324,13 +1324,14 @@
     </div>
 </div>
 <div id="moveModal" class="modal" style="z-index: 1030;"><div class="modal-box"><div class="modal-title">Move Vehicle</div><p id="moveCarName" style="color:var(--accent); font-weight:bold; margin-bottom:20px; font-size:1.1rem;"></p><div class="form-group"><span class="label">Destination</span><select id="moveDest" style="width:100%" onchange="checkMoveCap()"></select></div><div id="moveSwapUI" style="display:none; background:rgba(245,158,11,0.1); padding:15px; border-radius:10px; border:1px solid var(--f1); margin-bottom:15px;"><span class="label" style="color:var(--f1)">Garage Full! Select car to swap with:</span><select id="moveSwapTarget" style="width:100%"></select></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('moveModal')">Cancel</button><button class="btn-pri" onclick="commitMove()">Confirm Move</button></div></div></div>
-<div id="migrationModal" class="modal"><div class="modal-box"><div class="modal-title" style="color:var(--accent)">Data Migration</div><p style="color:#ccc; font-size:0.9rem;">Syncing vehicle data with cloud database (Images & Drive stats).</p><div id="migLog" style="height:120px; overflow:auto; background:#000; padding:10px; font-family:monospace; color:var(--sell); border-radius:8px;"></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('migrationModal')">Cancel</button><button class="btn-pri" onclick="runMigration()">Run Update</button></div></div></div>
+<div id="migrationModal" class="modal" style="z-index: 2000;"><div class="modal-box"><div class="modal-title" style="color:var(--accent)">Data Migration</div><p style="color:#ccc; font-size:0.9rem;">Syncing vehicle data with cloud database (Images & Drive stats).</p><div id="migLog" style="height:120px; overflow:auto; background:#000; padding:10px; font-family:monospace; color:var(--sell); border-radius:8px;"></div><div class="modal-actions"><button class="btn-sec" onclick="closeModal('migrationModal')">Cancel</button><button class="btn-pri" onclick="runMigration()">Run Update</button></div></div></div>
 
 <div id="changelogModal" class="modal">
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.66.8 (Current)</strong><br>• Local JSON backups and Cloud Sync now include your active Blueprint and App Settings.<br>• Improved Blueprint movement logic to accurately identify unobstructed empty slots and reduce unnecessary intermediate swaps.</p>
+            <p><strong>v1.66.9 (Current)</strong><br>• Added the ability to manually override and edit a vehicle's final sale price on the sale confirmation modal.<br>• Fixed an issue where clicking outside the Disconnected or Update Available modal windows would unintentionally close them.</p>
+            <p><strong>v1.66.8</strong><br>• Local JSON backups and Cloud Sync now include your active Blueprint and App Settings.<br>• Improved Blueprint movement logic to accurately identify unobstructed empty slots and reduce unnecessary intermediate swaps.</p>
             <p><strong>v1.66.7</strong><br>• Fixed missing 5% penalty tier for the 4th vehicle sold within a 7-day period (100% -> 50% -> 10% -> 5% -> 2.5%).</p>
             <p><strong>v1.66.6</strong><br>• Accurately aligned the 7-day sales penalty calculation logic with in-game mechanics.<br>• Ensure Disconnected alerts always appear above all other active window modals.</p>
             <p><strong>v1.66.5</strong><br>• Improved the Active Blueprint UI by collapsing completed garages by default and adding a count badge.<br>• Fixed an issue where the destination slot on the blueprint move modal might not accurately indicate "Any Available" if some vehicles in the destination garage lacked a designated slot.</p>
@@ -1431,7 +1432,7 @@
     </div>
 </div>
 
-<div id="publicShareConfirmModal" class="modal">
+<div id="publicShareConfirmModal" class="modal" style="z-index: 1050;">
     <div class="modal-box">
         <div class="modal-title">Enable Public Sharing?</div>
         <p style="font-size:0.9rem; color:#ccc; line-height:1.6;">
@@ -5352,11 +5353,25 @@ const MAP_ICONS = {
             }
         }
 
+        message += `<div style="margin-top:15px; text-align:left;">
+            <div style="font-size:0.8rem; color:#aaa; margin-bottom:5px; text-transform:uppercase; font-weight:bold;">Final Sale Price (Override)</div>
+            <input type="text" id="manualSellPriceOverride" placeholder="Enter final sale price..." value="${finalPrice ? finalPrice.toLocaleString('en-US') : ''}" oninput="formatCurrency(this)" style="width:100%">
+        </div>`;
+
         openConfirm("Sell Vehicle", message, () => { 
             lastSell = Date.now(); 
             lastSoldName = vehicleToSell ? vehicleToSell.model : "Unknown"; 
             
-            salesHistory.unshift({ name: lastSoldName, date: lastSell, price: (rawPrice > 0) ? finalPrice : "Unknown" });
+            let actualSalePrice = "Unknown";
+            const overrideInput = document.getElementById('manualSellPriceOverride');
+            if (overrideInput && overrideInput.value) {
+                const parsed = Number(overrideInput.value.replace(/\D/g, ''));
+                if (!isNaN(parsed)) actualSalePrice = parsed;
+            } else if (rawPrice > 0) {
+                actualSalePrice = finalPrice;
+            }
+            
+            salesHistory.unshift({ name: lastSoldName, date: lastSell, price: actualSalePrice });
             if(salesHistory.length > 100) salesHistory.pop();
 
             vehicles = vehicles.filter(v => v.id != editingId); 
@@ -5679,7 +5694,12 @@ const MAP_ICONS = {
         render();
     }
 
-    window.onclick = e => { if(e.target.className === 'modal') e.target.style.display = 'none'; }
+    window.onclick = e => {
+        if(e.target.classList && e.target.classList.contains('modal')) {
+            if (e.target.id === 'loggedOutModal' || e.target.id === 'updateModal') return;
+            e.target.style.display = 'none';
+        }
+    }
     function checkCustomModel() { document.getElementById('inModelCustom').style.display = document.getElementById('inModel').value==='Custom'?'block':'none'; }
     function toggleWishlistLabel() {
         const isWishlist = document.getElementById('inWishlist').checked;
