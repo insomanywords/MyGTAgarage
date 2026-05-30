@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.66.9</title>
+    <title>My GTA Garage v1.66.10</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -831,7 +831,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.66.9</div>
+        <div class="modal-title">About My GTA Garage v1.66.10</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1330,7 +1330,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.66.9 (Current)</strong><br>• Added the ability to manually override and edit a vehicle's final sale price on the sale confirmation modal.<br>• Fixed an issue where clicking outside the Disconnected or Update Available modal windows would unintentionally close them.</p>
+            <p><strong>v1.66.10 (Current)</strong><br>• Cloud Sync now correctly triggers automatically after signing into Google Drive to prevent initial sync conflicts.<br>• Cloud Sync now automatically runs when a Blueprint is generated, refreshed, or discarded, keeping cloud data and active Blueprints perfectly in sync.</p>
+            <p><strong>v1.66.9</strong><br>• Added the ability to manually override and edit a vehicle's final sale price on the sale confirmation modal.<br>• Fixed an issue where clicking outside the Disconnected or Update Available modal windows would unintentionally close them.</p>
             <p><strong>v1.66.8</strong><br>• Local JSON backups and Cloud Sync now include your active Blueprint and App Settings.<br>• Improved Blueprint movement logic to accurately identify unobstructed empty slots and reduce unnecessary intermediate swaps.</p>
             <p><strong>v1.66.7</strong><br>• Fixed missing 5% penalty tier for the 4th vehicle sold within a 7-day period (100% -> 50% -> 10% -> 5% -> 2.5%).</p>
             <p><strong>v1.66.6</strong><br>• Accurately aligned the 7-day sales penalty calculation logic with in-game mechanics.<br>• Ensure Disconnected alerts always appear above all other active window modals.</p>
@@ -2486,6 +2487,7 @@ const MAP_ICONS = {
                     safeStorage.setItem(keys.lst, lastSyncTime);
                     document.getElementById('cloudStatus').innerText = 'Signed in. Folders mapped. Auto-sync active. (In Sync)';
                     updateCloudHeaderIcon();
+                    syncToCloud();
                 } else if (!hasLocal && hasCloud) {
                     applyCloudData(cd);
                     document.getElementById('cloudStatus').innerText = 'Signed in. Auto-pulled from Cloud.';
@@ -2756,7 +2758,7 @@ const MAP_ICONS = {
             }
             lastSyncTime = Date.now();
             safeStorage.setItem(keys.lst, lastSyncTime);
-            document.getElementById('cloudStatus').innerText = 'Signed in. Folders mapped. Auto-sync active. (Synced just now)';
+            document.getElementById('cloudStatus').innerText = 'Signed in. Folders mapped. Auto-sync active.';
         } catch(e) { console.error(e); }
         isAutoSyncing = false;
         updateCloudHeaderIcon();
@@ -6559,6 +6561,7 @@ const MAP_ICONS = {
         };
 
         safeStorage.setItem(getBlueprintKey(), JSON.stringify(bp));
+        syncToCloud();
         
         closeModal('blueprintSetupModal');
         openModal('blueprintModal');
@@ -6981,6 +6984,7 @@ const MAP_ICONS = {
     function clearBlueprint() {
         openConfirm("Discard Blueprint", "Are you sure you want to discard your current organization plan?", () => {
             safeStorage.removeItem(getBlueprintKey());
+            syncToCloud();
             closeModal('blueprintModal');
             showSuccess("Blueprint Discarded", "Your organization plan has been cleared.");
         });
