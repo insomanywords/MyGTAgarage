@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gta-garage-v1.66.11';
+const CACHE_NAME = 'gta-garage-v1.66.12';
 const ASSETS = [
   './',
   './index.html',
