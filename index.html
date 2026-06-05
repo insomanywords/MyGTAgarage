@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <title>My GTA Garage v1.66.11</title>
+    <title>My GTA Garage v1.66.12</title>
     
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.svg">
@@ -831,7 +831,7 @@
 
 <div id="aboutModal" class="modal">
     <div class="modal-box">
-        <div class="modal-title">About My GTA Garage v1.66.11</div>
+        <div class="modal-title">About My GTA Garage v1.66.12</div>
         <div style="color:#ccc; font-size:0.9rem; line-height:1.6; max-height:400px; overflow-y:auto; padding-right:5px;">
             <p><strong>My GTA Garage</strong> is the ultimate tool for GTA Online car collectors to track, organize, and manage their vehicle fleets.</p>
 
@@ -1330,7 +1330,8 @@
     <div class="modal-box">
         <div class="modal-title">History</div>
         <div style="color:#ccc; font-size:0.85rem; line-height:1.6; max-height:300px; overflow:auto;">
-            <p><strong>v1.66.11 (Current)</strong><br>• Added the ability to choose a floor level when moving a vehicle to a multi-floor garage.<br>• Improved move and swap logic: Vehicles now correctly inherit their new floor levels instead of preserving their origin floor.<br>• Added vehicle cards to the Move Vehicle window to visualize the vehicle being moved and the swapped vehicle if applicable.</p>
+            <p><strong>v1.66.12 (Current)</strong><br>• Fully rewritten the Auto-Organize Blueprint engine to implement a Two-Pass Zoning & Anchoring logic which minimizes unnecessary moves by preserving currently correct placements and grouping pending moves by priorities (Optimal Swaps, Unobstructed, Forced Evictions, and Queued).</p>
+            <p><strong>v1.66.11</strong><br>• Added the ability to choose a floor level when moving a vehicle to a multi-floor garage.<br>• Improved move and swap logic: Vehicles now correctly inherit their new floor levels instead of preserving their origin floor.<br>• Added vehicle cards to the Move Vehicle window to visualize the vehicle being moved and the swapped vehicle if applicable.</p>
             <p><strong>v1.66.10</strong><br>• Cloud Sync now correctly triggers automatically after signing into Google Drive to prevent initial sync conflicts.<br>• Cloud Sync now automatically runs when a Blueprint is generated, refreshed, or discarded, keeping cloud data and active Blueprints perfectly in sync.</p>
             <p><strong>v1.66.9</strong><br>• Added the ability to manually override and edit a vehicle's final sale price on the sale confirmation modal.<br>• Fixed an issue where clicking outside the Disconnected or Update Available modal windows would unintentionally close them.</p>
             <p><strong>v1.66.8</strong><br>• Local JSON backups and Cloud Sync now include your active Blueprint and App Settings.<br>• Improved Blueprint movement logic to accurately identify unobstructed empty slots and reduce unnecessary intermediate swaps.</p>
@@ -6382,279 +6383,263 @@ const MAP_ICONS = {
     }
 
     // --- AUTO-ORGANIZE BLUEPRINT LOGIC ---
-    function getBlueprintKey() {
-        return 'gta_org_blueprint_v1' + (activeCharId === 'default' ? '' : '_' + activeCharId);
+
+function getBlueprintKey() {
+    return 'gta_org_blueprint_v1' + (activeCharId === 'default' ? '' : '_' + activeCharId);
+}
+
+function openBlueprintMenu() {
+    if (isViewOnly) return;
+    const bpStr = safeStorage.getItem(getBlueprintKey());
+    if (bpStr) {
+        openModal('blueprintModal');
+        renderBlueprint();
+    } else {
+        openBlueprintSetup();
     }
+}
 
-    function openBlueprintMenu() {
-        if (isViewOnly) return;
-        const bpStr = safeStorage.getItem(getBlueprintKey());
-        if (bpStr) {
-            openModal('blueprintModal');
-            renderBlueprint();
-        } else {
-            openBlueprintSetup();
-        }
-    }
+function openBlueprintSetup() {
+    if (isViewOnly) return;
+    closeModal('blueprintModal');
+    const garDiv = document.getElementById('bpGaragesDiv');
+    const ownedGarages = [...new Set(vehicles.map(v => v.loc))].sort();
 
-    function openBlueprintSetup() {
-        if (isViewOnly) return;
-        closeModal('blueprintModal');
-        const garDiv = document.getElementById('bpGaragesDiv');
-        const ownedGarages = [...new Set(vehicles.map(v => v.loc))].sort();
+    let bpStrategy = 'affinity';
+    let bpCriteria = 'class';
+    let bpGarages = ownedGarages;
 
-        let bpStrategy = 'affinity';
-        let bpCriteria = 'class';
-        let bpGarages = ownedGarages;
-
-        const bpStr = safeStorage.getItem(getBlueprintKey());
-        if (bpStr) {
-            try {
-                const bp = JSON.parse(bpStr);
-                if (bp.strategy) bpStrategy = bp.strategy;
-                if (bp.criteria) bpCriteria = bp.criteria;
-                if (bp.selectedGarages) bpGarages = bp.selectedGarages;
-            } catch (e) {}
-        }
-
-        garDiv.innerHTML = ownedGarages.map(g => `<label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" class="bp-garage-cb" value="${g}" ${bpGarages.includes(g) ? 'checked' : ''} style="width:18px; height:18px; margin:0; accent-color:var(--accent); flex-shrink:0;"> <span style="font-size:0.9rem;">${g}</span></label>`).join('');
-        
-        const strategyEl = document.getElementById('bpStrategy');
-        if (strategyEl) strategyEl.value = bpStrategy;
-
-        const criteriaEl = document.getElementById('bpCriteria');
-        if (criteriaEl) criteriaEl.value = bpCriteria;
-
-        openModal('blueprintSetupModal');
-    }
-
-    function generateBlueprint(isRefresh = false) {
-        if (isViewOnly) return;
-        
-        let criteria, strategy, selectedGarages;
-        
-        if (isRefresh) {
-            const bpStr = safeStorage.getItem(getBlueprintKey());
-            if (!bpStr) return;
+    const bpStr = safeStorage.getItem(getBlueprintKey());
+    if (bpStr) {
+        try {
             const bp = JSON.parse(bpStr);
-            if (!bp.strategy || !bp.selectedGarages) {
-                return openAlert("Error", "Old blueprint format cannot be refreshed. Please discard and create a new one to enable refreshing.");
-            }
-            criteria = bp.criteria;
-            strategy = bp.strategy;
-            selectedGarages = bp.selectedGarages;
+            if (bp.strategy) bpStrategy = bp.strategy;
+            if (bp.criteria) bpCriteria = bp.criteria;
+            if (bp.selectedGarages) bpGarages = bp.selectedGarages;
+        } catch (e) {}
+    }
+
+    garDiv.innerHTML = ownedGarages.map(g => `<label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" class="bp-garage-cb" value="${g}" ${bpGarages.includes(g) ? 'checked' : ''} style="width:18px; height:18px; margin:0; accent-color:var(--accent); flex-shrink:0;"> <span style="font-size:0.9rem;">${g}</span></label>`).join('');
+    
+    const strategyEl = document.getElementById('bpStrategy');
+    if (strategyEl) strategyEl.value = bpStrategy;
+
+    const criteriaEl = document.getElementById('bpCriteria');
+    if (criteriaEl) criteriaEl.value = bpCriteria;
+
+    openModal('blueprintSetupModal');
+}
+
+function getVal(v, criteria) {
+    const db = masterDB.find(d => d.model === v.model) || {};
+    if (criteria === 'class') return (db.class || v.class || 'Unknown').replace(/_/g, ' ');
+    if (criteria === 'manuf') return v.manuf || 'Unknown';
+    if (criteria === 'drive') return db.drive || v.drive || 'Unknown';
+    if (criteria === 'wheels') return v.wheels || 'Stock';
+    return 'Unknown';
+}
+
+function generateBlueprint(isRefresh = false) {
+    if (isViewOnly) return;
+    
+    let criteria, strategy, selectedGarages;
+    
+    if (isRefresh) {
+        const bpStr = safeStorage.getItem(getBlueprintKey());
+        if (!bpStr) return;
+        const bp = JSON.parse(bpStr);
+        if (!bp.strategy || !bp.selectedGarages) {
+            return openAlert("Error", "Old blueprint format. Please discard and create a new one.");
+        }
+        criteria = bp.criteria;
+        strategy = bp.strategy;
+        selectedGarages = bp.selectedGarages;
+    } else {
+        criteria = document.getElementById('bpCriteria').value;
+        strategy = document.getElementById('bpStrategy').value;
+        const checkboxes = document.querySelectorAll('.bp-garage-cb:checked');
+        selectedGarages = Array.from(checkboxes).map(cb => cb.value);
+    }
+    
+    if (selectedGarages.length === 0) return openAlert("Error", "Please select at least one garage.");
+    
+    const vehiclesToOrganize = vehicles.filter(v => selectedGarages.includes(v.loc));
+    
+    // 1. Build capacity bins
+    let bins = []; 
+    selectedGarages.forEach(loc => {
+        const cleanName = normalizeGarageName(loc).split(" (")[0];
+        const mapKey = Object.keys(FLOOR_MAP).find(k => loc.includes(k));
+        
+        if (mapKey) {
+            FLOOR_MAP[mapKey].forEach(floor => {
+                const cap = getFloorCap(loc, floor);
+                let availableSlots = [];
+                for(let i=1; i<=cap; i++) availableSlots.push(String(i));
+                bins.push({ loc, floor, cap, availableSlots, counts: {} });
+            });
         } else {
-            criteria = document.getElementById('bpCriteria').value;
-            strategy = document.getElementById('bpStrategy').value;
-            const checkboxes = document.querySelectorAll('.bp-garage-cb:checked');
-            selectedGarages = Array.from(checkboxes).map(cb => cb.value);
+            const capKey = Object.keys(CAPACITIES).find(m => cleanName.includes(m)) || "DEFAULT";
+            const cap = CAPACITIES[capKey];
+            let availableSlots = [];
+            for(let i=1; i<=cap; i++) availableSlots.push(String(i));
+            bins.push({ loc, floor: "Main Floor", cap, availableSlots, counts: {} });
         }
+    });
+
+    // 2. Group vehicles and calculate affinity
+    let groups = {};
+    vehiclesToOrganize.forEach(v => {
+        const val = getVal(v, criteria);
+        if (!groups[val]) groups[val] = [];
+        groups[val].push(v);
         
-        if (selectedGarages.length === 0) {
-            return openAlert("Error", "Please select at least one garage to organize.");
+        const bin = bins.find(b => b.loc === v.loc && b.floor === (v.floor || "Main Floor"));
+        if (bin) {
+            bin.counts[val] = (bin.counts[val] || 0) + 1;
         }
+    });
+
+    Object.keys(groups).forEach(val => {
+        groups[val].sort((a, b) => {
+            if (a.manuf !== b.manuf) return (a.manuf||'').localeCompare(b.manuf||'');
+            return (a.model||'').localeCompare(b.model||'');
+        });
+    });
+
+    let targets = {};
+
+    if (strategy === 'sequential') {
+        let flatVehicles = [];
+        Object.keys(groups).sort().forEach(k => flatVehicles.push(...groups[k]));
         
-        const vehiclesToOrganize = vehicles.filter(v => selectedGarages.includes(v.loc));
-        
-        // 1. Calculate available slots ONLY for selected garages.
-        let availableSlots = [];
-        let bins = []; 
-        
-        selectedGarages.forEach(loc => {
-            const cleanName = normalizeGarageName(loc).split(" (")[0];
-            const mapKey = Object.keys(FLOOR_MAP).find(k => loc.includes(k));
-            
-            if (mapKey) {
-                FLOOR_MAP[mapKey].forEach(floor => {
-                    const cap = getFloorCap(loc, floor);
-                    bins.push({ loc, floor, cap });
-                });
-            } else {
-                const capKey = Object.keys(CAPACITIES).find(m => cleanName.includes(m)) || "DEFAULT";
-                const cap = CAPACITIES[capKey];
-                bins.push({ loc, floor: "Main Floor", cap });
+        let binIdx = 0;
+        flatVehicles.forEach(v => {
+            while (binIdx < bins.length && bins[binIdx].availableSlots.length === 0) binIdx++;
+            if (binIdx < bins.length) {
+                targets[v.id] = { loc: bins[binIdx].loc, floor: bins[binIdx].floor, slot: bins[binIdx].availableSlots.shift() };
             }
         });
-
-        let targets = {};
+    } else {
+        // AFFINITY STRATEGY: Two-Pass Zoning & Anchoring
+        let allocations = {}; 
+        Object.keys(groups).forEach(k => allocations[k] = []);
         
-        function getVal(v) {
-            const db = masterDB.find(d => d.model === v.model) || {};
-            if (criteria === 'class') return (db.class || v.class || 'Unknown').replace(/_/g, ' ');
-            if (criteria === 'manuf') return v.manuf || 'Unknown';
-            if (criteria === 'drive') return db.drive || v.drive || 'Unknown';
-            if (criteria === 'wheels') return v.wheels || 'Stock';
-            return 'Unknown';
-        }
+        const sortedGroupNames = Object.keys(groups).sort((a, b) => groups[b].length - groups[a].length);
+        
+        // Phase 1: Zone the Garages
+        sortedGroupNames.forEach(groupName => {
+            let needed = groups[groupName].length;
+            
+            while (needed > 0) {
+                let availableBins = bins.filter(b => b.availableSlots.length > 0);
+                if (availableBins.length === 0) break; 
 
-        if (strategy === 'sequential') {
-            let sortedVehicles = [...vehiclesToOrganize].sort((a, b) => {
-                let valA = getVal(a), valB = getVal(b);
-                if (valA !== valB) return valA.localeCompare(valB);
-                if (a.manuf !== b.manuf) return (a.manuf||'').localeCompare(b.manuf||'');
-                return (a.model||'').localeCompare(b.model||'');
-            });
-            
-            bins.forEach(b => {
-                 for(let i=1; i<=b.cap; i++) availableSlots.push({loc: b.loc, floor: b.floor, slot: String(i)});
-            });
-            
-            sortedVehicles.forEach((v, index) => {
-                if (availableSlots[index]) {
-                    targets[v.id] = {
-                        loc: availableSlots[index].loc,
-                        floor: availableSlots[index].floor,
-                        slot: availableSlots[index].slot
-                    };
-                }
-            });
-        } else {
-            // AFFINITY ALGORITHM (Minimize moves)
-            bins.forEach(b => {
-                b.availableSlots = [];
-                for(let i=1; i<=b.cap; i++) b.availableSlots.push(String(i));
-                b.affinity = {};
-            });
-            
-            vehiclesToOrganize.forEach(v => {
-                const val = getVal(v);
-                const b = bins.find(bin => bin.loc === v.loc && bin.floor === (v.floor || "Main Floor"));
-                if (b) {
-                    b.affinity[val] = (b.affinity[val] || 0) + 1;
-                }
-            });
-            
-            let groups = {};
-            vehiclesToOrganize.forEach(v => {
-                const val = getVal(v);
-                if (!groups[val]) groups[val] = [];
-                groups[val].push(v);
-            });
-            
-            Object.keys(groups).forEach(val => {
-                groups[val].sort((a, b) => {
-                    if (a.manuf !== b.manuf) return (a.manuf||'').localeCompare(b.manuf||'');
-                    return (a.model||'').localeCompare(b.model||'');
-                });
-            });
-            
-            const sortedGroupNames = Object.keys(groups).sort((a, b) => groups[b].length - groups[a].length);
-            
-            sortedGroupNames.forEach(groupName => {
-                let carsToPlace = groups[groupName];
-                
-                let targetBins = [];
-                let slotsAccumulated = 0;
-                
-                let availableBinsList = bins.filter(b => b.availableSlots.length > 0);
-                availableBinsList.sort((a, b) => {
-                    const affA = a.affinity[groupName] || 0;
-                    const affB = b.affinity[groupName] || 0;
+                availableBins.sort((a, b) => {
+                    const affA = a.counts[groupName] || 0;
+                    const affB = b.counts[groupName] || 0;
                     if (affA !== affB) return affB - affA; 
                     return b.availableSlots.length - a.availableSlots.length;
                 });
+
+                let bestBin = availableBins[0];
+                let take = Math.min(needed, bestBin.availableSlots.length);
                 
-                for (let b of availableBinsList) {
-                    targetBins.push(b);
-                    slotsAccumulated += b.availableSlots.length;
-                    if (slotsAccumulated >= carsToPlace.length) break;
+                for(let i=0; i<take; i++) {
+                    allocations[groupName].push({ loc: bestBin.loc, floor: bestBin.floor, slot: bestBin.availableSlots.shift() });
                 }
+                needed -= take;
+            }
+        });
+        
+        // Phase 2: Anchor Existing Cars & Relocate Leftovers
+        Object.keys(groups).forEach(cat => {
+            let cars = groups[cat];
+            let slots = allocations[cat];
+            let unplacedCars = [];
+            
+            // Pass A: Anchor cars already in the correct Location & Floor
+            cars.forEach(car => {
+                let carLoc = car.loc;
+                let carFloor = car.floor || "Main Floor";
                 
-                let unplacedCars = [];
+                let slotIdx = slots.findIndex(s => s.loc === carLoc && s.floor === carFloor);
                 
-                // Phase 1: Keep cars in their current bin if it's a target bin
-                carsToPlace.forEach(v => {
-                    let currentBin = targetBins.find(b => b.loc === v.loc && b.floor === (v.floor || "Main Floor"));
-                    if (currentBin && currentBin.availableSlots.length > 0) {
-                        let assignedSlot = null;
-                        const originalSlot = String(v.slot);
-                        const slotIndex = currentBin.availableSlots.indexOf(originalSlot);
-                        if (slotIndex !== -1) {
-                            currentBin.availableSlots.splice(slotIndex, 1);
-                            assignedSlot = originalSlot;
-                        } else {
-                            let emptySlotIndex = currentBin.availableSlots.findIndex(s => {
-                                return !vehicles.some(veh => veh.loc === currentBin.loc && (veh.floor || "Main Floor") === currentBin.floor && String(veh.slot) === s);
-                            });
-                            if (emptySlotIndex !== -1) {
-                                assignedSlot = currentBin.availableSlots.splice(emptySlotIndex, 1)[0];
-                            } else {
-                                assignedSlot = currentBin.availableSlots.shift();
-                            }
-                        }
-                        targets[v.id] = { loc: currentBin.loc, floor: currentBin.floor, slot: assignedSlot };
-                    } else {
-                        unplacedCars.push(v);
-                    }
-                });
-                
-                // Phase 2: Place remaining cars
-                while (unplacedCars.length > 0) {
-                    let nextBin = targetBins.find(b => b.availableSlots.length > 0);
-                    if (!nextBin) {
-                        let remainingBins = bins.filter(b => b.availableSlots.length > 0);
-                        if (remainingBins.length === 0) break;
-                        remainingBins.sort((a, b) => {
-                            const affA = a.affinity[groupName] || 0;
-                            const affB = b.affinity[groupName] || 0;
-                            if (affA !== affB) return affB - affA; 
-                            return b.availableSlots.length - a.availableSlots.length;
-                        });
-                        nextBin = remainingBins[0];
-                    }
-                    
-                    unplacedCars.sort((a, b) => {
-                        const inLocA = (a.loc === nextBin.loc) ? 1 : 0;
-                        const inLocB = (b.loc === nextBin.loc) ? 1 : 0;
-                        if (inLocA !== inLocB) return inLocB - inLocA;
-                        
-                        // Pull from garages with lowest affinity first
-                        if (strategy === 'affinity') {
-                            const binA = bins.find(bin => bin.loc === a.loc && bin.floor === (a.floor || "Main Floor"));
-                            const binB = bins.find(bin => bin.loc === b.loc && bin.floor === (b.floor || "Main Floor"));
-                            const affA = binA ? (binA.affinity[groupName] || 0) : 0;
-                            const affB = binB ? (binB.affinity[groupName] || 0) : 0;
-                            if (affA !== affB) return affA - affB;
-                        }
-                        
-                        if (a.manuf !== b.manuf) return (a.manuf||'').localeCompare(b.manuf||'');
-                        return (a.model||'').localeCompare(b.model||'');
-                    });
-                    
-                    let v = unplacedCars.shift();
-                    
-                    let assignedSlot = null;
-                    let emptySlotIndex = nextBin.availableSlots.findIndex(s => {
-                        return !vehicles.some(veh => veh.loc === nextBin.loc && (veh.floor || "Main Floor") === nextBin.floor && String(veh.slot) === s);
-                    });
-                    if (emptySlotIndex !== -1) {
-                        assignedSlot = nextBin.availableSlots.splice(emptySlotIndex, 1)[0];
-                    } else {
-                        assignedSlot = nextBin.availableSlots.shift();
-                    }
-                    targets[v.id] = { loc: nextBin.loc, floor: nextBin.floor, slot: assignedSlot };
+                if (slotIdx !== -1) {
+                    let assignedSlot = slots.splice(slotIdx, 1)[0];
+                    let finalSlot = car.slot || assignedSlot.slot; // Preserve blank slots if user ignores them
+                    targets[car.id] = { loc: assignedSlot.loc, floor: assignedSlot.floor, slot: finalSlot };
+                } else {
+                    unplacedCars.push(car);
                 }
             });
-        }
-
-        const bp = {
-            isActive: true,
-            criteria: criteria,
-            strategy: strategy,
-            selectedGarages: selectedGarages,
-            generatedOn: Date.now(),
-            targets: targets
-        };
-
-        safeStorage.setItem(getBlueprintKey(), JSON.stringify(bp));
-        syncToCloud();
-        
-        closeModal('blueprintSetupModal');
-        openModal('blueprintModal');
-        renderBlueprint();
+            
+            // Pass B: Relocate remaining cars to the leftover assigned slots
+            unplacedCars.forEach(car => {
+                let assignedSlot = slots.shift();
+                if (assignedSlot) {
+                    targets[car.id] = { loc: assignedSlot.loc, floor: assignedSlot.floor, slot: assignedSlot.slot };
+                }
+            });
+        });
     }
 
-    function isGarageFull(tLoc, tFloor, excludingVid) {
+    const bp = {
+        isActive: true,
+        criteria: criteria,
+        strategy: strategy,
+        selectedGarages: selectedGarages,
+        generatedOn: Date.now(),
+        targets: targets
+    };
+
+    safeStorage.setItem(getBlueprintKey(), JSON.stringify(bp));
+    syncToCloud();
+    
+    closeModal('blueprintSetupModal');
+    openModal('blueprintModal');
+    renderBlueprint();
+}
+
+function renderBlueprint() {
+    const container = document.getElementById('blueprintContent');
+    const progressEl = document.getElementById('blueprintProgress');
+    const bpStr = safeStorage.getItem(getBlueprintKey());
+    if (!bpStr) {
+        container.innerHTML = "No blueprint found.";
+        return;
+    }
+    
+    const bp = JSON.parse(bpStr);
+    let completed = 0;
+    let total = 0;
+
+    const pendingMovesArray = [];
+    const completedVehicles = [];
+    
+    Object.keys(bp.targets).forEach(vid => {
+        const t = bp.targets[vid];
+        const v = vehicles.find(veh => String(veh.id) === String(vid));
+        if (!v) return;
+        
+        total++;
+        
+        // Match condition: Only care about Loc and Floor (ignore slot)
+        const isLocFloorDone = (v.loc === t.loc && (v.floor || "Main Floor") === (t.floor || "Main Floor"));
+        
+        if (isLocFloorDone) {
+            completed++;
+            completedVehicles.push({ target: t, vehicle: v });
+        } else {
+            pendingMovesArray.push({ target: t, vehicle: v });
+        }
+    });
+
+    const busyVehicles = new Set();
+    const moves = [];
+
+    // Helper functions to track real-time capacity during sorting
+    function getGarageCap(tLoc, tFloor) {
         let cap = 10;
         const cleanName = normalizeGarageName(tLoc).split(" (")[0];
         const mapKey = Object.keys(FLOOR_MAP).find(k => tLoc.includes(k));
@@ -6663,58 +6648,404 @@ const MAP_ICONS = {
             const capKey = Object.keys(CAPACITIES).find(m => cleanName.includes(m)) || "DEFAULT";
             cap = CAPACITIES[capKey] || 10;
         }
-        return vehicles.filter(o => o.loc === tLoc && (o.floor || "Main Floor") === tFloor && o.id !== excludingVid).length >= cap;
+        return cap;
     }
 
-    function renderBlueprint() {
-        const container = document.getElementById('blueprintContent');
-        const progressEl = document.getElementById('blueprintProgress');
-        const bpStr = safeStorage.getItem(getBlueprintKey());
-        if (!bpStr) {
-            container.innerHTML = "No blueprint found.";
-            return;
-        }
-        
-        const bp = JSON.parse(bpStr);
-        let completed = 0;
-        let total = 0;
+    const currentCounts = {};
+    function getLiveCount(loc, floor) {
+        const key = loc + "||" + (floor || "Main Floor");
+        if (currentCounts[key] !== undefined) return currentCounts[key];
+        const c = vehicles.filter(veh => veh.loc === loc && (veh.floor || "Main Floor") === (floor || "Main Floor")).length;
+        currentCounts[key] = c;
+        return c;
+    }
 
-        const pendingMovesArray = [];
-        const completedVehicles = [];
+    // PRIORITY 1: Perfect Swaps
+    pendingMovesArray.forEach(pm => {
+        if (busyVehicles.has(pm.vehicle.id)) return;
+        const residents = vehicles.filter(o => o.loc === pm.target.loc && (o.floor || "Main Floor") === (pm.target.floor || "Main Floor") && o.id !== pm.vehicle.id && !busyVehicles.has(o.id));
         
-        Object.keys(bp.targets).forEach(vid => {
-            const t = bp.targets[vid];
-            const v = vehicles.find(veh => String(veh.id) === String(vid));
-            if (!v) return;
-            
-            total++;
-            
-            const isDone = (v.loc === t.loc && (v.floor || "Main Floor") === t.floor && parseInt(v.slot || "-1") === parseInt(t.slot || "-1"));
-            // We'll consider it purely done if loc & floor are right. Wait, the user wants them in specific slots too?
-            // Actually, previously we only checked loc and floor to consider "done". 
-            // Let's keep it to loc and floor for completed.
-            const isLocFloorDone = (v.loc === t.loc && (v.floor || "Main Floor") === t.floor);
-            
-            if (isLocFloorDone) {
-                completed++;
-                completedVehicles.push({ target: t, vehicle: v });
-            } else {
-                pendingMovesArray.push({ target: t, vehicle: v });
-            }
+        const perfectSwap = residents.find(o => {
+            const oT = bp.targets[o.id];
+            return oT && oT.loc === pm.vehicle.loc && (oT.floor || "Main Floor") === (pm.vehicle.floor || "Main Floor");
         });
 
-        const busyVehicles = new Set();
-        const moves = [];
-
-        const currentGarageCounts = {};
-        function getGarageCount(tLoc, tFloor) {
-            const key = tLoc + '||' + tFloor;
-            if (currentGarageCounts[key] !== undefined) return currentGarageCounts[key];
-            const c = vehicles.filter(o => o.loc === tLoc && (o.floor || "Main Floor") === tFloor).length;
-            currentGarageCounts[key] = c;
-            return c;
+        if (perfectSwap) {
+            pm.priority = 1;
+            pm.reason = "Perfect Swap (Solves 2 Cars)";
+            pm.occupant = perfectSwap;
+            busyVehicles.add(pm.vehicle.id);
+            busyVehicles.add(perfectSwap.id);
+            moves.push(pm);
         }
-        function getGarageCap(tLoc, tFloor) {
+    });
+
+    // PRIORITY 2: Empty Slots
+    let p2Changed = true;
+    while(p2Changed) {
+        p2Changed = false;
+        pendingMovesArray.forEach(pm => {
+            if (busyVehicles.has(pm.vehicle.id)) return;
+            const count = getLiveCount(pm.target.loc, pm.target.floor);
+            const cap = getGarageCap(pm.target.loc, pm.target.floor);
+            
+            if (count < cap) {
+                pm.priority = 2;
+                pm.reason = "Move to Empty Slot";
+                pm.occupant = null;
+                busyVehicles.add(pm.vehicle.id);
+                moves.push(pm);
+                
+                // Update simulated counts
+                currentCounts[pm.target.loc + "||" + (pm.target.floor || "Main Floor")] = count + 1;
+                const oldKey = pm.vehicle.loc + "||" + (pm.vehicle.floor || "Main Floor");
+                currentCounts[oldKey] = Math.max(0, getLiveCount(pm.vehicle.loc, pm.vehicle.floor || "Main Floor") - 1);
+                p2Changed = true; // Re-evaluate in case this opened up a new empty slot
+            }
+        });
+    }
+
+    // PRIORITY 3: Eviction Swap
+    pendingMovesArray.forEach(pm => {
+        if (busyVehicles.has(pm.vehicle.id)) return;
+        const residents = vehicles.filter(o => o.loc === pm.target.loc && (o.floor || "Main Floor") === (pm.target.floor || "Main Floor") && o.id !== pm.vehicle.id && !busyVehicles.has(o.id));
+        
+        const evictionCandidate = residents.find(o => {
+            const oT = bp.targets[o.id];
+            return !oT || oT.loc !== pm.target.loc || (oT.floor || "Main Floor") !== (pm.target.floor || "Main Floor");
+        });
+
+        if (evictionCandidate) {
+            pm.priority = 3;
+            pm.reason = "Evict Mismatched Car";
+            pm.occupant = evictionCandidate;
+            busyVehicles.add(pm.vehicle.id);
+            busyVehicles.add(evictionCandidate.id);
+            moves.push(pm);
+        }
+    });
+
+    // PRIORITY 4: Blocked
+    pendingMovesArray.forEach(pm => {
+        if (busyVehicles.has(pm.vehicle.id)) return;
+        pm.priority = 4;
+        pm.reason = "Waiting for Space";
+        pm.occupant = null;
+        moves.push(pm);
+    });
+
+    moves.sort((a,b) => a.priority - b.priority);
+
+    const groups = {
+        1: { title: "🔥 Priority 1: Optimal Swaps (Solves 2 at once)", color: "var(--f1)", items: [] },
+        2: { title: "✅ Priority 2: Unobstructed (Empty Slots)", color: "var(--sell)", items: [] },
+        3: { title: "⚠️ Priority 3: Forced Evictions (Displaces cars)", color: "var(--accent)", items: [] },
+        4: { title: "⏳ Queued (Waiting for space to open)", color: "#7f8c8d", items: [] },
+    };
+
+    moves.forEach(pm => {
+        if (groups[pm.priority]) {
+            groups[pm.priority].items.push(pm);
+        }
+    });
+
+    const frag = document.createDocumentFragment();
+    let hasPending = false;
+    
+    [1, 2, 3, 4].forEach(prio => {
+        const group = groups[prio];
+        if (group.items.length === 0) return;
+        hasPending = true;
+        
+        const groupHeader = document.createElement('div');
+        groupHeader.style.cssText = `font-weight:800; font-size:1.1rem; color:${group.color}; margin-top:20px; border-bottom:1px solid #333; padding-bottom:5px;`;
+        groupHeader.innerText = group.title;
+        frag.appendChild(groupHeader);
+        
+        const gridDiv = document.createElement('div');
+        gridDiv.className = 'vehicle-grid';
+        gridDiv.style.marginTop = '15px';
+        
+        group.items.forEach(item => {
+            const v = item.vehicle;
+            const t = item.target;
+            const occupant = item.occupant;
+            
+            const cardNode = createCard(v);
+            if (cardNode) {
+                const wrapper = document.createElement('div');
+                wrapper.style.display = 'flex';
+                wrapper.style.flexDirection = 'column';
+                wrapper.style.borderRadius = '12px';
+                wrapper.style.overflow = 'hidden';
+                wrapper.style.border = `2px solid ${group.color}`;
+                wrapper.style.boxShadow = '0 4px 6px rgba(0,0,0,0.3)';
+                wrapper.style.cursor = 'pointer';
+                
+                wrapper.onclick = () => openDetailModal(v.id);
+                
+                const banner = document.createElement('div');
+                banner.style.cssText = `padding:8px 12px; background:${group.color}; color:#fff; font-size:0.85rem; font-weight:800; display:flex; flex-direction:column; gap:4px; line-height:1.2; text-shadow:0 1px 2px rgba(0,0,0,0.5);`;
+                
+                const currentFloorText = (v.floor && v.floor !== "Main Floor") ? ` - ${v.floor}` : "";
+                const targetFloorText = (t.floor && t.floor !== "Main Floor") ? ` - ${t.floor}` : "";
+
+                let statusText = `<span style="font-size:0.75rem; font-weight:600; opacity:0.95;">From: ${v.loc}${currentFloorText} <br>To: ${t.loc}${targetFloorText}</span>`;
+                
+                if (occupant) {
+                    statusText += `<span style="font-size:0.75rem; font-weight:700; color:#fff; margin-top:4px; display:flex; align-items:center; gap:5px;"><i class="fas fa-exchange-alt"></i> ${item.reason}: ${occupant.model}</span>`;
+                }
+                
+                const headDiv = document.createElement('div');
+                headDiv.style.cssText = "display:flex; justify-content:space-between; align-items:center;";
+                headDiv.innerHTML = `<div><i class="fas ${prio === 4 ? 'fa-hourglass-half' : 'fa-arrow-right'}" style="margin-right:5px;"></i> ${prio === 4 ? 'WAITING' : 'MOVE VEHICLE'}</div>`;
+                
+                const execBtnWrap = document.createElement('div');
+                const execBtn = document.createElement('button');
+                execBtn.className = 'btn-pri';
+                execBtn.style.cssText = `padding:2px 8px; height:auto; border:1px solid rgba(255,255,255,0.4); font-size:0.7rem; border-radius:4px; min-height:22px; background:rgba(0,0,0,0.3); ${prio === 4 ? 'opacity:0.5; cursor:not-allowed;' : ''}`;
+                execBtn.innerHTML = "<i class=\"fas fa-truck-loading\" style=\"margin-right:4px;\"></i> Execute Move";
+                
+                if (prio !== 4) {
+                    execBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        openBpMoveModal(v.id, t.loc, t.floor, occupant ? occupant.id : null);
+                    };
+                } else {
+                    execBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        openAlert("Action Blocked", "This move is currently waiting for space. Complete Priorities 1, 2, or 3 first.");
+                    };
+                }
+                
+                execBtnWrap.appendChild(execBtn);
+                headDiv.appendChild(execBtnWrap);
+                
+                banner.appendChild(headDiv);
+                if (statusText) {
+                    const statDiv = document.createElement('div');
+                    statDiv.innerHTML = statusText;
+                    banner.appendChild(statDiv);
+                }
+                
+                cardNode.style.border = 'none';
+                cardNode.style.borderRadius = '0';
+                cardNode.style.boxShadow = 'none';
+                
+                const actions = cardNode.querySelector('.card-actions-top');
+                if (actions) actions.style.display = 'none';
+                
+                cardNode.onclick = (e) => { e.stopPropagation(); openDetailModal(v.id); };
+                
+                wrapper.appendChild(banner);
+                wrapper.appendChild(cardNode);
+                gridDiv.appendChild(wrapper); 
+            }
+        });
+        frag.appendChild(gridDiv);
+    });
+
+    if (!hasPending && total > 0) {
+        const allDone = document.createElement('div');
+        allDone.style.cssText = "text-align:center; padding:30px; font-size:1.2rem; color:var(--sell); font-weight:bold;";
+        allDone.innerHTML = `<i class="fas fa-check-circle" style="font-size:2rem; display:block; margin-bottom:10px;"></i> All vehicles are organized!`;
+        frag.appendChild(allDone);
+    }
+
+    if (completedVehicles.length > 0) {
+        const compHeader = document.createElement('div');
+        compHeader.style.cssText = "font-weight:800; font-size:1.1rem; color:var(--sell); margin-top:30px; border-bottom:1px solid #333; padding-bottom:5px;";
+        compHeader.innerHTML = `<i class="fas fa-check"></i> Completed (${completed})`;
+        frag.appendChild(compHeader);
+
+        let currentCompLoc = null;
+        let currentCompGridDiv = null;
+
+        completedVehicles.sort((a,b) => {
+            if (a.target.loc !== b.target.loc) return a.target.loc.localeCompare(b.target.loc);
+            return (a.target.floor || "").localeCompare(b.target.floor || "");
+        }).forEach(item => {
+            if (item.target.loc !== currentCompLoc) {
+                currentCompLoc = item.target.loc;
+                const countInLoc = completedVehicles.filter(cv => cv.target.loc === currentCompLoc).length;
+                
+                const groupTitle = document.createElement('div');
+                groupTitle.style.cssText = "font-weight:700; font-size:1.05rem; color:var(--text); border-bottom:1px solid #333; margin-top:15px; padding-bottom:5px; margin-bottom:5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;";
+                
+                groupTitle.innerHTML = `<span>${currentCompLoc} (${countInLoc} Completed)</span><i class="fas fa-chevron-down" style="transition: transform 0.2s; transform: rotate(-90deg);"></i>`;
+                
+                currentCompGridDiv = document.createElement('div');
+                currentCompGridDiv.className = 'vehicle-grid hidden';
+                currentCompGridDiv.style.marginTop = "10px";
+                
+                const thisGrid = currentCompGridDiv;
+                const arrow = groupTitle.querySelector('i');
+                
+                groupTitle.onclick = () => {
+                    thisGrid.classList.toggle('hidden');
+                    arrow.style.transform = thisGrid.classList.contains('hidden') ? 'rotate(-90deg)' : '';
+                };
+                
+                frag.appendChild(groupTitle);
+                frag.appendChild(currentCompGridDiv);
+            }
+
+            const v = item.vehicle;
+            const cardNode = createCard(v);
+            if (cardNode) {
+                const wrapper = document.createElement('div');
+                wrapper.style.display = 'flex';
+                wrapper.style.flexDirection = 'column';
+                wrapper.style.borderRadius = '12px';
+                wrapper.style.overflow = 'hidden';
+                wrapper.style.border = '2px solid var(--sell)';
+                wrapper.style.opacity = "0.5";
+                wrapper.style.filter = "grayscale(100%)";
+                wrapper.style.cursor = 'pointer';
+                
+                const banner = document.createElement('div');
+                banner.style.cssText = "padding:6px 12px; background:var(--sell); color:#fff; font-size:0.8rem; font-weight:800; display:flex; align-items:center; line-height:1;";
+                banner.innerHTML = `<i class="fas fa-check" style="margin-right:6px;"></i> IN POSITION`;
+                
+                cardNode.style.border = 'none';
+                cardNode.style.borderRadius = '0';
+                cardNode.style.boxShadow = 'none';
+                
+                const actions = cardNode.querySelector('.card-actions-top');
+                if (actions) actions.style.display = 'none';
+
+                cardNode.onclick = (e) => { e.stopPropagation(); openDetailModal(v.id); };
+
+                wrapper.appendChild(banner);
+                wrapper.appendChild(cardNode);
+                currentCompGridDiv.appendChild(wrapper);
+            }
+        });
+    }
+
+    container.innerHTML = "";
+    container.appendChild(frag);
+    
+    const expectedTotal = bp.selectedGarages ? vehicles.filter(v => bp.selectedGarages.includes(v.loc)).length : vehicles.length;
+    const missingCount = expectedTotal - total;
+    let missingHtml = missingCount > 0 ? `<span style="color:var(--wep); font-size:0.8rem; margin-left:10px;">(${missingCount} cars could not fit in selected garages)</span>` : "";
+    
+    const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
+    progressEl.innerHTML = `Progress: ${completed} / ${total} Cars Placed (${pct}%)${missingHtml}`;
+}
+
+function clearBlueprint() {
+    openConfirm("Discard Blueprint", "Are you sure you want to discard your current organization plan?", () => {
+        safeStorage.removeItem(getBlueprintKey());
+        syncToCloud();
+        closeModal('blueprintModal');
+        showSuccess("Blueprint Discarded", "Your organization plan has been cleared.");
+    });
+}
+
+function openBpMoveModal(vid, tLoc, tFloor, occupantId) {
+    const v = vehicles.find(veh => String(veh.id) === String(vid));
+    if (!v) return;
+    
+    const bpStr = safeStorage.getItem(getBlueprintKey());
+    const bp = bpStr ? JSON.parse(bpStr) : { targets: {} };
+
+    const currentLocDisplay = v.loc;
+    const currentFloorDisplay = v.floor || "Main Floor";
+
+    const bpDetails = document.getElementById('bpMoveDetails');
+    bpDetails.innerHTML = '';
+
+    const gridDiv = document.createElement('div');
+    gridDiv.style.display = 'grid';
+    gridDiv.style.gap = '20px';
+    
+    let occupant = null;
+    if (occupantId) occupant = vehicles.find(o => String(o.id) === String(occupantId));
+
+    gridDiv.style.gridTemplateColumns = occupant ? 'repeat(auto-fit, minmax(260px, 1fr))' : '1fr';
+
+    // Vehicle 1 (Moving Car)
+    const wrap1 = document.createElement('div');
+    const locHeadingHtml = `<div style="margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid #333;">
+        <div style="display:flex; align-items:flex-start; gap:15px;">
+            <div style="flex:1;">
+                <div style="font-size:0.8rem; color:#888; text-transform:uppercase; font-weight:bold;">Moving From</div>
+                <div style="font-size:0.95rem; font-weight:bold; color:#ccc; line-height:1.2;">${currentLocDisplay}<br><span style="font-size:0.8rem; font-weight:normal; color:#888;">${currentFloorDisplay}</span></div>
+            </div>
+            <div style="padding-top:10px; color:var(--accent);"><i class="fas fa-arrow-right"></i></div>
+            <div style="flex:1;">
+                <div style="font-size:0.8rem; color:var(--accent); text-transform:uppercase; font-weight:bold;">Moving To</div>
+                <div style="font-size:1.05rem; font-weight:bold; color:#fff; line-height:1.2;">${tLoc}<br><span style="font-size:0.85rem; font-weight:normal; color:#ccc;">${tFloor === "Main Floor" ? "Main Floor" : tFloor}</span></div>
+            </div>
+        </div>
+    </div>`;
+    wrap1.innerHTML = locHeadingHtml;
+    
+    const vCardNode = createCard(v);
+    vCardNode.style.cursor = 'default';
+    vCardNode.onclick = null;
+    const vActions = vCardNode.querySelector('.card-actions-top');
+    if (vActions) vActions.style.display = 'none';
+    
+    wrap1.appendChild(vCardNode);
+    gridDiv.appendChild(wrap1);
+
+    // Vehicle 2 (Occupant being swapped)
+    if (occupant) {
+        const oldLocDisplay = v.loc;
+        const oldFloorDisplay = v.floor || "Main Floor";
+        
+        const wrap2 = document.createElement('div');
+        const occHeadingHtml = `<div style="margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid #333;">
+            <div style="display:flex; align-items:flex-start; gap:15px;">
+                <div style="flex:1.5;">
+                    <div style="font-size:0.8rem; color:var(--wep); text-transform:uppercase; font-weight:bold;">Garage Full! Swapping With</div>
+                    <div style="font-size:1.05rem; font-weight:bold; color:#ffd700; line-height:1.2;">Target Occupant</div>
+                </div>
+                <div style="padding-top:10px; color:#888;"><i class="fas fa-arrow-right"></i></div>
+                <div style="flex:1;">
+                    <div style="font-size:0.8rem; color:#888; text-transform:uppercase; font-weight:bold;">Auto-transfers to</div>
+                    <div style="font-size:0.95rem; font-weight:bold; color:#ccc; line-height:1.2;">${currentLocDisplay}<br><span style="font-size:0.8rem; font-weight:normal; color:#888;">${oldFloorDisplay}</span></div>
+                </div>
+            </div>
+        </div>`;
+        
+        wrap2.innerHTML = occHeadingHtml;
+        const occCardNode = createCard(occupant);
+        occCardNode.style.cursor = 'default';
+        occCardNode.onclick = null;
+        const occActions = occCardNode.querySelector('.card-actions-top');
+        if (occActions) occActions.style.display = 'none';
+        
+        wrap2.appendChild(occCardNode);
+        gridDiv.appendChild(wrap2);
+    }
+
+    bpDetails.appendChild(gridDiv);
+
+    const execBtn = document.getElementById('bpMoveExecuteBtn');
+    execBtn.onclick = () => {
+        const oldLoc = v.loc;
+        const oldFloor = v.floor || "";
+        const oldSlot = v.slot || "";
+
+        if (occupant) {
+            // SWAP LOGIC
+            const newSlotForV = occupant.slot;
+            occupant.loc = oldLoc;
+            occupant.floor = oldFloor;
+            occupant.slot = oldSlot;
+            
+            v.loc = tLoc;
+            v.floor = tFloor === "Main Floor" ? "" : tFloor;
+            v.slot = newSlotForV;
+        } else {
+            // EMPTY SLOT LOGIC
+            v.loc = tLoc;
+            v.floor = tFloor === "Main Floor" ? "" : tFloor;
+            
+            // Auto-assign first available slot
             let cap = 10;
             const cleanName = normalizeGarageName(tLoc).split(" (")[0];
             const mapKey = Object.keys(FLOOR_MAP).find(k => tLoc.includes(k));
@@ -6723,496 +7054,26 @@ const MAP_ICONS = {
                 const capKey = Object.keys(CAPACITIES).find(m => cleanName.includes(m)) || "DEFAULT";
                 cap = CAPACITIES[capKey] || 10;
             }
-            return cap;
-        }
-
-        // Pass 1: Empty Slots
-        let pass1Changed = true;
-        while (pass1Changed) {
-            pass1Changed = false;
-            pendingMovesArray.forEach(pm => {
-                if (busyVehicles.has(pm.vehicle.id)) return;
-                
-                const count = getGarageCount(pm.target.loc, pm.target.floor);
-                const cap = getGarageCap(pm.target.loc, pm.target.floor);
-                
-                const isSameGarage = (pm.vehicle.loc === pm.target.loc && (pm.vehicle.floor || "Main Floor") === pm.target.floor);
-                const effectiveOtherCount = isSameGarage ? (count - 1) : count;
-                
-                if (effectiveOtherCount < cap) {
-                    pm.priority = 1;
-                    pm.reason = "Move to Empty Slot";
-                    pm.occupant = null;
-                    busyVehicles.add(pm.vehicle.id);
-                    moves.push(pm);
-                    
-                    if (!isSameGarage) {
-                        const targetKey = pm.target.loc + '||' + pm.target.floor;
-                        currentGarageCounts[targetKey] = count + 1;
-                        
-                        const sourceKey = pm.vehicle.loc + '||' + (pm.vehicle.floor || "Main Floor");
-                        const sourceCount = getGarageCount(pm.vehicle.loc, pm.vehicle.floor || "Main Floor");
-                        currentGarageCounts[sourceKey] = Math.max(0, sourceCount - 1);
-                    }
-                    pass1Changed = true;
+            
+            let residents = vehicles.filter(o => o.loc === tLoc && (o.floor || "Main Floor") === (tFloor || "Main Floor") && o.id !== v.id);
+            let usedSlots = residents.map(r => String(r.slot));
+            let emptySlot = "";
+            for (let i = 1; i <= cap; i++) {
+                if (!usedSlots.includes(String(i))) {
+                    emptySlot = String(i);
+                    break;
                 }
-            });
+            }
+            v.slot = emptySlot;
         }
 
-        // Pass 2: Perfect Swaps
-        pendingMovesArray.forEach(pm => {
-            if (busyVehicles.has(pm.vehicle.id)) return;
-            
-            const residents = vehicles.filter(o => 
-                o.loc === pm.target.loc && 
-                (o.floor || "Main Floor") === pm.target.floor && 
-                o.id !== pm.vehicle.id && 
-                !busyVehicles.has(o.id)
-            );
-            
-            const perfectSwap = residents.find(o => {
-                const oT = bp.targets[o.id];
-                return oT && oT.loc === pm.vehicle.loc && (oT.floor || "Main Floor") === (pm.vehicle.floor || "Main Floor");
-            });
-            
-            if (perfectSwap) {
-                pm.priority = 2;
-                pm.reason = "Perfect Swap";
-                pm.occupant = perfectSwap;
-                busyVehicles.add(pm.vehicle.id);
-                busyVehicles.add(perfectSwap.id);
-                moves.push(pm);
-            }
-        });
+        saveGarage(); // Triggers renderBlueprint()
+        closeModal('bpMoveModal');
+        showSuccess("Move Executed", "The vehicle data has been successfully updated.");
+    };
 
-        // Pass 3: Mutual Garage Swaps (cross-garage exchange, different floor)
-        pendingMovesArray.forEach(pm => {
-            if (busyVehicles.has(pm.vehicle.id)) return;
-            const residents = vehicles.filter(o => o.loc === pm.target.loc && (o.floor || "Main Floor") === pm.target.floor && o.id !== pm.vehicle.id && !busyVehicles.has(o.id));
-            const perfectSwap = residents.find(o => {
-                const oT = bp.targets[o.id];
-                return oT && oT.loc === pm.vehicle.loc;
-            });
-            if (perfectSwap) {
-                pm.priority = 3;
-                pm.reason = "Mutual Garage Swap";
-                pm.occupant = perfectSwap;
-                busyVehicles.add(pm.vehicle.id);
-                busyVehicles.add(perfectSwap.id);
-                moves.push(pm);
-            }
-        });
-
-        // Pass 4: Eviction (Garages Auto-Transfer)
-        pendingMovesArray.forEach(pm => {
-            if (busyVehicles.has(pm.vehicle.id)) return;
-            const residents = vehicles.filter(o => o.loc === pm.target.loc && (o.floor || "Main Floor") === pm.target.floor && o.id !== pm.vehicle.id && !busyVehicles.has(o.id));
-            const evictionCandidate = residents.find(o => {
-                const oT = bp.targets[o.id];
-                return !oT || oT.loc !== pm.target.loc || (oT.floor || "Main Floor") !== (pm.target.floor === "Main Floor" ? "Main Floor" : pm.target.floor);
-            });
-            if (evictionCandidate) {
-                pm.priority = 4;
-                pm.reason = "Eviction Swap";
-                pm.occupant = evictionCandidate;
-                busyVehicles.add(pm.vehicle.id);
-                busyVehicles.add(evictionCandidate.id);
-                moves.push(pm);
-            }
-        });
-
-        // Pass 5: Blocked
-        pendingMovesArray.forEach(pm => {
-            if (busyVehicles.has(pm.vehicle.id)) return;
-            pm.priority = 5;
-            pm.reason = "Waiting for Space";
-            pm.occupant = null;
-            moves.push(pm);
-        });
-
-        moves.sort((a,b) => a.priority - b.priority);
-
-        const groups = {
-            1: { title: "Unobstructed Moves (Empty Slots)", color: "var(--accent)", items: [] },
-            2: { title: "Optimal Swaps (Solves 2 placements at once)", color: "var(--wep)", items: [] },
-            3: { title: "Good Swaps (Both cars reach correct building)", color: "#3498db", items: [] },
-            4: { title: "Evictions (Displaces a car to make room)", color: "#e67e22", items: [] },
-            5: { title: "Queued (Waiting for space)", color: "#7f8c8d", items: [] },
-        };
-
-        moves.forEach(pm => {
-            if (groups[pm.priority]) {
-                groups[pm.priority].items.push(pm);
-            }
-        });
-
-        // Use a DocumentFragment so we don't trigger reflows while building
-        const frag = document.createDocumentFragment();
-
-        let hasPending = false;
-        
-        [1, 2, 3, 4, 5].forEach(prio => {
-            const group = groups[prio];
-            if (group.items.length === 0) return;
-            hasPending = true;
-            
-            const groupHeader = document.createElement('div');
-            groupHeader.style.cssText = `font-weight:800; font-size:1.1rem; color:${group.color}; margin-top:20px; border-bottom:1px solid #333; padding-bottom:5px;`;
-            groupHeader.innerText = group.title;
-            frag.appendChild(groupHeader);
-            
-            const gridDiv = document.createElement('div');
-            gridDiv.className = 'vehicle-grid';
-            gridDiv.style.marginTop = '15px';
-            
-            group.items.forEach(item => {
-                const v = item.vehicle;
-                const t = item.target;
-                const occupant = item.occupant;
-                
-                // Generate the standard small card
-                const cardNode = createCard(v);
-                if (cardNode) {
-                    const wrapper = document.createElement('div');
-                    wrapper.style.display = 'flex';
-                    wrapper.style.flexDirection = 'column';
-                    wrapper.style.borderRadius = '12px';
-                    wrapper.style.overflow = 'hidden';
-                    wrapper.style.border = `2px solid ${group.color}`;
-                    wrapper.style.boxShadow = '0 4px 6px rgba(0,0,0,0.3)';
-                    wrapper.style.cursor = 'pointer';
-                    
-                    wrapper.onclick = () => openDetailModal(v.id);
-                    
-                    const banner = document.createElement('div');
-                    banner.style.cssText = `padding:8px 12px; background:${group.color}; color:#fff; font-size:0.85rem; font-weight:800; display:flex; flex-direction:column; gap:4px; line-height:1.2; text-shadow:0 1px 2px rgba(0,0,0,0.5);`;
-                    
-                    const currentFloorText = (v.floor && v.floor !== "Main Floor") ? ` - ${v.floor}` : "";
-                    const targetFloorText = (t.floor && t.floor !== "Main Floor") ? ` - ${t.floor}` : "";
-                    
-                    let destSlotDisp = t.slot;
-                    if (occupant) {
-                        destSlotDisp = occupant.slot ? occupant.slot : 'Any';
-                    } else if (prio === 1) { // Empty slot
-                        const residentsInTarget = vehicles.filter(veh => veh.loc === t.loc && (veh.floor || "Main Floor") === (t.floor || "Main Floor") && veh.id !== v.id);
-                        const allHaveSlots = residentsInTarget.every(veh => veh.slot && String(veh.slot).trim() !== "");
-                        if (!allHaveSlots) {
-                            destSlotDisp = 'Any Available';
-                        } else {
-                            destSlotDisp = t.slot || 'Auto';
-                        }
-                    } else {
-                        destSlotDisp = 'Wait';
-                    }
-
-                    let statusText = `<span style="font-size:0.75rem; font-weight:600; opacity:0.95;">From: ${v.loc}${currentFloorText} <br>To: ${t.loc}${targetFloorText} (Slot: ${destSlotDisp})</span>`;
-                    
-                    if (occupant) {
-                        statusText += `<span style="font-size:0.75rem; font-weight:700; color:#fff; margin-top:4px; display:flex; align-items:center; gap:5px;"><i class="fas fa-exchange-alt"></i> ${item.reason}: ${occupant.model}</span>`;
-                    }
-                    
-                    const headDiv = document.createElement('div');
-                    headDiv.style.cssText = "display:flex; justify-content:space-between; align-items:center;";
-                    headDiv.innerHTML = `<div><i class="fas ${prio === 5 ? 'fa-hourglass-half' : 'fa-arrow-right'}" style="margin-right:5px;"></i> ${prio === 5 ? 'WAITING' : 'MOVE VEHICLE'}</div>`;
-                    
-                    const execBtnWrap = document.createElement('div');
-                    const execBtn = document.createElement('button');
-                    execBtn.className = 'btn-pri';
-                    execBtn.style.cssText = `padding:2px 8px; height:auto; border:1px solid rgba(255,255,255,0.4); font-size:0.7rem; border-radius:4px; min-height:22px; background:rgba(0,0,0,0.3); ${prio === 5 ? 'opacity:0.5; cursor:not-allowed;' : ''}`;
-                    execBtn.innerHTML = "<i class=\"fas fa-truck-loading\" style=\"margin-right:4px;\"></i> Move";
-                    
-                    if (prio !== 5) {
-                        execBtn.onclick = (e) => {
-                            e.stopPropagation();
-                            openBpMoveModal(v.id, t.loc, t.floor, t.slot, occupant ? occupant.id : null);
-                        };
-                    } else {
-                        execBtn.onclick = (e) => {
-                            e.stopPropagation();
-                            openAlert("Action Blocked", "This move is currently waiting for space. Complete Eviction Swaps or Unobstructed Moves in " + t.loc + " first.");
-                        };
-                    }
-                    
-                    execBtnWrap.appendChild(execBtn);
-                    headDiv.appendChild(execBtnWrap);
-                    
-                    banner.appendChild(headDiv);
-                    if (statusText) {
-                        const statDiv = document.createElement('div');
-                        statDiv.innerHTML = statusText;
-                        banner.appendChild(statDiv);
-                    }
-                    
-                    cardNode.style.border = 'none';
-                    cardNode.style.borderRadius = '0';
-                    cardNode.style.boxShadow = 'none';
-                    
-                    const actions = cardNode.querySelector('.card-actions-top');
-                    if (actions) actions.style.display = 'none';
-                    
-                    cardNode.onclick = (e) => { e.stopPropagation(); openDetailModal(v.id); };
-                    
-                    wrapper.appendChild(banner);
-                    wrapper.appendChild(cardNode);
-                    gridDiv.appendChild(wrapper); 
-                }
-            });
-            frag.appendChild(gridDiv);
-        });
-
-        if (!hasPending && total > 0) {
-            const allDone = document.createElement('div');
-            allDone.style.cssText = "text-align:center; padding:30px; font-size:1.2rem; color:var(--sell); font-weight:bold;";
-            allDone.innerHTML = `<i class="fas fa-check-circle" style="font-size:2rem; display:block; margin-bottom:10px;"></i> All vehicles are organized!`;
-            frag.appendChild(allDone);
-        }
-
-        if (completedVehicles.length > 0) {
-            const compHeader = document.createElement('div');
-            compHeader.style.cssText = "font-weight:800; font-size:1.1rem; color:var(--sell); margin-top:30px; border-bottom:1px solid #333; padding-bottom:5px;";
-            compHeader.innerHTML = `<i class="fas fa-check"></i> Completed (${completed})`;
-            frag.appendChild(compHeader);
-
-            let currentCompLoc = null;
-            let currentCompGridDiv = null;
-
-            completedVehicles.sort((a,b) => {
-                if (a.target.loc !== b.target.loc) return a.target.loc.localeCompare(b.target.loc);
-                if (a.target.floor !== b.target.floor) return (a.target.floor || "").localeCompare(b.target.floor || "");
-                return parseInt(a.target.slot) - parseInt(b.target.slot);
-            }).forEach(item => {
-                if (item.target.loc !== currentCompLoc) {
-                    currentCompLoc = item.target.loc;
-                    const countInLoc = completedVehicles.filter(cv => cv.target.loc === currentCompLoc).length;
-                    
-                    const groupTitle = document.createElement('div');
-                    groupTitle.style.cssText = "font-weight:700; font-size:1.05rem; color:var(--text); border-bottom:1px solid #333; margin-top:15px; padding-bottom:5px; margin-bottom:5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;";
-                    
-                    const titleText = document.createElement('span');
-                    titleText.textContent = `${currentCompLoc} (${countInLoc} Completed)`;
-                    groupTitle.appendChild(titleText);
-                    
-                    const arrow = document.createElement('i');
-                    arrow.className = 'fas fa-chevron-down';
-                    arrow.style.transition = 'transform 0.2s';
-                    arrow.style.transform = 'rotate(-90deg)';
-                    groupTitle.appendChild(arrow);
-                    
-                    currentCompGridDiv = document.createElement('div');
-                    currentCompGridDiv.className = 'vehicle-grid hidden';
-                    currentCompGridDiv.style.marginTop = "10px";
-                    
-                    const thisGrid = currentCompGridDiv;
-                    
-                    groupTitle.onclick = () => {
-                        thisGrid.classList.toggle('hidden');
-                        if (thisGrid.classList.contains('hidden')) {
-                            arrow.style.transform = 'rotate(-90deg)';
-                        } else {
-                            arrow.style.transform = '';
-                        }
-                    };
-                    
-                    frag.appendChild(groupTitle);
-                    frag.appendChild(currentCompGridDiv);
-                }
-
-                const v = item.vehicle;
-                const t = item.target;
-
-                const cardNode = createCard(v);
-                if (cardNode) {
-                    const wrapper = document.createElement('div');
-                    wrapper.style.display = 'flex';
-                    wrapper.style.flexDirection = 'column';
-                    wrapper.style.borderRadius = '12px';
-                    wrapper.style.overflow = 'hidden';
-                    wrapper.style.border = '2px solid var(--sell)';
-                    wrapper.style.boxShadow = 'none';
-                    wrapper.style.cursor = 'pointer';
-                    wrapper.style.opacity = "0.5";
-                    wrapper.style.filter = "grayscale(100%)";
-                    
-                    wrapper.onclick = () => openDetailModal(v.id);
-                    
-                    const banner = document.createElement('div');
-                    banner.style.cssText = "padding:6px 12px; background:var(--sell); color:#fff; font-size:0.8rem; font-weight:800; display:flex; align-items:center; line-height:1;";
-                    banner.innerHTML = `<i class="fas fa-check" style="margin-right:6px;"></i> IN POSITION`;
-                    
-                    cardNode.style.border = 'none';
-                    cardNode.style.borderRadius = '0';
-                    cardNode.style.boxShadow = 'none';
-                    
-                    const actions = cardNode.querySelector('.card-actions-top');
-                    if (actions) actions.style.display = 'none';
-
-                    cardNode.onclick = (e) => { e.stopPropagation(); openDetailModal(v.id); };
-
-                    wrapper.appendChild(banner);
-                    wrapper.appendChild(cardNode);
-                    currentCompGridDiv.appendChild(wrapper);
-                }
-            });
-        }
-
-        container.innerHTML = "";
-        container.appendChild(frag);
-        
-        // Status Bar text
-        const expectedTotal = bp.selectedGarages ? vehicles.filter(v => bp.selectedGarages.includes(v.loc)).length : vehicles.length;
-        const missingCount = expectedTotal - total;
-        let missingHtml = missingCount > 0 ? `<span style="color:var(--wep); font-size:0.8rem; margin-left:10px;">(${missingCount} cars could not fit in selected garages)</span>` : "";
-        
-        const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
-        progressEl.innerHTML = `Progress: ${completed} / ${total} Cars Placed (${pct}%)${missingHtml}`;
-    }
-
-    function clearBlueprint() {
-        openConfirm("Discard Blueprint", "Are you sure you want to discard your current organization plan?", () => {
-            safeStorage.removeItem(getBlueprintKey());
-            syncToCloud();
-            closeModal('blueprintModal');
-            showSuccess("Blueprint Discarded", "Your organization plan has been cleared.");
-        });
-    }
-
-    function openBpMoveModal(vid, tLoc, tFloor, tSlot, occupantId) {
-        const v = vehicles.find(veh => String(veh.id) === String(vid));
-        if (!v) return;
-
-        const currentLocDisplay = v.loc;
-        const currentFloorDisplay = v.floor || "Main Floor";
-
-        const bpDetails = document.getElementById('bpMoveDetails');
-        bpDetails.innerHTML = '';
-
-        const gridDiv = document.createElement('div');
-        gridDiv.style.display = 'grid';
-        gridDiv.style.gap = '20px';
-        
-        let occupant = null;
-        if (occupantId) occupant = vehicles.find(o => String(o.id) === String(occupantId));
-
-        gridDiv.style.gridTemplateColumns = occupant ? 'repeat(auto-fit, minmax(260px, 1fr))' : '1fr';
-
-        // Vehicle 1
-        const wrap1 = document.createElement('div');
-        
-        let destSlotDisp = String(tSlot);
-        if (occupant) {
-            destSlotDisp = occupant.slot ? occupant.slot : 'Any';
-        } else {
-            const residentsInTarget = vehicles.filter(veh => veh.loc === tLoc && (veh.floor || "Main Floor") === (tFloor || "Main Floor") && veh.id !== v.id);
-            const allHaveSlots = residentsInTarget.every(veh => veh.slot && String(veh.slot).trim() !== "");
-            if (!allHaveSlots) {
-                destSlotDisp = 'Any Available';
-            }
-        }
-
-        const locHeadingHtml = `<div style="margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid #333;">
-            <div style="display:flex; align-items:flex-start; gap:15px;">
-                <div style="flex:1;">
-                    <div style="font-size:0.8rem; color:#888; text-transform:uppercase; font-weight:bold;">Moving From</div>
-                    <div style="font-size:0.95rem; font-weight:bold; color:#ccc; line-height:1.2;">${currentLocDisplay}<br><span style="font-size:0.8rem; font-weight:normal; color:#888;">${currentFloorDisplay}${v.slot ? ' (Slot ' + v.slot + ')' : ''}</span></div>
-                </div>
-                <div style="padding-top:10px; color:var(--accent);"><i class="fas fa-arrow-right"></i></div>
-                <div style="flex:1;">
-                    <div style="font-size:0.8rem; color:var(--accent); text-transform:uppercase; font-weight:bold;">Moving To</div>
-                    <div style="font-size:1.05rem; font-weight:bold; color:#fff; line-height:1.2;">${tLoc}<br><span style="font-size:0.85rem; font-weight:normal; color:#ccc;">${tFloor === "Main Floor" ? "Main Floor" : tFloor} (Slot ${destSlotDisp})</span></div>
-                </div>
-            </div>
-        </div>`;
-        
-        wrap1.innerHTML = locHeadingHtml;
-        
-        const vCardNode = createCard(v);
-        vCardNode.style.cursor = 'default';
-        vCardNode.onclick = null;
-        const vActions = vCardNode.querySelector('.card-actions-top');
-        if (vActions) vActions.style.display = 'none';
-        
-        wrap1.appendChild(vCardNode);
-        gridDiv.appendChild(wrap1);
-
-        if (occupant) {
-            const oldLocDisplay = v.loc;
-            const oldFloorDisplay = v.floor || "Main Floor";
-            
-            const wrap2 = document.createElement('div');
-            
-            const occHeadingHtml = `<div style="margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid #333;">
-                <div style="display:flex; align-items:flex-start; gap:15px;">
-                    <div style="flex:1.5;">
-                        <div style="font-size:0.8rem; color:var(--wep); text-transform:uppercase; font-weight:bold;">Vehicle to Replace</div>
-                        <div style="font-size:1.05rem; font-weight:bold; color:#ffd700; line-height:1.2;">Target Occupant</div>
-                    </div>
-                    <div style="padding-top:10px; color:#888;"><i class="fas fa-arrow-right"></i></div>
-                    <div style="flex:1;">
-                        <div style="font-size:0.8rem; color:#888; text-transform:uppercase; font-weight:bold;">Auto-transfers to</div>
-                        <div style="font-size:0.95rem; font-weight:bold; color:#ccc; line-height:1.2;">${oldLocDisplay}<br><span style="font-size:0.8rem; font-weight:normal; color:#888;">${oldFloorDisplay}${v.slot ? ' (Slot ' + v.slot + ')' : ''}</span></div>
-                    </div>
-                </div>
-            </div>`;
-            
-            wrap2.innerHTML = occHeadingHtml;
-            
-            const occCardNode = createCard(occupant);
-            occCardNode.style.cursor = 'default';
-            occCardNode.onclick = null;
-            const occActions = occCardNode.querySelector('.card-actions-top');
-            if (occActions) occActions.style.display = 'none';
-            
-            wrap2.appendChild(occCardNode);
-            gridDiv.appendChild(wrap2);
-        }
-
-        bpDetails.appendChild(gridDiv);
-
-        const execBtn = document.getElementById('bpMoveExecuteBtn');
-        execBtn.onclick = () => {
-            const oldLoc = v.loc;
-            const oldFloor = v.floor || "";
-            const oldSlot = v.slot || "";
-
-            if (occupant) {
-                const newSlotForV = occupant.slot;
-                occupant.loc = oldLoc;
-                occupant.floor = oldFloor;
-                occupant.slot = oldSlot;
-                
-                v.loc = tLoc;
-                v.floor = tFloor === "Main Floor" ? "" : tFloor;
-                v.slot = newSlotForV;
-            } else {
-                v.loc = tLoc;
-                v.floor = tFloor === "Main Floor" ? "" : tFloor;
-                
-                let emptySlot = String(tSlot);
-                let isSlotTaken = vehicles.some(o => o.loc === tLoc && (o.floor || "Main Floor") === tFloor && o.id !== v.id && String(o.slot) === emptySlot);
-                
-                if (isSlotTaken) {
-                    let cap = getFloorCap(tLoc, tFloor) || 10;
-                    for (let pos = 1; pos <= cap; pos++) {
-                        let posStr = String(pos);
-                        let taken = vehicles.some(o => o.loc === tLoc && (o.floor || "Main Floor") === tFloor && o.id !== v.id && String(o.slot) === posStr);
-                        if (!taken) {
-                            emptySlot = posStr;
-                            break;
-                        }
-                    }
-                }
-                v.slot = emptySlot;
-            }
-
-            saveGarage();
-            
-            closeModal('bpMoveModal');
-            showSuccess("Move Executed", "The vehicle(s) have been successfully moved.");
-            renderBlueprint();
-        };
-
-        openModal('bpMoveModal');
-    }
+    openModal('bpMoveModal');
+}
 
     // PWA SERVICE WORKER REGISTRATION
     if ('serviceWorker' in navigator) {
